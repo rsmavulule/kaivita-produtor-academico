@@ -10,9 +10,11 @@ Cinco tabelas, alinhadas com a SRS v1.1 §3 e com o diagrama de classes:
 - ``user_actor_access`` — autorização para representar um actor.
   Não é um papel comercial.
 
-Não há registo, sessão, JWT nem verificação de palavra-passe.
-As operações UML (``isActive``, ``canManage``, ``matches``) ficam para
-o incremento que as usar. A unicidade do par é uma restrição da base.
+Não há registo público. O hash Argon2id, o JWT e os endpoints de
+autenticação estão no incremento I1.2 (``app.passwords``, ``app.tokens``
+e ``app.auth``). As operações UML ``canManage`` e ``matches`` continuam
+por implementar. A conta activa corresponde a ``UserStatus.ACTIVE``.
+A unicidade do par actor/papel é uma restrição da base.
 
 Os literais de ``ActorStatus``, ``UserStatus``, ``AccessLevel`` e
 ``AccessStatus`` não vêm listados na SRS nem no diagrama. Os valores

@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 from alembic.config import Config
 from alembic.script import ScriptDirectory
+from pydantic import ValidationError
 
 from app.config import Settings
 from app.db import check_database
@@ -16,11 +17,28 @@ REPO_ROOT = BACKEND_ROOT.parent
 
 def test_settings_default_to_local_postgres(monkeypatch):
     monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("JWT_SECRET", "x" * 32)
     configured = Settings(_env_file=None)
 
     assert configured.app_name == "Kaivita Produtor Académico"
     assert configured.database_url.startswith("postgresql+psycopg://")
     assert configured.database_url.endswith("/kaivita")
+    assert configured.jwt_expires_in == 1800
+    assert configured.jwt_issuer == "kaivita-produtor-academico"
+
+
+def test_jwt_secret_is_required_and_has_no_default(monkeypatch):
+    monkeypatch.delenv("JWT_SECRET", raising=False)
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None)
+
+    monkeypatch.setenv("JWT_SECRET", "")
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None)
+
+    monkeypatch.setenv("JWT_SECRET", "curto")
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None)
 
 
 def test_alembic_chain_preserves_the_empty_initial_revision():
@@ -49,6 +67,9 @@ def test_compose_declares_the_three_services():
     assert "postgres:16-alpine" in compose
     for service in ("\n  db:", "\n  api:", "\n  web:"):
         assert service in compose
+    assert "JWT_SECRET: ${JWT_SECRET:?" in compose
+    assert "JWT_EXPIRES_IN:" in compose
+    assert "JWT_ISSUER:" in compose
 
 
 def test_env_example_and_gitignore_keep_secrets_out_of_git():
@@ -56,6 +77,8 @@ def test_env_example_and_gitignore_keep_secrets_out_of_git():
     ignore = (REPO_ROOT / ".gitignore").read_text(encoding="utf-8")
 
     assert "DATABASE_URL=postgresql+psycopg://" in example
+    assert "JWT_SECRET=" in example.splitlines()
+    assert "token_urlsafe" in example
     ignored_lines = {line.strip() for line in ignore.splitlines()}
     assert ".env" in ignored_lines
     assert ".env.example" not in ignored_lines

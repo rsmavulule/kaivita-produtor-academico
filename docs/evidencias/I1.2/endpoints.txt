@@ -1,0 +1,33 @@
+Evidência dos endpoints — I1.2
+Chamada real com TestClient e PostgreSQL, dentro de uma transacção desfeita.
+Não se guardam tokens, palavras-passe nem o segredo.
+
+POST /auth/login
+Entrada de forma válida, email com maiúsculas e espaços laterais.
+HTTP 200
+Chaves: access_token, expires_in, token_type
+token_type: bearer
+expires_in: 1800
+O token foi omitido. O comprimento observado foi 235 caracteres.
+
+GET /auth/me
+Authorization: Bearer <token omitido>
+HTTP 200
+Chaves: email, id, status
+status: active
+
+POST /auth/login com palavra-passe errada
+HTTP 401
+{"detail": "Credenciais inválidas."}
+WWW-Authenticate: Bearer
+
+GET /auth/me sem Authorization
+HTTP 401
+{"detail": "Token inválido."}
+WWW-Authenticate: Bearer
+
+GET /auth/me com Bearer malformado
+HTTP 401
+{"detail": "Token inválido."}
+WWW-Authenticate: Bearer
+O registo associado foi só "Token rejeitado: DecodeError", o tipo da excepção.

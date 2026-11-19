@@ -27,6 +27,9 @@ services:
       # Dentro da rede, o Postgres escuta sempre em 5432.
       # POSTGRES_PORT é só a porta publicada no anfitrião (ex.: 5435:5432).
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-kaivita}:${POSTGRES_PASSWORD:-kaivita_dev}@db:5432/${POSTGRES_DB:-kaivita}
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no .env. Veja .env.example}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1800}
+      JWT_ISSUER: ${JWT_ISSUER:-kaivita-produtor-academico}
     ports:
       - "${API_PORT:-8000}:8000"
     depends_on:

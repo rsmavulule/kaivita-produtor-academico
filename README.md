@@ -2,10 +2,11 @@
 
 Protótipo de Licenciatura em Desenvolvimento de Software. É um projecto
 independente, construído de raiz para a monografia. O repositório contém a
-fundação técnica (I0) e o modelo persistente de identidade e acesso (I1.1).
+fundação técnica (I0), o modelo de identidade (I1.1) e a autenticação (I1.2).
 
-Não há ainda endpoints de autenticação, registo, sessão, produtores, produtos,
-ofertas, filas, Redis, inteligência artificial nem sincronização offline.
+Não há registo público, recuperação de palavra-passe, refresh tokens,
+autorização de representação, produtores, produtos, ofertas, filas, Redis,
+inteligência artificial nem sincronização offline.
 
 ## Arquitectura
 
@@ -14,7 +15,7 @@ Três processos, um repositório:
 | Serviço | Tecnologia | Função neste incremento |
 | --- | --- | --- |
 | `web` | Next.js e TypeScript | Página inicial com ligações à API |
-| `api` | FastAPI e Python | `GET /health` e documentação em `/docs` |
+| `api` | FastAPI e Python | `GET /health`, `POST /auth/login`, `GET /auth/me` |
 | `db` | PostgreSQL 16 | Identidade e acesso, versão Alembic `0002_identity_access` |
 
 A interface não chama a API por JavaScript. Os botões abrem `/health` e
@@ -47,6 +48,9 @@ de acesso e semeia os três papéis comerciais. As restrições ficam na base.
 - **Testes sem base obrigatória.** O pytest substitui `check_database` por um
 duplo. O contacto real com o PostgreSQL é opcional (`RUN_DB_TESTS=1`) e
 também pode ser visto ao abrir `/health` com o Compose no ar.
+- **Segredo JWT obrigatório.** ``JWT_SECRET`` não tem valor por omissão.
+Sem ele, a API não arranca. A expiração inicial é 30 minutos e o emissor
+é ``kaivita-produtor-academico``.
 - **Credenciais só de desenvolvimento.** Os valores por omissão estão no
 `compose.yaml` e no `.env.example`. O `.env` real fica de fora do Git.
 A palavra-passe de desenvolvimento tem de ser segura para uma URL.
@@ -80,10 +84,16 @@ uma peça pedida neste incremento.
 │   │   ├── config.py
 │   │   ├── db.py
 │   │   ├── identity.py
+│   │   ├── passwords.py
+│   │   ├── tokens.py
+│   │   ├── accounts.py
+│   │   ├── auth.py
+│   │   ├── create_user.py
 │   │   └── main.py
 │   └── tests/
 │       ├── conftest.py
 │       ├── test_api.py
+│       ├── test_auth.py
 │       ├── test_foundation.py
 │       └── test_identity.py
 └── frontend/
@@ -197,7 +207,7 @@ responderem. A página em si não depende da API.
 
 ## Incremento I1.1 — identidade e acesso
 
-O modelo persistente está em `backend/app/identity.py`. Não há rotas novas.
+O modelo persistente está em `backend/app/identity.py`. As rotas entram no I1.2.
 
 | Tabela | Chave | Função |
 | --- | --- | --- |
@@ -216,11 +226,34 @@ duplica linhas.
 Apagar um utilizador, um actor ou um papel que ainda tenha associação é
 recusado pela chave estrangeira.
 
+## Incremento I1.2 — autenticação
+
+O login é `POST /auth/login`. A consulta da conta é `GET /auth/me`, com
+`Authorization: Bearer`. O token HS256 expira ao fim de 30 minutos e leva
+apenas o UUID do utilizador, o emissor, `iat` e `exp`.
+
+A palavra-passe fica como resumo Argon2id. Não há endpoint de registo.
+Uma conta de teste cria-se na pasta `backend`, com o segredo já definido:
+
+```powershell
+python -m app.create_user --email pessoa@example.com
+```
+
+A palavra-passe é pedida no terminal, ou lida de uma linha de stdin.
+Não entra nos argumentos e não é impressa.
+
+Para gerar o segredo, uma vez, e colá-lo no `.env` local:
+
+```powershell
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+```
+
 ## Limitações deste incremento
 
 - `0001_initial` permanece vazia. As tabelas de identidade nascem em `0002`.
-- `password_hash` é guardado, mas este incremento não calcula nem verifica o resumo.
+Não houve migração nova: a conta já tinha `email`, `password_hash` e `status`.
 - O email tem de estar em minúsculas, conter `@` e não ter espaços. Não é um validador RFC.
+- A palavra-passe de login tem entre 8 e 128 caracteres.
 - `pytest` sem `RUN_DB_TESTS=1` não abre ligação ao PostgreSQL. Confirma o
 contrato da API, a cadeia de migrações e a forma do modelo em Python.
 - O Compose constrói a interface em modo de produção. Alterar a página
@@ -234,7 +267,7 @@ Não há exportador nem telemetria configurada.
 
 ## Fora deste incremento
 
-Endpoints de autenticação, registo, início de sessão, JWT, perfis de produtor,
-produtos, ofertas, contactos públicos, carregamento de ficheiros, filas e
-qualquer sincronização entre clientes. O próximo passo só deve começar depois
-da validação do I1.1.
+Registo público, recuperação de palavra-passe, refresh tokens, autorização
+de representação, perfis de produtor, produtos, ofertas, contactos públicos,
+interfaces de login, carregamento de ficheiros, filas e qualquer sincronização
+entre clientes. O próximo passo só deve começar depois da validação do I1.2.

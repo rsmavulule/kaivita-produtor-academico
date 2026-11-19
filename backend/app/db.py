@@ -6,9 +6,10 @@ ou numa migração.
 """
 
 import logging
+from collections.abc import Iterator
 
 from sqlalchemy import MetaData, create_engine, text
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, Session
 
 from app.config import settings
 
@@ -27,6 +28,20 @@ class Base(DeclarativeBase):
     metadata = MetaData(
         naming_convention={"pk": "pk_%(table_name)s"},
     )
+
+
+def get_session() -> Iterator[Session]:
+    """Abre uma sessão síncrona e fecha-a no fim do pedido."""
+
+    session = Session(engine)
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 def check_database() -> bool:

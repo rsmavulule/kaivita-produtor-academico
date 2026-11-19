@@ -1,0 +1,77 @@
+Cenários do I1.2 — autenticação
+PostgreSQL 16 em localhost:5435. Revisão Alembic: 0002_identity_access.
+Resultado global: 49 passed em 2.26s (docs/evidencias/I1.2/pytest-resultados.txt).
+Os 31 testes do I1.1 continuam aprovados. Não foi criada migração nova.
+
+1. Criação controlada de conta
+   python -m app.create_user --email, palavra-passe fora dos argumentos.
+   Email normalizado, estado active, resumo Argon2id. Saída sem palavra-passe nem hash.
+   PASSED test_command_creates_an_active_account_without_printing_secrets
+
+2. Hash e verificação
+   Resumo começa por $argon2id$. A palavra-passe não aparece no resumo.
+   Verificação correcta aceita; incorrecta e resumo inválido recusam.
+   PASSED test_hash_and_verify_round_trip
+
+3. Palavra-passe incorrecta
+   POST /auth/login → 401, detalhe "Credenciais inválidas.", WWW-Authenticate: Bearer.
+   PASSED test_login_hides_unknown_wrong_and_disabled_accounts
+
+4. Conta inexistente
+   Mesma resposta que a palavra-passe incorrecta. A verificação usa um resumo fictício.
+   PASSED test_missing_account_still_checks_a_dummy_hash
+   PASSED test_login_hides_unknown_wrong_and_disabled_accounts
+
+5. Conta desactivada
+   O resumo real é verificado e a conta é recusada. A resposta HTTP é a mesma.
+   PASSED test_disabled_account_is_rejected_after_the_hash_check
+   PASSED test_login_hides_unknown_wrong_and_disabled_accounts
+
+6. Login válido
+   200 com access_token, token_type bearer e expires_in 1800.
+   PASSED test_login_returns_a_bearer_token
+
+7. Token válido
+   GET /auth/me devolve id, email e status active.
+   PASSED test_me_returns_only_the_active_account
+
+8. Token expirado
+   401 "Token inválido."
+   PASSED test_token_accepts_only_hs256_from_this_issuer
+   PASSED test_me_rejects_expired_forged_and_disallowed_tokens
+
+9. Assinatura inválida
+   Token assinado com outro segredo é recusado.
+   PASSED nos mesmos dois testes.
+
+10. Algoritmo não permitido
+    HS512, mesmo com o segredo da aplicação, é recusado. Só HS256 é aceite.
+    PASSED nos mesmos dois testes.
+
+11. Token malformado
+    Valores como "nao-e-um-token" e "a.b.c", e o esquema Basic, devolvem 401.
+    PASSED test_me_rejects_expired_forged_and_disallowed_tokens
+
+12. Ausência de token
+    GET /auth/me sem Authorization devolve 401 e WWW-Authenticate: Bearer.
+    PASSED test_me_rejects_expired_forged_and_disallowed_tokens
+
+13. Utilizador inexistente após emissão
+    A conta é apagada depois do token. /auth/me devolve 401.
+    PASSED test_me_rejects_a_token_whose_account_disappeared_or_was_disabled
+
+14. Conta desactivada após emissão
+    O estado passa a disabled. /auth/me consulta a base e devolve 401.
+    PASSED no mesmo teste.
+
+15. /auth/me sem dados sensíveis
+    O JSON tem só id, email e status. Não leva palavra-passe, resumo nem token.
+    PASSED test_me_returns_only_the_active_account
+
+16. Regressão
+    Os testes de API, fundação e identidade do I1.1 passaram na mesma sessão.
+
+Entrada inválida, fora da lista mas verificada: email sem @, palavra-passe curta
+e corpo incompleto devolvem 422 sem repetir o valor enviado.
+Email duplicado no comando devolve código 1 e a mensagem
+"Já existe uma conta com esse email."
