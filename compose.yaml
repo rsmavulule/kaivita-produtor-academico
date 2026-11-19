@@ -24,7 +24,9 @@ services:
     build:
       context: ./backend
     environment:
-      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-kaivita}:${POSTGRES_PASSWORD:-kaivita_dev}@db:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-kaivita}
+      # Dentro da rede, o Postgres escuta sempre em 5432.
+      # POSTGRES_PORT é só a porta publicada no anfitrião (ex.: 5435:5432).
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-kaivita}:${POSTGRES_PASSWORD:-kaivita_dev}@db:5432/${POSTGRES_DB:-kaivita}
     ports:
       - "${API_PORT:-8000}:8000"
     depends_on:

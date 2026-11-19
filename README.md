@@ -33,23 +33,23 @@ com `"database": "down"`.
 ## Decisões técnicas
 
 - **Monorepo com duas pastas.** `frontend/` e `backend/` mantêm um ciclo de
-  vida cada um, sem transformar a fundação em microsserviços.
+vida cada um, sem transformar a fundação em microsserviços.
 - **SQLAlchemy 2 síncrono.** O código de ligação cabe numa função e é mais
-  directo de explicar na defesa do que uma stack assíncrona. O volume esperado
-  de um protótipo académico não justifica `async`.
+directo de explicar na defesa do que uma stack assíncrona. O volume esperado
+de um protótipo académico não justifica `async`.
 - **Uma só URL de base de dados.** `app.config.Settings` lê `DATABASE_URL`.
-  O Alembic reutiliza essa definição e o mesmo motor SQLAlchemy.
+O Alembic reutiliza essa definição e o mesmo motor SQLAlchemy.
 - **Migração inicial vazia.** `0001_initial` não cria tabelas de negócio.
-  Aplica-se para criar `alembic_version` e fixar o ponto de partida do esquema.
+Aplica-se para criar `alembic_version` e fixar o ponto de partida do esquema.
 - **Testes sem base obrigatória.** O pytest substitui `check_database` por um
-  duplo. O contacto real com o PostgreSQL é opcional (`RUN_DB_TESTS=1`) e
-  também pode ser visto ao abrir `/health` com o Compose no ar.
+duplo. O contacto real com o PostgreSQL é opcional (`RUN_DB_TESTS=1`) e
+também pode ser visto ao abrir `/health` com o Compose no ar.
 - **Credenciais só de desenvolvimento.** Os valores por omissão estão no
-  `compose.yaml` e no `.env.example`. O `.env` real fica de fora do Git.
-  A palavra-passe de desenvolvimento tem de ser segura para uma URL.
+`compose.yaml` e no `.env.example`. O `.env` real fica de fora do Git.
+A palavra-passe de desenvolvimento tem de ser segura para uma URL.
 - **Dependências curtas.** Sem ORM de sessão, sem CORS, sem biblioteca de
-  componentes e sem cliente HTTP no frontend. Cada dependência corresponde a
-  uma peça pedida neste incremento.
+componentes e sem cliente HTTP no frontend. Cada dependência corresponde a
+uma peça pedida neste incremento.
 
 ## Árvore
 
@@ -187,17 +187,17 @@ responderem. A página em si não depende da API.
 ## Limitações deste incremento
 
 - A migração `0001_initial` não cria tabelas de domínio. Depois de aplicada,
-  a base só tem `alembic_version`.
+a base só tem `alembic_version`.
 - `pytest` sem `RUN_DB_TESTS=1` não abre ligação ao PostgreSQL. Confirma o
-  contrato da API e os ficheiros de configuração.
+contrato da API e os ficheiros de configuração.
 - O Compose constrói a interface em modo de produção. Alterar a página
-  exige um novo `docker compose up --build`.
+exige um novo `docker compose up --build`.
 - `npm audit` reporta avisos no PostCSS que vem fechado dentro do Next.js
-  15.5.29. O cenário é um CSS de terceiros durante o build. O CSS deste
-  incremento é o nosso `globals.css`. A correcção publicada pede o Next.js 16,
-  que fica de fora para não mudar de geração sem necessidade.
+15.5.29. O cenário é um CSS de terceiros durante o build. O CSS deste
+incremento é o nosso `globals.css`. A correcção publicada pede o Next.js 16,
+que fica de fora para não mudar de geração sem necessidade.
 - O FastAPI 0.162 traz `opentelemetry-api` como dependência transitiva.
-  Não há exportador nem telemetria configurada.
+Não há exportador nem telemetria configurada.
 
 ## Fora deste incremento
 
