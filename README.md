@@ -2,11 +2,12 @@
 
 Protótipo de Licenciatura em Desenvolvimento de Software. É um projecto
 independente, construído de raiz para a monografia. O repositório contém a
-fundação técnica (I0), o modelo de identidade (I1.1), a autenticação (I1.2)
-e a autorização de representação (I1.3).
+fundação técnica (I0), o modelo de identidade (I1.1), a autenticação (I1.2),
+a autorização de representação (I1.3) e a gestão de actores e papéis
+comerciais (I2).
 
 Não há registo público, recuperação de palavra-passe, refresh tokens,
-concessão de acessos, produtores, produtos, ofertas, filas, Redis,
+concessão de acessos a outros utilizadores, produtos, ofertas, filas, Redis,
 inteligência artificial nem sincronização offline.
 
 ## Arquitectura
@@ -16,7 +17,7 @@ Três processos, um repositório:
 | Serviço | Tecnologia | Função neste incremento |
 | --- | --- | --- |
 | `web` | Next.js e TypeScript | Página inicial com ligações à API |
-| `api` | FastAPI e Python | `GET /health`, `POST /auth/login`, `GET /auth/me` |
+| `api` | FastAPI e Python | Saúde, autenticação, actores e papéis comerciais |
 | `db` | PostgreSQL 16 | Identidade e acesso, versão Alembic `0002_identity_access` |
 
 A interface não chama a API por JavaScript. Os botões abrem `/health` e
@@ -89,12 +90,18 @@ uma peça pedida neste incremento.
 │   │   ├── tokens.py
 │   │   ├── accounts.py
 │   │   ├── auth.py
+│   │   ├── authorization.py
+│   │   ├── actors.py
+│   │   ├── actor_roles.py
+│   │   ├── roles.py
 │   │   ├── create_user.py
 │   │   └── main.py
 │   └── tests/
 │       ├── conftest.py
 │       ├── test_api.py
 │       ├── test_auth.py
+│       ├── test_authorization.py
+│       ├── test_actor_roles.py
 │       ├── test_foundation.py
 │       └── test_identity.py
 └── frontend/
@@ -263,18 +270,42 @@ conta. Actor inexistente, associação em falta, associação `revoked` e nível
 insuficiente respondem 404 com o mesmo texto. Token ausente ou inválido,
 e conta `disabled`, respondem 401.
 
-Não há endpoint para conceder ou revogar acessos, nem para criar actores.
-As linhas de teste criam-se directamente na base. Um PATCH com `{}` não
-altera o actor. Um identificador que não é UUID responde 422.
+Não há endpoint para conceder ou revogar acessos. A criação do actor
+entra no I2. As linhas de teste deste incremento criam-se directamente
+na base. Um PATCH com `{}` não altera o actor. Um identificador que não
+é UUID responde 422.
 
 A autorização e a escrita do mesmo pedido partilham uma sessão e um commit.
 Não há bloqueio da linha: outra transacção pode revogar o acesso depois da
 leitura e antes da escrita.
 
+## Incremento I2 — actores e papéis comerciais
+
+`POST /actors` cria uma pessoa ou uma organização, associa pelo menos um
+papel comercial e dá ao utilizador autenticado acesso `manage` activo.
+O identificador, o nível e o estado dessa autorização não vêm no pedido.
+
+`GET /roles` devolve as três linhas já semeadas: `producer`, `buyer` e
+`partner`, com os mesmos UUID. `GET /actors/{actor_id}/roles` exige
+representação `read` ou `manage` activa. `PUT /actors/{actor_id}/roles`
+substitui o conjunto e exige `manage` activo. A lista vazia, o código
+desconhecido e a repetição são recusados antes de alterar associações.
+
+O papel comercial não autoriza a representação. `producer`, por exemplo,
+não concede `manage`. Actor inexistente ou inacessível continua a
+responder 404. Não há migração nova: a revisão permanece
+`0002_identity_access`.
+
 ## Limitações deste incremento
 
 - `0001_initial` permanece vazia. As tabelas de identidade nascem em `0002`.
 Não houve migração nova: a conta já tinha `email`, `password_hash` e `status`.
+O I2 também não cria revisão. A lista de papéis vazia é recusada pela API;
+a base continua a permitir um actor sem linhas em `actor_roles`.
+- A SRS menciona área de actuação. O campo persistido continua a ser
+`general_location`. Não foi acrescentada outra coluna.
+- `GET /roles` não pede token. A resposta é o catálogo de três códigos,
+sem dados de actores nem de contas.
 - O email tem de estar em minúsculas, conter `@` e não ter espaços. Não é um validador RFC.
 - A palavra-passe de login tem entre 8 e 128 caracteres.
 - `pytest` sem `RUN_DB_TESTS=1` não abre ligação ao PostgreSQL. Confirma o
@@ -291,7 +322,7 @@ Não há exportador nem telemetria configurada.
 ## Fora deste incremento
 
 Registo público, recuperação de palavra-passe, refresh tokens, concessão
-e revogação de acessos, administração de papéis comerciais, produtos,
-ofertas, contactos públicos, interfaces de login, carregamento de ficheiros,
-filas e qualquer sincronização entre clientes. O próximo passo só deve
-começar depois da validação do I1.3.
+e revogação de acessos a outros representantes, alteração do catálogo
+global de papéis, produtos, ofertas, contactos públicos, interfaces de
+login, carregamento de ficheiros, filas e qualquer sincronização entre
+clientes. O próximo passo só deve começar depois da validação do I2.

@@ -1,0 +1,64 @@
+Decisões técnicas — I2
+
+Não há migração 0003. Actor, Role, ActorRole e UserActorAccess do
+0002_identity_access já suportam o incremento. 0001_initial e
+0002_identity_access não foram alterados. A revisão corrente mantém-se
+0002_identity_access. Os UUID do catálogo mantêm-se:
+
+producer  11111111-1111-4111-8111-111111111111
+buyer     22222222-2222-4222-8222-222222222222
+partner   33333333-3333-4333-8333-333333333333
+
+A API não insere, não altera e não apaga linhas de roles.
+
+Alinhamento com a SRS v1.1, sem mudar o esquema:
+
+- §3 confirma Actor, Role, ActorRole e UserActorAccess como estão no I1.1.
+  Papel comercial e representação continuam em tabelas diferentes.
+- RF-09 e UC-03 pedem vários papéis sem duplicar a identidade. O POST
+  aceita qualquer subconjunto não vazio de producer, buyer e partner.
+  RF-01 destaca o perfil com papel produtor; não impede os outros códigos
+  do catálogo. A §4 adia os fluxos especializados de comprador e parceiro,
+  não a associação. Produtos e ofertas ficam de fora.
+- A proposta de exigir pelo menos um papel na criação foi adoptada na API.
+  A SRS e o CHECK do 0002 não impõem cardinalidade mínima. A mesma regra
+  vale no PUT, para a substituição não deixar o actor sem papéis. Um actor
+  inserido fora desta API pode continuar sem linhas em actor_roles.
+- RF-01 também fala em área de actuação. O modelo persistido só tem
+  general_location, decisão já tomada no I1.1. Não foi criada coluna nova.
+- UC-02 diz que outro utilizador recebe acesso negado. O I1.3 responde 404
+  com "Actor não encontrado." para não revelar se o actor existe. O I2
+  usa esse mesmo 404 na consulta e na substituição dos papéis.
+- A §12 da SRS numera o I2 como catálogo de produtos. Neste repositório o
+  I2 é a gestão de actores e papéis. O catálogo de produtos não foi iniciado.
+
+POST /actors exige o token. O user_id é o da conta autenticada. O corpo
+não pode trazer user_id, actor_id, access_level nem status. O actor nasce
+active. A representação inicial é sempre manage e active, escrita no
+servidor. O papel producer não é consultado por app.authorization e não
+abre manage a outra conta.
+
+GET /roles não exige token. A resposta só tem id e code das três linhas
+já existentes. Não há dados de actores nem de contas. A ordem é producer,
+buyer, partner.
+
+GET /actors/{actor_id}/roles aceita read ou manage activos.
+PUT /actors/{actor_id}/roles exige manage activo. A lista é o conjunto
+completo pretendido. Códigos desconhecidos, repetições e lista vazia são
+recusados antes de alterar actor_roles. Se o conjunto, ignorando a ordem,
+já é o gravado, não há DELETE nem INSERT. Um papel que permanece é a
+mesma linha. A operação não mexe em roles nem em user_actor_access.
+
+GET /actors, GET /actors/{actor_id} e PATCH /actors/{actor_id} ficam como
+no I1.3. O PATCH continua a aceitar só display_name e general_location.
+Um campo roles no PATCH é recusado e não escreve.
+
+A criação e a substituição abrem um savepoint na sessão do pedido.
+get_session confirma uma vez, no fim, ou desfaz o pedido se a excepção
+sobe. Não há SELECT FOR UPDATE. Em READ COMMITTED, outra transacção pode
+revogar o acesso depois da leitura e antes da escrita, como já ficou
+registado no I1.3.
+
+Os testes de falha injectam uma excepção depois de um flush dentro do
+savepoint. Servem para ver o rollback da associação. Não simulam uma
+queda do PostgreSQL.

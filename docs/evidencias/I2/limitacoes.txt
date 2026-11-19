@@ -1,0 +1,36 @@
+Limitações identificadas — I2
+
+A base não obriga um actor a ter papéis. A recusa da lista vazia existe
+só na API. Quem inserir o actor por fora pode deixá-lo sem actor_roles.
+
+Não há área de actuação nem coverage_area. A localização geral continua
+a ser a única coluna para esse efeito.
+
+GET /roles é anónimo. A SRS (RF-07) reserva a consulta sem autenticação
+a recursos publicados. O catálogo não é um desses recursos, mas também
+não expõe dados pessoais. Ficou aberto porque o contrato deste incremento
+não pede token e a resposta é o catálogo fechado de três códigos.
+
+O 404 não distingue actor inexistente de actor inacessível. A UC-02
+formula a recusa como acesso negado. Mantém-se a decisão do I1.3.
+
+Não há bloqueio da linha. Uma revogação confirmada por outro pedido,
+depois da leitura da autorização e antes da escrita, pode chegar tarde.
+
+Os fluxos de comprador e de parceiro continuam por fazer. Só a associação
+dos papéis entrou. Produtos, ofertas, contactos públicos e consentimento
+de publicação não foram implementados.
+
+Não há endpoints para conceder ou revogar representação a outras contas,
+nem para editar o catálogo global de papéis, nem registo público, nem
+interface gráfica.
+
+O estado inactive do actor não é gerido aqui. O POST fixa active.
+O cliente não escolhe esse estado.
+
+Os testes de atomicidade usam uma excepção dentro do savepoint. Não
+substituem um ensaio de falha do processo ou do PostgreSQL.
+
+A conta que já existia na base de desenvolvimento não foi criada por
+esta suite. actors, actor_roles e user_actor_access ficaram a zero
+depois dos rollbacks. roles ficou com as três linhas do I1.1.

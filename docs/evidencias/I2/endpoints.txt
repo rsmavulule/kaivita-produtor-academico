@@ -1,0 +1,72 @@
+Evidência dos endpoints — I2
+Chamada real com TestClient e PostgreSQL, dentro de uma transacção desfeita.
+Não se guardam tokens, palavras-passe nem o segredo.
+Os UUID de roles são os semeados no I1.1. Não foram recriados.
+
+POST /actors
+Authorization: Bearer <token omitido>
+{"kind":"person","display_name":"Marta Sitoe","general_location":"Inhambane","roles":["buyer","producer"]}
+HTTP 201
+{"id":"<uuid>","kind":"person","display_name":"Marta Sitoe","general_location":"Inhambane","status":"active","roles":[{"id":"11111111-1111-4111-8111-111111111111","code":"producer"},{"id":"22222222-2222-4222-8222-222222222222","code":"buyer"}]}
+status é sempre active. A ordem dos papéis é a do catálogo, não a do pedido.
+Não vêm user_id, access_level nem status da representação.
+
+POST /actors
+{"kind":"organization","display_name":"Cooperativa do Limpopo","roles":["partner"]}
+HTTP 201
+{"id":"<uuid>","kind":"organization","display_name":"Cooperativa do Limpopo","general_location":null,"status":"active","roles":[{"id":"33333333-3333-4333-8333-333333333333","code":"partner"}]}
+Na base, a conta do token fica com access_level manage e status active.
+
+POST /actors
+Sem Authorization.
+HTTP 401
+{"detail":"Token inválido."}
+WWW-Authenticate: Bearer
+
+POST /actors
+kind fora de person e organization, nome vazio, papel admin, papel repetido,
+lista vazia, ou campos user_id, actor_id, access_level e status.
+HTTP 422
+O valor enviado não é devolvido. Não há campo input. Não fica actor.
+
+GET /roles
+Sem Authorization.
+HTTP 200
+[{"id":"11111111-1111-4111-8111-111111111111","code":"producer"},{"id":"22222222-2222-4222-8222-222222222222","code":"buyer"},{"id":"33333333-3333-4333-8333-333333333333","code":"partner"}]
+A tabela roles continua com estas três linhas.
+
+GET /actors/{actor_id}/roles
+Conta com read activo, ou com manage activo.
+HTTP 200
+[{"id":"11111111-1111-4111-8111-111111111111","code":"producer"},{"id":"33333333-3333-4333-8333-333333333333","code":"partner"}]
+Não traz representação de outras contas.
+
+GET /actors/{actor_id}/roles
+PUT /actors/{actor_id}/roles
+Actor inexistente, sem associação, com associação revoked, ou com read no PUT.
+HTTP 404
+{"detail":"Actor não encontrado."}
+O nome do actor não vem na resposta. Os papéis não mudam.
+
+PUT /actors/{actor_id}/roles
+Conta com manage activo. Corpo: {"roles":["partner","buyer"]}
+Estado anterior: producer e buyer.
+HTTP 200
+[{"id":"22222222-2222-4222-8222-222222222222","code":"buyer"},{"id":"33333333-3333-4333-8333-333333333333","code":"partner"}]
+A linha buyer mantém-se. producer sai. partner entra.
+user_actor_access e roles não são alterados.
+
+PUT /actors/{actor_id}/roles
+A mesma lista já gravada, noutra ordem.
+HTTP 200 com o conjunto ordenado. As linhas de actor_roles não são recriadas.
+
+PUT /actors/{actor_id}/roles
+Código desconhecido, repetido, lista vazia, ou access_level no corpo.
+HTTP 422
+O conjunto anterior mantém-se.
+
+GET /actors
+GET /actors/{actor_id}
+PATCH /actors/{actor_id}
+Mantêm-se como no I1.3. O PATCH não aceita roles.
+Um actor_id que não é UUID, também em /roles, responde 422.

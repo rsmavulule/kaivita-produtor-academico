@@ -1,7 +1,8 @@
 """Aplicação FastAPI.
 
-Expõe o estado do serviço, a autenticação, a representação de actores
-e a documentação em /docs. Não há registo público, produtos ou ofertas.
+Expõe o estado do serviço, a autenticação, a representação de actores,
+a criação do actor e o catálogo de papéis comerciais. A documentação
+está em /docs. Não há registo público, produtos ou ofertas.
 """
 
 from typing import Literal
@@ -15,10 +16,12 @@ from app.actors import router as actors_router
 from app.auth import router as auth_router
 from app.config import settings
 from app.db import check_database
+from app.roles import router as roles_router
 
 app = FastAPI(title=settings.app_name)
 app.include_router(auth_router)
 app.include_router(actors_router)
+app.include_router(roles_router)
 
 
 @app.exception_handler(RequestValidationError)

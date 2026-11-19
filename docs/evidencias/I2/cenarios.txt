@@ -1,0 +1,135 @@
+Cenários do I2 — actores e papéis comerciais
+PostgreSQL real. Revisão Alembic: 0002_identity_access.
+Resultado global: 94 passed em 6.34s (pytest-resultados.txt).
+Os 68 testes anteriores continuam aprovados. Não foi criada migração nova.
+Cada teste de actores usa uma transacção com savepoint e faz rollback.
+Depois da suite: actors 0, actor_roles 0, user_actor_access 0, roles 3.
+
+1. Criação de pessoa
+   POST /actors com kind person, nome, localização e producer+buyer.
+   HTTP 201. O estado fica active. Os papéis voltam na ordem do catálogo.
+   A resposta não traz access_level nem o id da conta.
+   PASSED test_creates_a_person_actor
+
+2. Criação de organização
+   kind organization, sem general_location, papel partner.
+   HTTP 201. A localização fica null.
+   PASSED test_creates_an_organization_actor
+
+3. Acesso manage do criador
+   A linha user_actor_access nasce manage e active para a conta do token.
+   GET e PATCH do actor respondem 200. A listagem só traz esse actor.
+   O corpo de GET /actors continua sem o campo roles.
+   PASSED test_creator_receives_active_manage_access
+
+4. Criação atómica
+   Um POST deixa um actor, duas associações actor_roles e uma só
+   representação. Os três UUID de roles não mudam.
+   PASSED test_actor_roles_and_access_are_created_together
+
+5. Sem autenticação
+   POST /actors, GET e PUT dos papéis do actor → 401, Token inválido.
+   Não fica actor.
+   PASSED test_creation_requires_authentication
+
+6. kind inválido
+   kind fora de person e organization → 422. O valor enviado não sai.
+   Não fica actor.
+   PASSED test_invalid_kind_is_rejected
+
+7. Nome vazio
+   Nome só com espaços, e nome vazio → 422, "Nome inválido."
+   Não fica actor.
+   PASSED test_empty_name_is_rejected
+
+8. Papel desconhecido
+   roles com admin → 422, "Papel desconhecido." O código não é ecoado.
+   O catálogo mantém-se.
+   PASSED test_unknown_role_is_rejected
+
+9. Papel repetido
+   producer duas vezes → 422, "Papel repetido." Sem actor e sem associação.
+   PASSED test_duplicate_roles_are_rejected
+
+10. Catálogo
+    GET /roles, sem token, duas vezes. producer, buyer, partner, com os
+    UUID semeados no I1.1. A segunda resposta é igual. Continuam três linhas.
+    PASSED test_role_catalog_returns_the_three_seeded_roles
+
+11. Consulta com read
+    GET /actors/{id}/roles → 200. Não traz o email nem o id do outro
+    representante, nem access_level.
+    PASSED test_reader_can_list_actor_roles
+
+12. Consulta com manage
+    O criador, com manage, recebe o papel buyer.
+    PASSED test_manager_can_list_actor_roles
+
+13. Substituição com manage
+    producer+buyer passa a buyer+partner. A linha de buyer mantém-se.
+    A de producer sai. A de partner entra. A representação e o catálogo
+    global não mudam.
+    PASSED test_manager_replaces_actor_roles
+
+14. Substituição com read
+    PUT → 404, "Actor não encontrado." O papel producer fica.
+    PASSED test_reader_cannot_replace_actor_roles
+
+15. Associação revoked
+    PUT e GET dos papéis → 404. O conjunto não muda.
+    PASSED test_revoked_access_cannot_replace_actor_roles
+
+16. Actor inacessível
+    Sem associação, e UUID que não existe: GET e PUT → o mesmo 404.
+    O nome do actor não sai. Os papéis do actor oculto ficam iguais.
+    PASSED test_inaccessible_actor_roles_return_404
+
+17. Substituição idempotente
+    A mesma lista, noutra ordem, responde 200 e não recria as linhas
+    de actor_roles. Os objectos persistidos são os mesmos.
+    PASSED test_replacing_roles_with_the_same_set_is_idempotent
+
+18. Falha sem gravação parcial
+    A criação falha depois de o actor e os papéis terem sido escritos
+    dentro do savepoint. Não ficam actor, actor_roles nem representação.
+    A substituição apaga a associação e falha a seguir; o papel anterior
+    volta. O catálogo continua com três linhas.
+    A falha é uma excepção injectada no savepoint, não uma queda do PostgreSQL.
+    PASSED test_failed_creation_leaves_no_partial_rows
+    PASSED test_failed_replacement_restores_the_previous_roles
+
+19. Vários papéis, uma identidade
+    producer, buyer e partner no mesmo actor. Há uma só linha em actors.
+    PASSED test_one_actor_can_hold_several_roles
+
+20. Regressão
+    A suite completa, incluindo I0, I1.1, I1.2 e I1.3, passou na mesma
+    execução. 94 no total, dos quais 68 já existiam.
+    PASSED, ver pytest-resultados.txt
+
+21. O cliente não escolhe a representação
+    user_id, actor_id, access_level e status no POST → 422.
+    Os valores não são ecoados. Não nasce actor nem acesso para a outra conta.
+    PASSED test_client_cannot_choose_access_or_identity
+
+22. Lista vazia
+    POST e PUT com roles [] → 422. O actor já criado mantém producer.
+    PASSED test_empty_role_list_is_rejected
+
+23. Substituição inválida não altera
+    Código desconhecido, repetido, ou access_level junto da lista → 422.
+    O conjunto anterior mantém-se.
+    PASSED test_invalid_replacement_keeps_the_previous_roles
+
+24. O papel producer não dá manage
+    Outra conta, sem linha em user_actor_access, recebe 404 no GET dos
+    papéis, no PUT e no PATCH. O nome não muda. Só o criador tem manage.
+    PASSED test_producer_role_does_not_grant_manage
+
+25. PATCH não muda papéis
+    PATCH com roles e display_name → 422. Nome e papéis ficam iguais.
+    PASSED test_patch_cannot_change_commercial_roles
+
+26. UUID malformado
+    GET e PUT de /actors/nao-e-um-uuid/roles → 422. Sem 500 e sem o valor.
+    PASSED test_malformed_actor_id_on_role_routes_is_422
