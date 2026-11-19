@@ -7,7 +7,7 @@ ou numa migração.
 
 import logging
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import MetaData, create_engine, text
 from sqlalchemy.orm import DeclarativeBase
 
 from app.config import settings
@@ -22,7 +22,11 @@ engine = create_engine(
 
 
 class Base(DeclarativeBase):
-    """Metadados vazios neste incremento. As tabelas de domínio vêm depois."""
+    """Base dos mapeamentos. As tabelas entram ao importar o módulo do modelo."""
+
+    metadata = MetaData(
+        naming_convention={"pk": "pk_%(table_name)s"},
+    )
 
 
 def check_database() -> bool:

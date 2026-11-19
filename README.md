@@ -1,11 +1,11 @@
 # Kaivita Produtor Académico
 
 Protótipo de Licenciatura em Desenvolvimento de Software. É um projecto
-independente, construído de raiz para a monografia. Este repositório contém
-apenas o **incremento I0 — fundação técnica**.
+independente, construído de raiz para a monografia. O repositório contém a
+fundação técnica (I0) e o modelo persistente de identidade e acesso (I1.1).
 
-Não há autenticação, produtores, produtos, ofertas, filas, Redis, inteligência
-artificial nem sincronização offline.
+Não há ainda endpoints de autenticação, registo, sessão, produtores, produtos,
+ofertas, filas, Redis, inteligência artificial nem sincronização offline.
 
 ## Arquitectura
 
@@ -15,7 +15,7 @@ Três processos, um repositório:
 | --- | --- | --- |
 | `web` | Next.js e TypeScript | Página inicial com ligações à API |
 | `api` | FastAPI e Python | `GET /health` e documentação em `/docs` |
-| `db` | PostgreSQL 16 | Base vazia de domínio, com versão Alembic |
+| `db` | PostgreSQL 16 | Identidade e acesso, versão Alembic `0002_identity_access` |
 
 A interface não chama a API por JavaScript. Os botões abrem `/health` e
 `/docs` no browser, por isso este incremento não configura CORS.
@@ -41,6 +41,9 @@ de um protótipo académico não justifica `async`.
 O Alembic reutiliza essa definição e o mesmo motor SQLAlchemy.
 - **Migração inicial vazia.** `0001_initial` não cria tabelas de negócio.
 Aplica-se para criar `alembic_version` e fixar o ponto de partida do esquema.
+O ficheiro não é editado nos incrementos seguintes.
+- **Identidade na migração seguinte.** `0002_identity_access` cria o modelo
+de acesso e semeia os três papéis comerciais. As restrições ficam na base.
 - **Testes sem base obrigatória.** O pytest substitui `check_database` por um
 duplo. O contacto real com o PostgreSQL é opcional (`RUN_DB_TESTS=1`) e
 também pode ser visto ao abrir `/health` com o Compose no ar.
@@ -69,16 +72,20 @@ uma peça pedida neste incremento.
 │   ├── alembic/
 │   │   ├── env.py
 │   │   ├── script.py.mako
-│   │   └── versions/0001_initial.py
+│   │   └── versions/
+│   │       ├── 0001_initial.py
+│   │       └── 0002_identity_access.py
 │   ├── app/
 │   │   ├── __init__.py
 │   │   ├── config.py
 │   │   ├── db.py
+│   │   ├── identity.py
 │   │   └── main.py
 │   └── tests/
 │       ├── conftest.py
 │       ├── test_api.py
-│       └── test_foundation.py
+│       ├── test_foundation.py
+│       └── test_identity.py
 └── frontend/
     ├── Dockerfile
     ├── .dockerignore
@@ -132,7 +139,9 @@ Para inspeccionar a base:
 docker compose exec db psql -U kaivita -d kaivita -c "\dt"
 ```
 
-O resultado esperado é só a tabela `alembic_version`.
+Depois do I1.1, `\dt` mostra `alembic_version`, `users`, `actors`, `roles`,
+`actor_roles` e `user_actor_access`. A revisão Alembic corrente é
+`0002_identity_access`.
 
 Para parar e remover os contentores, mantendo os dados:
 
@@ -169,8 +178,10 @@ $env:RUN_DB_TESTS = "1"
 python -m pytest -v
 ```
 
-Sem essa variável, o teste de ligação real é ignorado. Os restantes não
-precisam de base de dados.
+Sem essa variável, o teste de ligação real e os testes de integridade do
+modelo são ignorados. Os restantes não precisam de base de dados.
+A cabeça do Alembic esperada é `0002_identity_access`; `0001_initial`
+continua a ser a revisão vazia de partida.
 
 ## Interface sem Docker
 
@@ -184,12 +195,34 @@ A página fica em http://localhost:3000. As ligações apontam para
 http://localhost:8000, por isso a API tem de estar no ar para esses destinos
 responderem. A página em si não depende da API.
 
+## Incremento I1.1 — identidade e acesso
+
+O modelo persistente está em `backend/app/identity.py`. Não há rotas novas.
+
+| Tabela | Chave | Função |
+| --- | --- | --- |
+| `users` | `id` | Conta. `email` é o login e é único |
+| `actors` | `id` | Pessoa (`person`) ou organização (`organization`) |
+| `roles` | `id` | Catálogo `producer`, `buyer`, `partner` |
+| `actor_roles` | `(actor_id, role_id)` | Papéis comerciais do actor |
+| `user_actor_access` | `(user_id, actor_id)` | Quem representa o actor, e com que nível |
+
+Estados fechados na base: conta `active` ou `disabled`; actor `active` ou
+`inactive`; representação `read` ou `manage`, com estado `active` ou
+`revoked`. A migração insere os três papéis. Repetir essa inserção não
+duplica linhas.
+
+`general_location` pode ser nula: ausência significa localização desconhecida.
+Apagar um utilizador, um actor ou um papel que ainda tenha associação é
+recusado pela chave estrangeira.
+
 ## Limitações deste incremento
 
-- A migração `0001_initial` não cria tabelas de domínio. Depois de aplicada,
-a base só tem `alembic_version`.
+- `0001_initial` permanece vazia. As tabelas de identidade nascem em `0002`.
+- `password_hash` é guardado, mas este incremento não calcula nem verifica o resumo.
+- O email tem de estar em minúsculas, conter `@` e não ter espaços. Não é um validador RFC.
 - `pytest` sem `RUN_DB_TESTS=1` não abre ligação ao PostgreSQL. Confirma o
-contrato da API e os ficheiros de configuração.
+contrato da API, a cadeia de migrações e a forma do modelo em Python.
 - O Compose constrói a interface em modo de produção. Alterar a página
 exige um novo `docker compose up --build`.
 - `npm audit` reporta avisos no PostCSS que vem fechado dentro do Next.js
@@ -201,6 +234,7 @@ Não há exportador nem telemetria configurada.
 
 ## Fora deste incremento
 
-Autenticação, perfis, produtores, produtos, ofertas, carregamento de ficheiros,
-filas e qualquer sincronização entre clientes. O próximo passo só deve
-começar depois da validação do I0.
+Endpoints de autenticação, registo, início de sessão, JWT, perfis de produtor,
+produtos, ofertas, contactos públicos, carregamento de ficheiros, filas e
+qualquer sincronização entre clientes. O próximo passo só deve começar depois
+da validação do I1.1.

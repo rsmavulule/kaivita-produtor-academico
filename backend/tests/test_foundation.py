@@ -23,12 +23,24 @@ def test_settings_default_to_local_postgres(monkeypatch):
     assert configured.database_url.endswith("/kaivita")
 
 
-def test_alembic_head_is_the_initial_revision():
+def test_alembic_chain_preserves_the_empty_initial_revision():
     config = Config(str(BACKEND_ROOT / "alembic.ini"))
     config.set_main_option("script_location", str(BACKEND_ROOT / "alembic"))
     script = ScriptDirectory.from_config(config)
 
-    assert script.get_heads() == ["0001_initial"]
+    initial = script.get_revision("0001_initial")
+    identity = script.get_revision("0002_identity_access")
+
+    assert script.get_heads() == ["0002_identity_access"]
+    assert initial is not None and initial.down_revision is None
+    assert identity is not None and identity.down_revision == "0001_initial"
+
+    source = (BACKEND_ROOT / "alembic" / "versions" / "0001_initial.py").read_text(
+        encoding="utf-8"
+    )
+    source = source.replace("\r\n", "\n")
+    assert "def upgrade() -> None:\n    pass\n" in source
+    assert "def downgrade() -> None:\n    pass\n" in source
 
 
 def test_compose_declares_the_three_services():

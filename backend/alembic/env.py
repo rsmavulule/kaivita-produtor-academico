@@ -8,6 +8,8 @@ from logging.config import fileConfig
 
 from alembic import context
 
+# O import regista users, actors, roles, actor_roles e user_actor_access.
+import app.identity  # noqa: F401
 from app.config import settings
 from app.db import Base, engine
 

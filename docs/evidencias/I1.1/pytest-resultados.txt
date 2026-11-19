@@ -1,0 +1,42 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.13.7, pytest-9.2.0, pluggy-1.7.0 -- C:\Users\rmavulule\devbox\kaivita-produtor-academico\backend\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\rmavulule\devbox\kaivita-produtor-academico\backend
+configfile: pytest.ini
+testpaths: tests
+plugins: anyio-4.16.0
+collecting ... collected 31 items
+
+tests/test_api.py::test_health_reports_database_up PASSED                [  3%]
+tests/test_api.py::test_health_reports_database_down PASSED              [  6%]
+tests/test_api.py::test_docs_page_is_served PASSED                       [  9%]
+tests/test_api.py::test_openapi_schema_exposes_health PASSED             [ 12%]
+tests/test_foundation.py::test_settings_default_to_local_postgres PASSED [ 16%]
+tests/test_foundation.py::test_alembic_chain_preserves_the_empty_initial_revision PASSED [ 19%]
+tests/test_foundation.py::test_compose_declares_the_three_services PASSED [ 22%]
+tests/test_foundation.py::test_env_example_and_gitignore_keep_secrets_out_of_git PASSED [ 25%]
+tests/test_foundation.py::test_real_database_answers PASSED              [ 29%]
+tests/test_identity.py::test_mapped_model_declares_the_identity_contract PASSED [ 32%]
+tests/test_identity.py::test_database_is_at_the_identity_revision_with_the_catalog PASSED [ 35%]
+tests/test_identity.py::test_commercial_role_seed_is_idempotent PASSED   [ 38%]
+tests/test_identity.py::test_persists_roles_and_representation_and_reads_them_back PASSED [ 41%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[duplicate-email] PASSED [ 45%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[uppercase-email] PASSED [ 48%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[email-with-space] PASSED [ 51%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[email-without-at] PASSED [ 54%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[blank-password-hash] PASSED [ 58%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[unknown-user-status] PASSED [ 61%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[unknown-actor-kind] PASSED [ 64%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[blank-display-name] PASSED [ 67%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[blank-location] PASSED [ 70%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[unknown-actor-status] PASSED [ 74%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[unknown-role-code] PASSED [ 77%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[duplicate-actor-role] PASSED [ 80%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[duplicate-user-actor-access] PASSED [ 83%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[unknown-access-level] PASSED [ 87%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[unknown-access-status] PASSED [ 90%]
+tests/test_identity.py::test_database_rejects_invalid_identity_rows[access-to-missing-actor] PASSED [ 93%]
+tests/test_identity.py::test_database_restricts_delete_while_a_link_exists PASSED [ 96%]
+tests/test_identity.py::test_migrated_schema_matches_the_mapped_model PASSED [100%]
+
+============================= 31 passed in 0.59s ==============================
