@@ -12,8 +12,8 @@ Cinco tabelas, alinhadas com a SRS v1.1 §3 e com o diagrama de classes:
 
 Não há registo público. O hash Argon2id, o JWT e os endpoints de
 autenticação estão no incremento I1.2 (``app.passwords``, ``app.tokens``
-e ``app.auth``). As operações UML ``canManage`` e ``matches`` continuam
-por implementar. A conta activa corresponde a ``UserStatus.ACTIVE``.
+e ``app.auth``). A representação ``read``/``manage`` está no I1.3
+(``app.authorization``). A conta activa corresponde a ``UserStatus.ACTIVE``.
 A unicidade do par actor/papel é uma restrição da base.
 
 Os literais de ``ActorStatus``, ``UserStatus``, ``AccessLevel`` e

@@ -2,10 +2,11 @@
 
 Protótipo de Licenciatura em Desenvolvimento de Software. É um projecto
 independente, construído de raiz para a monografia. O repositório contém a
-fundação técnica (I0), o modelo de identidade (I1.1) e a autenticação (I1.2).
+fundação técnica (I0), o modelo de identidade (I1.1), a autenticação (I1.2)
+e a autorização de representação (I1.3).
 
 Não há registo público, recuperação de palavra-passe, refresh tokens,
-autorização de representação, produtores, produtos, ofertas, filas, Redis,
+concessão de acessos, produtores, produtos, ofertas, filas, Redis,
 inteligência artificial nem sincronização offline.
 
 ## Arquitectura
@@ -207,7 +208,8 @@ responderem. A página em si não depende da API.
 
 ## Incremento I1.1 — identidade e acesso
 
-O modelo persistente está em `backend/app/identity.py`. As rotas entram no I1.2.
+O modelo persistente está em `backend/app/identity.py`. A autenticação
+entra no I1.2 e a representação no I1.3.
 
 | Tabela | Chave | Função |
 | --- | --- | --- |
@@ -229,8 +231,9 @@ recusado pela chave estrangeira.
 ## Incremento I1.2 — autenticação
 
 O login é `POST /auth/login`. A consulta da conta é `GET /auth/me`, com
-`Authorization: Bearer`. O token HS256 expira ao fim de 30 minutos e leva
-apenas o UUID do utilizador, o emissor, `iat` e `exp`.
+`Authorization: Bearer`. No `/docs`, o cadeado pede só o `access_token`;
+a página acrescenta `Bearer`. O token HS256 expira ao fim de 30 minutos e
+leva apenas o UUID do utilizador, o emissor, `iat` e `exp`.
 
 A palavra-passe fica como resumo Argon2id. Não há endpoint de registo.
 Uma conta de teste cria-se na pasta `backend`, com o segredo já definido:
@@ -247,6 +250,26 @@ Para gerar o segredo, uma vez, e colá-lo no `.env` local:
 ```powershell
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
+
+## Incremento I1.3 — representação
+
+`GET /actors` lista os actores cuja associação do utilizador autenticado
+está `active`. `GET /actors/{actor_id}` exige essa associação com nível
+`read` ou `manage`. `PATCH /actors/{actor_id}` só altera `display_name` e
+`general_location`, e exige `manage` activo.
+
+A decisão é lida na base em cada pedido. O JWT continua a trazer apenas a
+conta. Actor inexistente, associação em falta, associação `revoked` e nível
+insuficiente respondem 404 com o mesmo texto. Token ausente ou inválido,
+e conta `disabled`, respondem 401.
+
+Não há endpoint para conceder ou revogar acessos, nem para criar actores.
+As linhas de teste criam-se directamente na base. Um PATCH com `{}` não
+altera o actor. Um identificador que não é UUID responde 422.
+
+A autorização e a escrita do mesmo pedido partilham uma sessão e um commit.
+Não há bloqueio da linha: outra transacção pode revogar o acesso depois da
+leitura e antes da escrita.
 
 ## Limitações deste incremento
 
@@ -267,7 +290,8 @@ Não há exportador nem telemetria configurada.
 
 ## Fora deste incremento
 
-Registo público, recuperação de palavra-passe, refresh tokens, autorização
-de representação, perfis de produtor, produtos, ofertas, contactos públicos,
-interfaces de login, carregamento de ficheiros, filas e qualquer sincronização
-entre clientes. O próximo passo só deve começar depois da validação do I1.2.
+Registo público, recuperação de palavra-passe, refresh tokens, concessão
+e revogação de acessos, administração de papéis comerciais, produtos,
+ofertas, contactos públicos, interfaces de login, carregamento de ficheiros,
+filas e qualquer sincronização entre clientes. O próximo passo só deve
+começar depois da validação do I1.3.

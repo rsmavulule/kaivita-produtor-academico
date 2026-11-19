@@ -1,0 +1,84 @@
+Cenários do I1.3 — autorização de representação
+PostgreSQL real. Revisão Alembic: 0002_identity_access.
+Resultado global: 68 passed em 3.65s (pytest-resultados.txt).
+Os testes anteriores continuam aprovados. Não foi criada migração nova.
+Cada teste de autorização usa uma transacção com savepoint e faz rollback.
+
+1. Acesso read consulta
+   GET /actors/{id} → 200, só os campos do actor.
+   PASSED test_reader_can_consult_the_actor
+
+2. Acesso read não modifica
+   PATCH → 404, "Actor não encontrado." O nome e a localização ficam iguais.
+   PASSED test_reader_cannot_modify_the_actor
+
+3. Acesso manage consulta e modifica
+   GET → 200. PATCH de display_name e general_location null → 200.
+   kind e status mantêm-se.
+   PASSED test_manager_can_consult_and_modify
+
+4. Associação revoked
+   GET, PATCH e a listagem recusam. A listagem vem vazia. O actor não muda.
+   PASSED test_revoked_access_blocks_read_and_update
+
+5. Sem associação
+   GET → 404. A resposta não traz o email nem o id do representante.
+   PASSED test_user_without_access_cannot_reach_the_actor
+
+6. Conta disabled
+   Token emitido antes da desactivação. O pedido seguinte → 401, Token inválido.
+   PASSED test_disabled_account_cannot_use_a_previously_issued_token
+
+7. Token ausente ou inválido
+   GET do actor, GET da lista e Bearer malformado → 401.
+   O nome do actor não sai na resposta.
+   PASSED test_missing_or_invalid_token_is_rejected
+
+8. Actor inexistente
+   UUID que não está na base → 404, o mesmo texto.
+   PASSED test_unknown_actor_returns_404
+
+9. Actor não autorizado
+   O actor existe, a conta não o representa → 404, sem o nome.
+   PASSED test_unauthorized_actor_returns_the_same_404
+
+10. Listagem só com actores autorizados
+    Entram read e manage activos. Ficam de fora o revoked e o de outra conta.
+    PASSED test_listing_contains_only_authorized_actors
+
+11. Campos fora do contrato
+    PATCH com kind, status e password → 422. Nenhum campo do actor muda.
+    O valor enviado não é ecoado.
+    PASSED test_update_rejects_fields_outside_the_contract
+
+12. Revogação depois do JWT
+    GET com acesso activo → 200. A linha passa a revoked. O PATCH seguinte → 404.
+    PASSED test_revocation_after_the_token_applies_on_the_next_request
+
+13. Um utilizador, vários actores
+    A lista traz os dois. manage altera o seu actor. read recebe 404 no outro.
+    PASSED test_one_user_can_represent_several_actors
+
+14. Vários utilizadores, o mesmo actor
+    read consulta e não altera. manage altera general_location.
+    PASSED test_several_users_can_represent_the_same_actor
+
+15. Regressão
+    A suite completa, incluindo I0, I1.1 e I1.2, passou na mesma execução.
+    PASSED, 68 no total.
+
+16. PATCH com corpo vazio
+    Corpo {} com manage activo. Nome, localização, kind e status mantêm-se.
+    A resposta devolve os valores já gravados.
+    PASSED test_empty_patch_does_not_change_the_actor
+
+17. UUID malformado
+    GET e PATCH de /actors/nao-e-um-uuid → 422. Sem 500 e sem o valor no corpo.
+    PASSED test_malformed_actor_id_is_rejected_without_a_server_error
+
+18. Mesma sessão para autorização e escrita
+    O pedido abre get_session uma vez. A autorização recebe essa sessão e
+    devolve o mesmo objecto Actor que a escrita altera.
+    Limitação: não há bloqueio da linha. Outra transacção pode revogar o
+    acesso depois da leitura e antes da escrita.
+    PASSED test_authorization_and_update_share_one_database_session

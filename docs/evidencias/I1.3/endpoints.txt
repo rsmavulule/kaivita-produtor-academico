@@ -1,0 +1,46 @@
+Evidência dos endpoints — I1.3
+Chamada real com TestClient e PostgreSQL, dentro de uma transacção desfeita.
+Não se guardam tokens, palavras-passe nem o segredo.
+Depois da transacção: users 0, actors 0.
+
+GET /actors
+Authorization: Bearer <token omitido>
+Conta com um acesso read activo.
+HTTP 200
+[{"id":"<uuid>","kind":"organization","display_name":"Cooperativa Norte","general_location":"Nampula","status":"active"}]
+Chaves de cada elemento: id, kind, display_name, general_location, status.
+
+GET /actors/{actor_id}
+Mesma conta, nível read.
+HTTP 200
+{"id":"<uuid>","kind":"organization","display_name":"Cooperativa Norte","general_location":"Nampula","status":"active"}
+
+PATCH /actors/{actor_id}
+Mesma conta, nível read. Corpo: display_name.
+HTTP 404
+{"detail":"Actor não encontrado."}
+O nome na base manteve-se.
+
+PATCH /actors/{actor_id}
+Conta com manage activo. Corpo: display_name e general_location.
+HTTP 200
+{"id":"<uuid>","kind":"organization","display_name":"Cooperativa do Norte","general_location":"Cabo Delgado","status":"active"}
+kind e status não mudaram.
+
+GET /actors/{actor_id}
+Actor existente, sem associação desta conta.
+HTTP 404
+{"detail":"Actor não encontrado."}
+O nome do actor não veio na resposta.
+
+GET /actors
+Sem Authorization.
+HTTP 401
+{"detail":"Token inválido."}
+WWW-Authenticate: Bearer
+
+PATCH /actors/{actor_id}
+Corpo com status e password, além dos campos permitidos.
+HTTP 422
+{"detail":[{"loc":["body","status"],"msg":"Extra inputs are not permitted","type":"extra_forbidden"},{"loc":["body","password"],"msg":"Extra inputs are not permitted","type":"extra_forbidden"}]}
+O valor enviado não foi devolvido. Não há campo input.

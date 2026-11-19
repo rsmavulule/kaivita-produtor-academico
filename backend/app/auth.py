@@ -1,9 +1,14 @@
-"""Endpoints de autenticação. Não autorizam representação de actores."""
+"""Endpoints de autenticação.
+
+O token identifica a conta. A representação de actores é verificada
+à parte, em cada pedido, a partir de ``user_actor_access``.
+"""
 
 from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, field_validator
 from sqlalchemy.orm import Session
 
@@ -17,6 +22,12 @@ from app.tokens import InvalidToken, decode_access_token, issue_access_token
 router = APIRouter(prefix="/auth", tags=["autenticacao"])
 
 BEARER_CHALLENGE = {"WWW-Authenticate": "Bearer"}
+# auto_error fica desligado para a resposta continuar a ser 401, não 403.
+# No /docs, o cadeado pede só o access_token; o Swagger acrescenta "Bearer".
+bearer_scheme = HTTPBearer(
+    auto_error=False,
+    description="Colar apenas o access_token devolvido pelo login, sem a palavra Bearer.",
+)
 
 
 class LoginRequest(BaseModel):
@@ -59,21 +70,17 @@ def _unauthorized(detail: str) -> HTTPException:
     )
 
 
-def _bearer_token(authorization: str | None) -> str:
-    if authorization is None:
-        raise InvalidToken
-    scheme, separator, token = authorization.partition(" ")
-    if separator != " " or scheme.lower() != "bearer" or token == "" or " " in token:
-        raise InvalidToken
-    return token
-
-
 def get_current_user(
     session: Session = Depends(get_session),
-    authorization: str | None = Header(default=None),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
 ) -> User:
+    # Um cabeçalho opcional do tipo string|null não sai no pedido do Swagger.
+    # O esquema Bearer faz o /docs enviar Authorization.
+    token = credentials.credentials if credentials is not None else ""
+    if token == "" or " " in token:
+        raise _unauthorized("Token inválido.")
     try:
-        user_id = decode_access_token(_bearer_token(authorization))
+        user_id = decode_access_token(token)
     except InvalidToken:
         raise _unauthorized("Token inválido.") from None
 

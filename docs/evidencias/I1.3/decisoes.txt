@@ -1,0 +1,50 @@
+Decisões técnicas — I1.3
+
+Não há migração 0003. user_actor_access do 0002 já tem access_level
+(read, manage) e status (active, revoked), com a chave (user_id, actor_id).
+0001_initial e 0002_identity_access não foram alterados.
+A revisão corrente mantém-se 0002_identity_access.
+
+O utilizador autenticado continua a ser get_current_user: valida o JWT
+e relê o estado da conta. A representação não entra no token.
+accessible_actors, actor_for_read e actor_for_manage consultam a linha
+actual de user_actor_access no mesmo pedido.
+
+read activo ou manage activo permitem GET.
+Só manage activo permite PATCH.
+Associação em falta, revoked, nível insuficiente e actor inexistente
+levantam a mesma recusa e a rota responde 404 com "Actor não encontrado."
+Assim a resposta não distingue actor oculto de actor que não existe.
+
+A listagem devolve apenas actores com associação active desta conta,
+ordenados por display_name e id. Não inclui access_level nem dados de
+outras contas.
+
+PATCH aceita só display_name e general_location. extra=forbid recusa
+kind, status e qualquer outro campo com 422, antes de escrever.
+display_name vazio é recusado. general_location null significa
+localização desconhecida, como já estava no modelo.
+Um PATCH sem campos, feito por quem tem manage, não altera o actor.
+
+O estado inactive do actor não entra nesta decisão. A SRS separa o
+estado da identidade do estado da autorização. Quem mantém representação
+activa continua a ver o actor, incluindo esse estado.
+
+Os papéis comerciais não são consultados. RB-10 pede autorização válida
+para o actor, não um papel producer, buyer ou partner.
+
+A UC-02 diz que outro utilizador recebe acesso negado. Este incremento
+pede 404 para não revelar a existência. Fica 404, não 403.
+
+Não há rotas para criar actores nem para conceder ou revogar acessos.
+Os testes inserem as linhas e desfazem a transacção.
+
+Um PATCH com corpo {} não escreve campos. Um actor_id que não é UUID
+responde 422, pelo mesmo tratador que omite o valor recebido. Não é 500.
+
+get_current_user, a leitura de user_actor_access e a actualização do actor
+recebem a mesma sessão. get_session faz um único commit no fim do pedido:
+ou confirma a leitura e a escrita, ou desfaz as duas. Não há SELECT FOR
+UPDATE nem isolamento serializável. Em READ COMMITTED, outro pedido pode
+confirmar uma revogação depois desta leitura e antes da escrita. Essa
+condição fica por tratar; este incremento não acrescenta bloqueios.
