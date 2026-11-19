@@ -5,13 +5,19 @@ A URL da base tem valor por omissão para desenvolvimento local.
 O segredo JWT não tem: sem ``JWT_SECRET`` a aplicação não arranca.
 """
 
+from pathlib import Path
+
 from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# backend/app/config.py → raiz do repositório. O comando e o uvicorn
+# correm em backend/, mas o .env fica um nível acima.
+_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_ENV_FILE,
         env_file_encoding="utf-8",
         extra="ignore",
     )

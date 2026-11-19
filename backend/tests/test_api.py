@@ -35,3 +35,9 @@ def test_openapi_schema_exposes_health(client):
     document = response.json()
     assert document["info"]["title"] == settings.app_name
     assert "/health" in document["paths"]
+    scheme = document["components"]["securitySchemes"]["HTTPBearer"]
+    assert scheme["type"] == "http"
+    assert scheme["scheme"] == "bearer"
+    me = document["paths"]["/auth/me"]["get"]
+    assert me["security"] == [{"HTTPBearer": []}]
+    assert "parameters" not in me

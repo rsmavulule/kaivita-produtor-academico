@@ -15,6 +15,10 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = BACKEND_ROOT.parent
 
 
+def test_settings_read_the_env_file_at_the_repository_root():
+    assert Path(Settings.model_config["env_file"]) == REPO_ROOT / ".env"
+
+
 def test_settings_default_to_local_postgres(monkeypatch):
     monkeypatch.delenv("DATABASE_URL", raising=False)
     monkeypatch.setenv("JWT_SECRET", "x" * 32)
