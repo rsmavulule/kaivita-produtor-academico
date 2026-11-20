@@ -13,12 +13,24 @@ escrita. Pode coexistir com ``buyer`` e ``partner``. Não autoriza a
 representação: quem não tem ``read`` ou ``manage`` activo continua de
 fora. Não há preço, quantidade, entrega, oferta, tabela de categorias
 nem ficheiro. Arquivar muda o estado e conserva a linha.
+
+A migração ``0004_offers`` acrescenta ``uq_products_id_owner`` para a
+chave estrangeira composta da oferta. ``0003_products`` não é editada.
 """
 
 import uuid
 from enum import StrEnum
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, Text, Uuid, select, text
+from sqlalchemy import (
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    Text,
+    UniqueConstraint,
+    Uuid,
+    select,
+    text,
+)
 from sqlalchemy.orm import Mapped, Session, mapped_column
 
 from app.db import Base
@@ -74,6 +86,11 @@ class Product(Base):
         CheckConstraint(
             f"status IN ({_values(ProductStatus)})",
             name="ck_products_status",
+        ),
+        UniqueConstraint(
+            "id",
+            "owner_actor_id",
+            name="uq_products_id_owner",
         ),
         Index("ix_products_owner_actor_id", "owner_actor_id"),
         {

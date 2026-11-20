@@ -1,0 +1,85 @@
+Evidência dos endpoints — I4
+Chamada real com TestClient e PostgreSQL, dentro de uma transacção desfeita.
+Não se guardam tokens, palavras-passe nem o segredo.
+Preço e quantidade vão em texto decimal. Não há rota pública.
+
+POST /actors/{actor_id}/offers
+Authorization: Bearer <token omitido>
+{"product_id":"<uuid>","price":"150.00","currency":"MZN","quantity":"2.50","unit":"kg","availability":"available","delivery_terms":"Recolha no mercado"}
+HTTP 201
+{"id":"<uuid>","product_id":"<produto do actor>","owner_actor_id":"<actor do caminho>","price":"150.00","currency":"MZN","quantity":"2.50","unit":"kg","availability":"available","delivery_terms":"Recolha no mercado","status":"draft"}
+O dono é o actor autorizado. O mesmo produto pode ter outra oferta.
+Um corpo só com product_id também cria rascunho, com os comerciais a null.
+
+POST /actors/{actor_id}/offers
+Sem Authorization.
+HTTP 401
+{"detail":"Token inválido."}
+
+POST /actors/{actor_id}/offers
+Representação read, associação revoked, ou sem representação.
+HTTP 404
+{"detail":"Actor não encontrado."}
+Não fica oferta. O preço de uma oferta já existente não sai na resposta.
+
+POST /actors/{actor_id}/offers
+manage activo, papéis sem producer.
+HTTP 422
+{"detail":"O actor não tem o papel producer."}
+A listagem desse actor continua 200.
+
+POST /actors/{actor_id}/offers
+product_id de outro actor, ou inexistente.
+HTTP 404
+{"detail":"Produto não encontrado."}
+O nome do produto alheio não vem na resposta.
+
+POST /actors/{actor_id}/offers
+Produto archived.
+HTTP 422
+{"detail":"O produto está arquivado."}
+
+POST /actors/{actor_id}/offers
+Preço negativo, float, moeda mzn, unidade vazia, quantidade zero com
+available, status ou owner_actor_id no corpo.
+HTTP 422
+O valor enviado não é devolvido. Não fica oferta.
+
+GET /actors/{actor_id}/offers
+read ou manage activos.
+HTTP 200
+Lista só as ofertas desse actor, por id, em qualquer estado.
+Sem representação: 404.
+
+GET /actors/{actor_id}/offers/{offer_id}
+Oferta de outro actor, no caminho do actor autorizado.
+HTTP 404
+{"detail":"Oferta não encontrada."}
+
+PATCH /actors/{actor_id}/offers/{offer_id}
+manage activo e papel producer, oferta em draft ou suspended.
+HTTP 200
+Aceita price, currency, quantity, unit, availability e delivery_terms.
+delivery_terms null limpa o texto. {} não altera.
+status, product_id e owner_actor_id são recusados.
+Numa oferta published, o resultado tem de continuar válido. Senão 422 e
+a linha não muda. Numa oferta withdrawn, 422
+{"detail":"A oferta retirada não pode ser alterada."}
+
+POST /actors/{actor_id}/offers/{offer_id}/publish
+HTTP 200 quando o estado era draft ou suspended, o produto está active e
+os cinco campos são válidos. Só o status passa a published.
+Incompleta: 422, estado anterior mantido.
+Produto archived: 422, estado anterior mantido.
+Repetir em published: 422, sem escrever.
+
+POST .../suspend
+HTTP 200 só a partir de published. O estado passa a suspended.
+
+POST .../withdraw
+HTTP 200 a partir de draft, published ou suspended. O estado passa a
+withdrawn. A linha continua na listagem. DELETE no mesmo caminho: HTTP 405.
+
+Não há POST .../archive nem GET /offers.
+No OpenAPI, price e quantity são string ou null, nos corpos de criação,
+actualização e resposta. Os exemplos são "150.00" e "2.50".

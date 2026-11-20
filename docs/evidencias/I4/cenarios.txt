@@ -1,0 +1,130 @@
+Cenários do I4 — gestão de ofertas comerciais
+PostgreSQL 16 em localhost:5435, base kaivita. Revisão Alembic: 0004_offers (head).
+Resultado global: 156 passed em 21.83s (pytest-resultados.txt).
+Os 122 testes anteriores continuam aprovados. Há 34 testes da oferta.
+Cada teste de API usa uma transacção com savepoint e faz rollback.
+A migração é ensaiada numa base criada para o efeito e apagada a seguir.
+A base de desenvolvimento não é despromovida.
+
+1. Migração upgrade/downgrade e dados preexistentes
+   CREATE DATABASE kaivita_i4_<hex>. Upgrade até 0003_products, inserção de
+   conta, actor, papel e produto. Upgrade head: a revisão passa a
+   0004_offers, offers nasce vazia, uq_products_id_owner existe e o produto
+   antigo conserva o id e o nome. Downgrade para 0003_products: offers e a
+   unicidade desaparecem; o produto permanece. Downgrade para
+   0002_identity_access: products desaparece e os três papéis ficam.
+   Novo upgrade head repõe products e offers. A base é apagada.
+   PASSED test_offers_migration_preserves_existing_rows_on_a_throwaway_database
+
+2. Criação de rascunho completo e incompleto
+   POST 201. status draft. O dono é o actor do caminho. Preço "150.00" e
+   quantidade "2.50" voltam em texto. Um inteiro 10 é aceite como "10".
+   Quantidade zero com unavailable é aceite. O mesmo produto aceita outra
+   oferta. Um corpo só com product_id deixa os comerciais a null.
+   PASSED test_manager_creates_a_complete_draft
+   PASSED test_manager_creates_an_incomplete_draft
+
+3. Produto de outro actor e produto inexistente
+   Os dois respondem 404 "Produto não encontrado.", sem nome do produto
+   alheio e sem linha nova.
+   PASSED test_product_of_another_actor_is_rejected
+
+4. Produto arquivado
+   Oferta nova e rascunho só com product_id: 422 "O produto está arquivado."
+   Publicação feita antes do arquivo mantém published. A correcção de
+   delivery_terms passa e o estado continua published. Apagar o preço
+   responde 422 e o preço fica 150.00. Suspender passa. Republicar responde
+   422 e o estado fica suspended. O produto continua archived.
+   Uma segunda oferta, publicada e depois com o produto arquivado, pode ser
+   retirada. O estado passa a withdrawn e o preço e a quantidade mantêm-se.
+   PASSED test_archived_product_blocks_new_offers_and_publication
+   PASSED test_published_offer_of_an_archived_product_can_be_withdrawn
+
+5. Autorização read, manage, token e representação
+   read consulta e não escreve: 404 "Actor não encontrado."
+   Sem token: 401. Sem associação ou com associação revoked: 404 nas sete
+   rotas, sem o preço na resposta.
+   PASSED test_reader_cannot_create_an_offer
+   PASSED test_reader_cannot_change_an_offer
+   PASSED test_offer_routes_require_a_token
+   PASSED test_user_without_active_representation_cannot_use_offers
+   PASSED test_authorized_user_can_read_one_offer
+   PASSED test_listing_returns_only_the_authorized_actors_offers
+
+6. Isolamento
+   Dois utilizadores com manage exclusivo. Ver isolamento-actores.txt.
+   PASSED test_managers_are_isolated_between_actors
+   PASSED test_offer_of_another_actor_is_not_disclosed
+
+7. Preço, quantidade, moeda, unidade e estados de entrada
+   Negativo, float, NaN, notação científica, moeda mzn, MZ ou MZN1, unidade
+   vazia, disponibilidade desconhecida e quantidade zero com available:
+   422, sem eco do valor e sem oferta.
+   owner_actor_id, status e product_id no corpo: 422. A oferta existente
+   não muda de dono nem de produto.
+   PASSED test_invalid_offer_input_is_rejected
+   PASSED test_owner_and_status_in_the_body_are_rejected
+
+8. Actualização
+   {} não altera o rascunho. O PATCH preenche os campos comerciais.
+   delivery_terms null limpa o texto. O produto e o estado ficam.
+   Uma alteração inválida no rascunho responde 422 e conserva preço,
+   quantidade e disponibilidade.
+   Uma oferta published recusa preço null e quantidade zero com available.
+   Aceita quantidade zero com unavailable e continua published.
+   PASSED test_manager_updates_a_draft
+   PASSED test_invalid_update_does_not_persist
+   PASSED test_published_offer_must_remain_valid
+
+9. Ciclo de vida
+   Publicar incompleta: 422, continua draft. Depois de completar: published.
+   Suspender, republicar e retirar. Os campos comerciais não mudam com a
+   transição. DELETE responde 405 e a linha fica. A partir de withdrawn,
+   publish, suspend, withdraw e PATCH respondem 422.
+   Repetir publish não chama a escrita.
+   Um rascunho sem campos comerciais pode ser retirado. Suspender esse
+   estado terminal responde 422.
+   PASSED test_lifecycle_follows_the_approved_state_diagram
+   PASSED test_repeated_transition_does_not_write
+   PASSED test_draft_can_be_withdrawn_without_publication_data
+
+10. Integridade na base
+    A base recusa produto ou actor em falta, preço negativo, moeda mzn,
+    unidade vazia, disponibilidade desconhecida, estado archived, quantidade
+    zero com available e published incompleta.
+    A chave composta fk_offers_product_owner recusa os dois cruzamentos de
+    dono e recusa mudar o dono do produto enquanto a oferta existir.
+    Apagar o produto ou o actor com oferta existente é recusado.
+    O modelo e a migração coincidem, incluindo ON UPDATE RESTRICT.
+    PASSED test_database_rejects_invalid_offer_rows
+    PASSED test_database_enforces_the_same_owner
+    PASSED test_database_restricts_delete_while_an_offer_exists
+    PASSED test_migrated_offer_schema_matches_the_model
+    PASSED test_mapped_offer_declares_the_contract
+
+11. Rollback
+    Excepção depois do flush, dentro do savepoint, na criação, na alteração
+    e na publicação. A criação não deixa linha. A alteração repõe unidade e
+    preço. A publicação deixa a oferta em draft.
+    PASSED test_failed_creation_rolls_back_the_offer
+    PASSED test_failed_update_rolls_back_the_offer
+    PASSED test_failed_publish_rolls_back_the_status
+
+12. Papel producer
+    Sem o papel, criar, alterar e publicar respondem 422. O GET da oferta
+    já criada continua. O papel de outra conta não abre o actor.
+    A base aceita uma oferta directa de um actor sem producer.
+    PASSED test_actor_without_producer_role_cannot_write_offers
+    PASSED test_producer_role_does_not_grant_access_to_another_actor
+    PASSED test_database_accepts_a_direct_row_without_the_producer_role
+
+13. Contrato HTTP e regressão
+    O OpenAPI expõe as rotas privadas, com Bearer, sem DELETE, sem archive
+    e sem /offers público. Preço e quantidade, no pedido, na resposta e no
+    PATCH, são string ou null. Os exemplos são "150.00" e "2.50". Não há
+    type number.
+    A cadeia Alembic tem cabeça 0004_offers. O teste de identidade confirma
+    os três papéis semeados nessa revisão. O ensaio da migração de produtos
+    pára em 0003_products, para continuar a provar essa revisão.
+    PASSED test_openapi_exposes_private_offer_routes_without_delete
+    Os 122 testes anteriores passaram na mesma execução.

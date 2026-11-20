@@ -1,0 +1,44 @@
+Limitações e funcionalidades excluídas — I4
+
+Não há consulta pública, pesquisa, contactos, PublicationAuthorization
+nem consentimento. O estado published é só o ciclo de vida privado da
+oferta. Não autoriza divulgar contactos.
+
+Não há encomendas, pagamentos, reservas, frete calculado nem interface.
+delivery_terms é texto informativo.
+
+Não há DELETE de ofertas. Retirar não apaga a linha. Não há regresso de
+withdrawn para outro estado. Repetir publish, suspend ou withdraw responde
+422 e não reescreve.
+
+Arquivar um produto não suspende nem retira as ofertas existentes. Uma
+oferta que continua published depois desse arquivo permanece visível para
+quem representa o actor e fica inelegível para a consulta pública futura.
+Não há coluna de elegibilidade: a regra fica registada para o incremento
+da pesquisa. Não há reactivação do produto.
+
+O papel producer é exigido pela API em cada escrita. A base não o exige.
+Um actor sem producer pode receber uma oferta por fora da API, desde que
+o produto seja dele.
+
+Não há tecto nem escala fixa para preço e quantidade. Não há catálogo de
+moedas nem vocabulário de unidades. Não há comprimento máximo dos textos.
+
+O preço fraccionário tem de ser enviado como texto JSON. Um número JSON
+com casa decimal é recusado. Um inteiro é aceite e guardado como decimal
+exacto.
+
+Não há SELECT FOR UPDATE. Uma revogação ou a retirada do papel producer,
+confirmadas por outro pedido depois da leitura e antes da escrita, podem
+chegar tarde. A chave estrangeira composta impede que o dono da oferta e
+o dono do produto divirjam, mesmo nessa corrida e num INSERT directo.
+
+Não há registo de auditoria das transições de publicação.
+
+A migração descartável precisa de permissão para criar e apagar uma base
+no mesmo servidor. O utilizador do Compose tem essa permissão.
+
+A interface Next.js não foi alterada.
+
+Os testes de atomicidade usam uma excepção dentro do savepoint. Não
+substituem um ensaio de falha do processo ou do PostgreSQL.

@@ -4,11 +4,13 @@ Protótipo de Licenciatura em Desenvolvimento de Software. É um projecto
 independente, construído de raiz para a monografia. O repositório contém a
 fundação técnica (I0), o modelo de identidade (I1.1), a autenticação (I1.2),
 a autorização de representação (I1.3), a gestão de actores e papéis
-comerciais (I2) e o catálogo de produtos (I3).
+comerciais (I2), o catálogo de produtos (I3) e a gestão de ofertas
+comerciais (I4).
 
 Não há registo público, recuperação de palavra-passe, refresh tokens,
-concessão de acessos a outros utilizadores, ofertas, filas, Redis,
-inteligência artificial nem sincronização offline.
+concessão de acessos a outros utilizadores, consulta pública de ofertas,
+contactos públicos, filas, Redis, inteligência artificial nem sincronização
+offline.
 
 ## Arquitectura
 
@@ -17,8 +19,8 @@ Três processos, um repositório:
 | Serviço | Tecnologia | Função neste incremento |
 | --- | --- | --- |
 | `web` | Next.js e TypeScript | Página inicial com ligações à API |
-| `api` | FastAPI e Python | Saúde, autenticação, actores, papéis e produtos |
-| `db` | PostgreSQL 16 | Identidade, acesso e produtos, versão Alembic `0003_products` |
+| `api` | FastAPI e Python | Saúde, autenticação, actores, papéis, produtos e ofertas |
+| `db` | PostgreSQL 16 | Identidade, acesso, produtos e ofertas, versão Alembic `0004_offers` |
 
 A interface não chama a API por JavaScript. Os botões abrem `/health` e
 `/docs` no browser, por isso este incremento não configura CORS.
@@ -81,7 +83,8 @@ uma peça pedida neste incremento.
 │   │   └── versions/
 │   │       ├── 0001_initial.py
 │   │       ├── 0002_identity_access.py
-│   │       └── 0003_products.py
+│   │       ├── 0003_products.py
+│   │       └── 0004_offers.py
 │   ├── app/
 │   │   ├── __init__.py
 │   │   ├── config.py
@@ -96,6 +99,8 @@ uma peça pedida neste incremento.
 │   │   ├── actor_roles.py
 │   │   ├── products.py
 │   │   ├── catalog.py
+│   │   ├── offers.py
+│   │   ├── offer_catalog.py
 │   │   ├── roles.py
 │   │   ├── create_user.py
 │   │   └── main.py
@@ -107,7 +112,8 @@ uma peça pedida neste incremento.
 │       ├── test_actor_roles.py
 │       ├── test_foundation.py
 │       ├── test_identity.py
-│       └── test_products.py
+│       ├── test_products.py
+│       └── test_offers.py
 └── frontend/
     ├── Dockerfile
     ├── .dockerignore
@@ -161,9 +167,9 @@ Para inspeccionar a base:
 docker compose exec db psql -U kaivita -d kaivita -c "\dt"
 ```
 
-Depois do I3, `\dt` mostra `alembic_version`, `users`, `actors`, `roles`,
-`actor_roles`, `user_actor_access` e `products`. A revisão Alembic corrente é
-`0003_products`.
+Depois do I4, `\dt` mostra `alembic_version`, `users`, `actors`, `roles`,
+`actor_roles`, `user_actor_access`, `products` e `offers`. A revisão Alembic
+corrente é `0004_offers`.
 
 Para parar e remover os contentores, mantendo os dados:
 
@@ -202,10 +208,11 @@ python -m pytest -v
 
 Sem essa variável, o teste de ligação real e os testes de integridade do
 modelo são ignorados. Os restantes não precisam de base de dados.
-A cabeça do Alembic esperada é `0003_products`. `0002_identity_access`
-continua a ser a revisão de identidade e `0001_initial` a revisão vazia.
-O teste da migração de produtos cria uma base à parte, no mesmo servidor,
-e apaga-a no fim. A conta PostgreSQL do Compose consegue criar essa base.
+A cabeça do Alembic esperada é `0004_offers`. `0003_products` continua a ser
+a revisão do catálogo, `0002_identity_access` a de identidade e
+`0001_initial` a revisão vazia. Os testes de migração de produtos e de
+ofertas criam bases à parte, no mesmo servidor, e apagam-nas no fim.
+A conta PostgreSQL do Compose consegue criar essas bases.
 
 ## Interface sem Docker
 
@@ -305,8 +312,8 @@ responder 404. O I2 não cria migração; nesse incremento a revisão permanece
 ## Incremento I3 — catálogo de produtos
 
 `0003_products` cria a tabela `products`, depois de `0002_identity_access`.
-As migrações anteriores não são editadas. Não há tabelas de ofertas,
-categorias ou ficheiros.
+As migrações anteriores não são editadas. Essa revisão não cria tabelas de
+ofertas, categorias ou ficheiros.
 
 Os pedidos ficam por baixo do actor:
 
@@ -333,13 +340,58 @@ O estado `active` ou `archived` não vem na SRS nem no diagrama. É a decisão
 deste incremento. A fotografia é opcional, como no RF-02: `image_ref` nulo
 significa que não há referência. O texto não é um ficheiro guardado.
 
+## Incremento I4 — ofertas comerciais
+
+`0004_offers` cria a tabela `offers`, depois de `0003_products`. As migrações
+anteriores não são editadas. A revisão também cria `uq_products_id_owner`,
+para a oferta referenciar o par `(id, owner_actor_id)` do produto.
+
+Os pedidos ficam por baixo do actor e exigem token:
+
+- `POST /actors/{actor_id}/offers` cria um rascunho. Exige `manage` activo
+  e o papel `producer`. O corpo leva `product_id`. Preço, moeda, quantidade,
+  unidade, disponibilidade e condições de entrega podem ficar por preencher.
+  O dono é o actor do caminho.
+- `GET /actors/{actor_id}/offers` e `GET .../offers/{offer_id}` exigem
+  `read` ou `manage` activo. A lista inclui todos os estados, só desse
+  actor, por id.
+- `PATCH .../offers/{offer_id}` altera os campos comerciais enviados e
+  exige `manage` e o papel `producer`. Não muda o dono, o produto nem o
+  estado. Uma oferta `published` tem de continuar válida. Uma oferta
+  `withdrawn` não se altera.
+- `POST .../publish` passa de `draft` ou `suspended` a `published` quando
+  o produto está `active` e os cinco campos de publicação estão válidos.
+  Muda só o estado.
+- `POST .../suspend` passa de `published` a `suspended`.
+- `POST .../withdraw` passa de `draft`, `published` ou `suspended` a
+  `withdrawn`. A linha permanece. Não há `DELETE` nem `/archive`.
+
+Preço e quantidade são `NUMERIC` e saem em JSON como texto decimal.
+O OpenAPI descreve os dois campos como string, com os exemplos `150.00` e
+`2.50`. Um número fraccionário no JSON é recusado; o cliente envia `"150.00"`.
+Um inteiro é aceite. A moeda, quando vem, são três letras maiúsculas.
+Quantidade zero com disponibilidade `available` é recusada. Não há tecto
+de valor, catálogo de moedas nem vocabulário de unidades.
+
+Actor inacessível responde 404 com `Actor não encontrado.` Oferta ou
+produto de outro actor respondem 404, sem dados desse recurso. Sem o papel
+`producer`, a escrita responde 422 e a consulta continua possível. A base
+não exige o papel. Exige, sim, que `product_id` e `owner_actor_id`
+pertençam ao mesmo produto.
+
+Arquivar o produto não muda as ofertas já gravadas. Não nascem ofertas
+novas para esse produto, nem se publica ou republica uma oferta dele.
+Uma oferta que já estava `published` continua nesse estado na consulta
+privada e não será elegível para a consulta pública futura. O estado
+`published` não autoriza a divulgação de contactos.
+
 ## Limitações deste incremento
 
 - `0001_initial` permanece vazia. As tabelas de identidade nascem em `0002`.
-O I1.2 e o I2 não criaram revisão. O I3 acrescenta `0003_products`.
-A lista de papéis vazia é recusada pela API; a base continua a permitir um
-actor sem linhas em `actor_roles`. O papel `producer` do produto também é
-regra da API, não um CHECK da base.
+O I1.2 e o I2 não criaram revisão. O I3 acrescenta `0003_products` e o I4
+acrescenta `0004_offers`. A lista de papéis vazia é recusada pela API; a
+base continua a permitir um actor sem linhas em `actor_roles`. O papel
+`producer` do produto e da oferta também é regra da API, não um CHECK da base.
 - A SRS menciona área de actuação. O campo persistido continua a ser
 `general_location`. Não foi acrescentada outra coluna.
 - `GET /roles` não pede token. A resposta é o catálogo de três códigos,
@@ -356,19 +408,27 @@ incremento é o nosso `globals.css`. A correcção publicada pede o Next.js 16,
 que fica de fora para não mudar de geração sem necessidade.
 - O FastAPI 0.162 traz `opentelemetry-api` como dependência transitiva.
 Não há exportador nem telemetria configurada.
-- Não há limite de produtos por actor nem tamanho máximo dos textos.
-A SRS e o diagrama não os fixam. A categoria é texto livre.
-- Arquivar não congela a ficha: um `PATCH` posterior pode corrigir nome,
-descrição, categoria ou referência, e o estado continua `archived`.
-Não há operação para reactivar.
-- Não há bloqueio da linha do produto. Outra transacção pode retirar o
-papel `producer` ou a representação depois da leitura e antes da escrita.
+- Não há limite de produtos ou de ofertas por actor, nem tamanho máximo dos
+textos. A SRS e o diagrama não os fixam. A categoria e a unidade são texto
+livre. Preço e quantidade não têm tecto nem escala fixa.
+- Arquivar não congela a ficha do produto: um `PATCH` posterior pode corrigir
+nome, descrição, categoria ou referência, e o estado continua `archived`.
+Não há operação para reactivar o produto nem a oferta retirada.
+- Não há bloqueio da linha do produto nem da oferta. Outra transacção pode
+retirar o papel `producer` ou a representação depois da leitura e antes da
+escrita. A igualdade entre o dono da oferta e o dono do produto fica na
+chave estrangeira composta.
+- Uma oferta publicada cujo produto foi arquivado depois mantém o estado.
+Essa oferta não entra na consulta pública, que este incremento não expõe.
+- O preço fraccionário tem de ir em texto JSON. Um número com casa decimal
+é recusado, para não passar por ponto flutuante.
+- Não há registo de auditoria das mudanças de publicação.
 
 ## Fora deste incremento
 
 Registo público, recuperação de palavra-passe, refresh tokens, concessão
 e revogação de acessos a outros representantes, alteração do catálogo
-global de papéis, ofertas, consulta pública, contactos públicos, interfaces
-de gestão do catálogo, carregamento de ficheiros, filas e qualquer
-sincronização entre clientes. O próximo passo só deve começar depois da
-validação do I3.
+global de papéis, consulta pública, contactos públicos, autorização de
+publicação de contactos, interfaces de gestão, carregamento de ficheiros,
+filas e qualquer sincronização entre clientes. O próximo passo só deve
+começar depois da validação do I4.

@@ -268,7 +268,7 @@ def test_products_migration_upgrades_and_downgrades_on_a_throwaway_database():
         environment = os.environ.copy()
         environment["DATABASE_URL"] = target
 
-        _alembic(environment, "upgrade", "head")
+        _alembic(environment, "upgrade", "0003_products")
         version, products, roles, users = _catalog_state(target)
         assert version == "0003_products"
         assert products is not None
@@ -282,7 +282,7 @@ def test_products_migration_upgrades_and_downgrades_on_a_throwaway_database():
         assert roles == 3
         assert users is not None
 
-        _alembic(environment, "upgrade", "head")
+        _alembic(environment, "upgrade", "0003_products")
         version, products, roles, users = _catalog_state(target)
         assert version == "0003_products"
         assert products is not None

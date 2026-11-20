@@ -1,0 +1,53 @@
+Decisões técnicas — I4
+
+A SRS v1.1 §3 e o diagrama 02-classes descrevem a Offer com os dez
+atributos aprovados. A implementação usa esses campos, em snake_case,
+e não acrescenta created_at, contacto, consentimento nem elegibilidade
+pública. O estado published não autoriza a divulgação de contactos.
+
+OfferStatus fica draft, published, suspended e withdrawn. AvailabilityStatus
+fica available e unavailable. São os literais aprovados a partir do
+diagrama 07. A republicação é publish a partir de suspended. Retirar não
+apaga a linha e não tem saída. Repetir uma transição que o diagrama não
+desenha responde 422 e não reescreve.
+
+O rascunho pode omitir preço, moeda, quantidade, unidade, disponibilidade
+e condições de entrega. A publicação exige os cinco primeiros, com preço
+e quantidade maiores ou iguais a zero. delivery_terms continua opcional.
+Isto segue a UC-05 e a RB-05. O UML não marca esses campos com [0..1];
+a mesma leitura já tinha preferido a SRS no caso da fotografia do I3.
+
+Preço e quantidade são NUMERIC sem precisão nem escala, mapeados para
+Decimal. A resposta JSON e o OpenAPI levam o decimal em texto, com os
+exemplos 150.00 e 2.50. Um inteiro no pedido é aceite. Um número JSON com
+casa decimal é recusado, para não passar por float. Não há tecto. A moeda, se vier, são três letras A-Z, sem lista ISO
+e sem valor por omissão. A unidade é texto livre, como a categoria do I3.
+Quantidade zero com available é recusada em qualquer estado.
+
+O dono é o actor do caminho. owner_actor_id, status, id e product_id no
+corpo são recusados. Várias ofertas podem referenciar o mesmo produto.
+product_id não muda depois da criação.
+
+0004_offers cria uq_products_id_owner e a chave estrangeira composta
+offers (product_id, owner_actor_id) → products (id, owner_actor_id), com
+ON UPDATE RESTRICT e ON DELETE RESTRICT. 0003_products não foi editado.
+Um INSERT com donos diferentes falha na base. Alterar o dono do produto
+enquanto existir uma oferta também falha. O papel producer continua a ser
+regra só da API, como no I3.
+
+Produto archived: a API recusa oferta nova, publicação e republicação.
+Não muda o estado das ofertas já gravadas. A correcção privada continua
+possível dentro das regras do estado actual. O produto não é reactivado.
+Uma oferta que permanece published depois do arquivo do produto não será
+elegível para a consulta pública futura. Essa consulta não existe no I4.
+
+A ordem é a do I3: token, representação, pertença do recurso, papel
+producer, regras do produto e da oferta. Actor inacessível, revogado ou
+com nível insuficiente responde 404. Oferta ou produto de outro actor
+responde 404 sem dados. O diagrama de sequência mostra 403 e
+POST /offers/{id}/publish; a nota desse diagrama diz que é comportamento
+proposto. O caminho fica debaixo do actor e o 404 do I1.3 mantém-se.
+
+A escrita usa um savepoint na sessão do pedido. Não há SELECT FOR UPDATE.
+A §12 da SRS chama I3 às ofertas. Neste repositório são o I4, decisão já
+registada no I2 e no I3.

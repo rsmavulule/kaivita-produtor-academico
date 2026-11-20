@@ -1,0 +1,5 @@
+0004_offers (head)
+
+alembic current também escreve no stderr, antes da revisão:
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.

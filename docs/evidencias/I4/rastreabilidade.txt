@@ -1,0 +1,36 @@
+Matriz de rastreabilidade — I4 gestão de ofertas
+Fontes: SRS v1.1, docs/srs/diagramas/02-classes.drawio e 07-estados-oferta.drawio.
+Não foi consultado código do projecto comercial. A SRS e os diagramas não foram alterados.
+
+SRS / UML                                      Implementação                                      Situação
+---------------------------------------------  -------------------------------------------------  ------------------------------------------
+§3 Offer: id, product_id, owner_actor_id,      offers com os mesmos campos. JSON em snake_case.  Alinhado.
+price, currency, quantity, unit, availability,
+delivery_terms, status
+UML Offer e operações publish, suspend,        POST, PATCH e POST publish, suspend, withdraw.    Alinhado. Não há archive nem DELETE.
+withdraw
+UML Actor 1 — Offer 0..* e Product 1 —         owner_actor_id e product_id NOT NULL. Várias      Alinhado.
+Offer 0..*                                     ofertas por produto.
+RB-03 mesmo actor                              FK composta uq_products_id_owner. 404 se o        Alinhado na API e na base.
+                                               product_id não for desse actor.
+RF-03 criar, editar, publicar, suspender e     As sete rotas privadas sob /actors/{actor_id}/    Alinhado. Publicar muda só o estado.
+retirar                                        offers.
+UC-05 rascunho incompleto; publicação exige    Colunas comerciais anuláveis. publish valida os   Alinhado com a SRS. O UML não marca [0..1].
+os campos                                      cinco campos.
+RB-04 e RB-05 preço e quantidade >= 0; zero    NUMERIC. Zero com available é recusado.           Alinhado.
+não é desconhecido nem disponível
+RB-02 produtor publica; papel em toda a        Escrita exige producer. Consulta não. A base não  A publicação é SRS. As outras escritas
+escrita                                        tem esta regra.                                    seguem o I3, conforme o contrato aprovado.
+RB-10 e RF-08 representação                    actor_for_read e actor_for_manage. 404 único.     Herdado do I1.3.
+Diagrama 07: draft, published, suspended,      CHECK ck_offers_status e as três transições.      Aprovado para este incremento.
+withdrawn, com republicação
+AvailabilityStatus available, unavailable      CHECK ck_offers_availability.                     Aprovado para este incremento.
+Produto archived                               Recusa criação e publicação. Não cascateia.       Decisão aprovada. A SRS não a liga ao produto.
+Oferta published com produto archived          Mantém published na consulta privada.             Registado como inelegível para consulta
+                                                                                                  pública futura. Sem rota pública.
+RF-04, RF-07, UC-06 consulta pública           Sem rota pública.                                  Fora do I4.
+RF-05, RF-10, contactos e consentimento        Sem PublicContact nem PublicationAuthorization.   Fora do I4. published não os autoriza.
+RF-06 e RB-09 entrega informativa              delivery_terms opcional, texto.                   Alinhado. Não é obrigatório na publicação.
+RNF-04 integridade                             FK, CHECK e validação no servidor.                Alinhado no perímetro da oferta.
+RNF-05 testes                                  backend/tests/test_offers.py e esta pasta.        Executado. 155 passed, dos quais 122
+                                                                                                  anteriores.

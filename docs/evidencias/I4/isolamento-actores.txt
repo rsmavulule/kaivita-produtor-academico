@@ -1,0 +1,23 @@
+Isolamento entre actores — I4
+
+PostgreSQL 16 em localhost:5435, base kaivita. Revisão Alembic: 0004_offers.
+Dois utilizadores, cada um com manage exclusivo no seu actor produtor.
+
+U1 cria, consulta, actualiza e publica a oferta de A.
+U1 recebe 404 nas mesmas operações sobre B, e também em suspend e withdraw,
+sem o preço, a unidade ou o nome do produto de B.
+Pelo caminho de A, o id da oferta de B responde 404 "Oferta não encontrada."
+Criar em A com o product_id de B responde 404 "Produto não encontrado."
+U2 cria e actualiza a oferta de B e recebe 404 sobre A.
+As ofertas ficam no actor de origem. A de A permanece published; a de B
+permanece draft.
+
+PASSED test_managers_are_isolated_between_actors
+
+Cobertura próxima, noutros testes:
+- a listagem de dois actores do mesmo utilizador não mistura ofertas;
+- a oferta de outro actor não é devolvida;
+- o papel producer de outra conta não abre o actor.
+PASSED test_listing_returns_only_the_authorized_actors_offers
+PASSED test_offer_of_another_actor_is_not_disclosed
+PASSED test_producer_role_does_not_grant_access_to_another_actor

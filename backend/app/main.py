@@ -1,8 +1,9 @@
 """Aplicação FastAPI.
 
 Expõe o estado do serviço, a autenticação, a representação de actores,
-a criação do actor, o catálogo de papéis comerciais e o catálogo de
-produtos. A documentação está em /docs. Não há registo público nem ofertas.
+a criação do actor, o catálogo de papéis comerciais, o catálogo de
+produtos e a gestão privada de ofertas. A documentação está em /docs.
+Não há registo público, consulta pública nem contactos.
 """
 
 from typing import Literal
@@ -15,6 +16,7 @@ from pydantic import BaseModel
 from app.actors import router as actors_router
 from app.auth import router as auth_router
 from app.catalog import router as catalog_router
+from app.offer_catalog import router as offer_router
 from app.config import settings
 from app.db import check_database
 from app.roles import router as roles_router
@@ -23,6 +25,7 @@ app = FastAPI(title=settings.app_name)
 app.include_router(auth_router)
 app.include_router(actors_router)
 app.include_router(catalog_router)
+app.include_router(offer_router)
 app.include_router(roles_router)
 
 
