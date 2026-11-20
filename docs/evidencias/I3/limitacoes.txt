@@ -1,0 +1,46 @@
+Limitações e funcionalidades excluídas — I3
+
+Ofertas não foram implementadas. O produto não tem preço, moeda,
+quantidade, unidade, disponibilidade nem condições de entrega.
+Não há publicação, suspensão nem retirada de oferta.
+
+Não há consulta pública. Produtos archived continuam visíveis para quem
+representa o actor. A elegibilidade pública da RB-06 fica para o incremento
+da pesquisa.
+
+Não há tabela de categorias. category é texto livre, como no diagrama.
+Não há limite de produtos por actor nem comprimento máximo dos textos.
+A SRS e o UML não os definem.
+
+Não há armazenamento de ficheiros nem validação de URL. image_ref é uma
+string opcional. A publicação de fotografias e a declaração de direito de
+uso (RB-08) não entram neste incremento.
+
+Não há DELETE de produtos. Arquivar não apaga a linha. Não há operação
+para voltar de archived a active. Um PATCH posterior ainda pode corrigir
+os campos descritivos; o estado não muda com esse PATCH.
+
+O papel producer é exigido pela API em cada escrita. A base não o exige:
+não há trigger nem CHECK entre products e actor_roles. Um actor sem
+producer pode receber uma linha por fora da API.
+
+O estado inactive do actor não é consultado. Quem mantém manage activo
+não fica bloqueado por esse estado. A SRS não pede essa trava no produto.
+
+Não há transferência de proprietário. owner_actor_id não é editável.
+
+Não há bloqueio da linha. Uma revogação ou a retirada do papel producer,
+confirmadas por outro pedido depois da leitura e antes da escrita, podem
+chegar tarde.
+
+Os testes de atomicidade usam uma excepção dentro do savepoint. Não
+substituem um ensaio de falha do processo ou do PostgreSQL.
+
+A migração descartável precisa de permissão para criar e apagar uma base
+no mesmo servidor. O utilizador do Compose tem essa permissão.
+
+A interface Next.js não foi alterada. Continua a ser a página da fundação,
+sem ecrã de catálogo.
+
+Não há registo público, concessão de representação a outras contas,
+contactos públicos nem edição do catálogo global de papéis.

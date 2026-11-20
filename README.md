@@ -3,11 +3,11 @@
 Protótipo de Licenciatura em Desenvolvimento de Software. É um projecto
 independente, construído de raiz para a monografia. O repositório contém a
 fundação técnica (I0), o modelo de identidade (I1.1), a autenticação (I1.2),
-a autorização de representação (I1.3) e a gestão de actores e papéis
-comerciais (I2).
+a autorização de representação (I1.3), a gestão de actores e papéis
+comerciais (I2) e o catálogo de produtos (I3).
 
 Não há registo público, recuperação de palavra-passe, refresh tokens,
-concessão de acessos a outros utilizadores, produtos, ofertas, filas, Redis,
+concessão de acessos a outros utilizadores, ofertas, filas, Redis,
 inteligência artificial nem sincronização offline.
 
 ## Arquitectura
@@ -17,8 +17,8 @@ Três processos, um repositório:
 | Serviço | Tecnologia | Função neste incremento |
 | --- | --- | --- |
 | `web` | Next.js e TypeScript | Página inicial com ligações à API |
-| `api` | FastAPI e Python | Saúde, autenticação, actores e papéis comerciais |
-| `db` | PostgreSQL 16 | Identidade e acesso, versão Alembic `0002_identity_access` |
+| `api` | FastAPI e Python | Saúde, autenticação, actores, papéis e produtos |
+| `db` | PostgreSQL 16 | Identidade, acesso e produtos, versão Alembic `0003_products` |
 
 A interface não chama a API por JavaScript. Os botões abrem `/health` e
 `/docs` no browser, por isso este incremento não configura CORS.
@@ -80,7 +80,8 @@ uma peça pedida neste incremento.
 │   │   ├── script.py.mako
 │   │   └── versions/
 │   │       ├── 0001_initial.py
-│   │       └── 0002_identity_access.py
+│   │       ├── 0002_identity_access.py
+│   │       └── 0003_products.py
 │   ├── app/
 │   │   ├── __init__.py
 │   │   ├── config.py
@@ -93,6 +94,8 @@ uma peça pedida neste incremento.
 │   │   ├── authorization.py
 │   │   ├── actors.py
 │   │   ├── actor_roles.py
+│   │   ├── products.py
+│   │   ├── catalog.py
 │   │   ├── roles.py
 │   │   ├── create_user.py
 │   │   └── main.py
@@ -103,7 +106,8 @@ uma peça pedida neste incremento.
 │       ├── test_authorization.py
 │       ├── test_actor_roles.py
 │       ├── test_foundation.py
-│       └── test_identity.py
+│       ├── test_identity.py
+│       └── test_products.py
 └── frontend/
     ├── Dockerfile
     ├── .dockerignore
@@ -157,9 +161,9 @@ Para inspeccionar a base:
 docker compose exec db psql -U kaivita -d kaivita -c "\dt"
 ```
 
-Depois do I1.1, `\dt` mostra `alembic_version`, `users`, `actors`, `roles`,
-`actor_roles` e `user_actor_access`. A revisão Alembic corrente é
-`0002_identity_access`.
+Depois do I3, `\dt` mostra `alembic_version`, `users`, `actors`, `roles`,
+`actor_roles`, `user_actor_access` e `products`. A revisão Alembic corrente é
+`0003_products`.
 
 Para parar e remover os contentores, mantendo os dados:
 
@@ -198,8 +202,10 @@ python -m pytest -v
 
 Sem essa variável, o teste de ligação real e os testes de integridade do
 modelo são ignorados. Os restantes não precisam de base de dados.
-A cabeça do Alembic esperada é `0002_identity_access`; `0001_initial`
-continua a ser a revisão vazia de partida.
+A cabeça do Alembic esperada é `0003_products`. `0002_identity_access`
+continua a ser a revisão de identidade e `0001_initial` a revisão vazia.
+O teste da migração de produtos cria uma base à parte, no mesmo servidor,
+e apaga-a no fim. A conta PostgreSQL do Compose consegue criar essa base.
 
 ## Interface sem Docker
 
@@ -293,15 +299,47 @@ desconhecido e a repetição são recusados antes de alterar associações.
 
 O papel comercial não autoriza a representação. `producer`, por exemplo,
 não concede `manage`. Actor inexistente ou inacessível continua a
-responder 404. Não há migração nova: a revisão permanece
+responder 404. O I2 não cria migração; nesse incremento a revisão permanece
 `0002_identity_access`.
+
+## Incremento I3 — catálogo de produtos
+
+`0003_products` cria a tabela `products`, depois de `0002_identity_access`.
+As migrações anteriores não são editadas. Não há tabelas de ofertas,
+categorias ou ficheiros.
+
+Os pedidos ficam por baixo do actor:
+
+- `POST /actors/{actor_id}/products` cria o produto. Exige `manage` activo
+  e o papel `producer` entre os papéis do actor. O corpo leva `name`,
+  `description`, `category` e, se existir, `image_ref`. O dono é o actor
+  do caminho. `owner_actor_id` no corpo responde 422.
+- `GET /actors/{actor_id}/products` e `GET .../products/{product_id}` exigem
+  `read` ou `manage` activo. A lista inclui produtos `active` e `archived`,
+  só desse actor, por nome e id.
+- `PATCH .../products/{product_id}` altera os campos descritivos e exige
+  `manage` e o papel `producer`. Não muda o dono nem o estado.
+- `POST .../products/{product_id}/archive` passa o estado a `archived`,
+  conserva os outros campos e pode repetir-se. Não há `DELETE`.
+
+Actor inacessível, representação revogada ou nível insuficiente respondem
+404 com `Actor não encontrado.` Um produto que não pertence ao actor do
+caminho responde 404 com `Produto não encontrado.`, sem dados desse produto.
+O papel `producer` não substitui a representação. Pode estar junto de
+`buyer` e `partner`. Sem ele, a escrita responde 422 e a consulta continua
+possível. A base não aplica esta regra: só a API.
+
+O estado `active` ou `archived` não vem na SRS nem no diagrama. É a decisão
+deste incremento. A fotografia é opcional, como no RF-02: `image_ref` nulo
+significa que não há referência. O texto não é um ficheiro guardado.
 
 ## Limitações deste incremento
 
 - `0001_initial` permanece vazia. As tabelas de identidade nascem em `0002`.
-Não houve migração nova: a conta já tinha `email`, `password_hash` e `status`.
-O I2 também não cria revisão. A lista de papéis vazia é recusada pela API;
-a base continua a permitir um actor sem linhas em `actor_roles`.
+O I1.2 e o I2 não criaram revisão. O I3 acrescenta `0003_products`.
+A lista de papéis vazia é recusada pela API; a base continua a permitir um
+actor sem linhas em `actor_roles`. O papel `producer` do produto também é
+regra da API, não um CHECK da base.
 - A SRS menciona área de actuação. O campo persistido continua a ser
 `general_location`. Não foi acrescentada outra coluna.
 - `GET /roles` não pede token. A resposta é o catálogo de três códigos,
@@ -318,11 +356,19 @@ incremento é o nosso `globals.css`. A correcção publicada pede o Next.js 16,
 que fica de fora para não mudar de geração sem necessidade.
 - O FastAPI 0.162 traz `opentelemetry-api` como dependência transitiva.
 Não há exportador nem telemetria configurada.
+- Não há limite de produtos por actor nem tamanho máximo dos textos.
+A SRS e o diagrama não os fixam. A categoria é texto livre.
+- Arquivar não congela a ficha: um `PATCH` posterior pode corrigir nome,
+descrição, categoria ou referência, e o estado continua `archived`.
+Não há operação para reactivar.
+- Não há bloqueio da linha do produto. Outra transacção pode retirar o
+papel `producer` ou a representação depois da leitura e antes da escrita.
 
 ## Fora deste incremento
 
 Registo público, recuperação de palavra-passe, refresh tokens, concessão
 e revogação de acessos a outros representantes, alteração do catálogo
-global de papéis, produtos, ofertas, contactos públicos, interfaces de
-login, carregamento de ficheiros, filas e qualquer sincronização entre
-clientes. O próximo passo só deve começar depois da validação do I2.
+global de papéis, ofertas, consulta pública, contactos públicos, interfaces
+de gestão do catálogo, carregamento de ficheiros, filas e qualquer
+sincronização entre clientes. O próximo passo só deve começar depois da
+validação do I3.

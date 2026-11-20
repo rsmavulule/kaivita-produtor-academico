@@ -1,0 +1,143 @@
+Cenários do I3 — catálogo de produtos
+PostgreSQL 16 em localhost:5435. Revisão Alembic: 0003_products (head).
+Resultado global da verificação complementar: 122 passed em 14.00s
+(pytest-resultados.txt). Os 94 testes anteriores continuam aprovados.
+Há 28 testes do catálogo, incluindo o isolamento entre actores.
+Cada teste de API usa uma transacção com savepoint e faz rollback.
+A migração é ensaiada numa base criada para o efeito e apagada a seguir.
+A execução complementar deixou as linhas já confirmadas como as encontrou:
+1 conta, 5 actores, 7 associações de papel, 5 representações, 3 papéis
+de catálogo e 4 produtos. Essas linhas não foram criadas por esta suite.
+
+1. Migração upgrade/downgrade numa base descartável
+   CREATE DATABASE kaivita_i3_<hex>, alembic upgrade head, downgrade para
+   0002_identity_access e novo upgrade head. products nasce e desaparece.
+   users e os três papéis mantêm-se no downgrade. A base é apagada.
+   A base de desenvolvimento não é despromovida.
+   PASSED test_products_migration_upgrades_and_downgrades_on_a_throwaway_database
+
+2. Criação por representante manage
+   POST 201. status active. image_ref null. owner_actor_id é o do caminho.
+   producer pode estar com buyer e partner. Dois produtos podem chamar-se
+   igual. A representação manage e os papéis não mudam.
+   PASSED test_manager_creates_a_product
+
+3. Rejeição de criação por representante read
+   HTTP 404, "Actor não encontrado." Não fica produto.
+   PASSED test_reader_cannot_create_a_product
+
+4. Rejeição de utilizador sem representação activa
+   Sem associação e com associação revoked: as cinco rotas respondem 404.
+   O produto existente não muda e o nome não sai na resposta.
+   PASSED test_user_without_active_representation_cannot_use_products
+
+5. Listagem limitada ao actor autorizado
+   Dois actores do mesmo utilizador. A lista de cada um só traz os seus
+   produtos, ordenados por nome. O leitor read vê a mesma lista. Quem não
+   representa o actor recebe 404.
+   PASSED test_listing_returns_only_the_authorized_actors_products
+
+6. Consulta individual autorizada
+   Dono e leitor recebem os sete campos, incluindo image_ref.
+   PASSED test_authorized_user_can_read_one_product
+
+7. Rejeição de acesso a produto de outro actor
+   No caminho do próprio actor, o id alheio dá 404 "Produto não encontrado."
+   No caminho do actor que não se representa, 404 "Actor não encontrado."
+   Nenhum dos nomes sai na resposta.
+   PASSED test_product_of_another_actor_is_not_disclosed
+
+8. Actualização com manage
+   PATCH altera nome, descrição, categoria e image_ref. {} não altera.
+   image_ref null limpa a referência. status continua active e o dono
+   não muda.
+   PASSED test_manager_updates_a_product
+
+9. Rejeição de alteração com read
+   PATCH e arquivo respondem 404. Nome, referência e estado mantêm-se.
+   PASSED test_reader_cannot_change_a_product
+
+10. Rejeição de entradas inválidas
+    Textos vazios, campos de oferta, status no corpo, descrição em falta
+    e UUID mal formado: 422, sem eco do valor e sem campo input.
+    O produto válido não muda.
+    PASSED test_invalid_product_input_is_rejected
+
+11. Rejeição de owner_actor_id no corpo
+    Na criação e no PATCH. 422. O UUID enviado não é ecoado. O produto
+    não muda de dono e não é criado no outro actor.
+    PASSED test_owner_actor_id_in_the_body_is_rejected
+
+12. Arquivo de produto
+    HTTP 200, status archived. A lista e a consulta individual ainda o
+    devolvem. DELETE responde 405 e a linha fica.
+    PASSED test_manager_archives_a_product
+
+13. Idempotência do arquivo
+    A segunda chamada devolve o mesmo corpo. mark_archived não volta a correr.
+    Continua uma só linha.
+    PASSED test_archive_is_idempotent
+
+14. Preservação dos dados após arquivo
+    id, dono, nome, descrição, categoria e image_ref ficam iguais.
+    Só o estado muda para archived.
+    PASSED test_archive_preserves_the_persisted_fields
+
+15. Restrições de integridade
+    A base recusa dono inexistente, dono em falta, textos em branco,
+    image_ref em branco, status published e nome em falta.
+    Apagar o actor enquanto o produto existe é recusado.
+    O modelo e a migração coincidem, incluindo o CHECK dos dois estados
+    e ON DELETE RESTRICT.
+    PASSED test_database_rejects_invalid_product_rows
+    PASSED test_database_restricts_actor_delete_while_a_product_exists
+    PASSED test_migrated_product_schema_matches_the_model
+    PASSED test_mapped_product_declares_the_catalog_contract
+
+16. Rollback em caso de falha
+    Excepção depois do flush, dentro do savepoint, na criação, na alteração
+    e no arquivo. A criação não deixa linha. A alteração repõe nome e
+    descrição. O arquivo deixa o produto active.
+    PASSED test_failed_creation_rolls_back_the_product
+    PASSED test_failed_update_rolls_back_the_product
+    PASSED test_failed_archive_rolls_back_the_status
+
+17. Regressão dos 94 testes anteriores
+    Incluídos na mesma execução. 121 passed, dos quais 94 já existiam.
+    O teste da revisão de identidade espera agora 0003_products e confirma
+    que os três papéis semeados se mantêm.
+    A cadeia Alembic espera a cabeça 0003_products, com 0002 a rever 0001
+    e 0001 vazia.
+
+Regras confirmadas, cobertas à parte da lista pedida:
+
+- Papel producer na escrita, também depois de o papel ser retirado.
+  A consulta do produto já criado continua.
+  PASSED test_actor_without_producer_role_cannot_create_or_change_products
+- producer não autoriza o actor de outra conta.
+  PASSED test_producer_role_does_not_grant_access_to_another_actor
+- A obrigatoriedade do producer não está na base.
+  PASSED test_database_accepts_a_direct_row_without_the_producer_role
+- Rotas exigem token.
+  PASSED test_product_routes_require_a_token
+- Não há DELETE no OpenAPI. Um PATCH depois do arquivo corrige a ficha
+  e deixa archived.
+  PASSED test_openapi_exposes_the_product_catalog_without_delete
+  PASSED test_archived_product_can_be_corrected_and_stays_archived
+
+Verificação complementar de isolamento entre actores:
+
+Os testes já existentes cobriam fatias: a listagem quando o mesmo
+utilizador gere dois actores, a consulta de um produto alheio e a recusa
+de leitura e PATCH quando outra conta tem o papel producer. Não havia um
+cenário com dois utilizadores, cada um com manage exclusivo no seu actor
+produtor, a percorrer criação, consulta, actualização e arquivo nos dois
+sentidos, nem o acesso ao produto de B pelo caminho de A nessas escritas.
+Foi acrescentado um teste de integração. Não há endpoint novo.
+
+U1 cria, consulta, actualiza e arquiva o produto de A.
+U1 recebe 404 nas mesmas operações sobre B, sem o nome do produto de B.
+Pelo caminho de A, o id do produto de B responde 404 "Produto não encontrado."
+U2 cria, consulta, actualiza e arquiva o produto de B e recebe 404 sobre A.
+As fichas ficam no actor de origem.
+PASSED test_managers_are_isolated_between_actors

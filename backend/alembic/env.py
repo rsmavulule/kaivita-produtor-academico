@@ -8,8 +8,9 @@ from logging.config import fileConfig
 
 from alembic import context
 
-# O import regista users, actors, roles, actor_roles e user_actor_access.
+# O import regista a identidade e a tabela products.
 import app.identity  # noqa: F401
+import app.products  # noqa: F401
 from app.config import settings
 from app.db import Base, engine
 

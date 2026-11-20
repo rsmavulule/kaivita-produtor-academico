@@ -52,10 +52,12 @@ def test_alembic_chain_preserves_the_empty_initial_revision():
 
     initial = script.get_revision("0001_initial")
     identity = script.get_revision("0002_identity_access")
+    products = script.get_revision("0003_products")
 
-    assert script.get_heads() == ["0002_identity_access"]
+    assert script.get_heads() == ["0003_products"]
     assert initial is not None and initial.down_revision is None
     assert identity is not None and identity.down_revision == "0001_initial"
+    assert products is not None and products.down_revision == "0002_identity_access"
 
     source = (BACKEND_ROOT / "alembic" / "versions" / "0001_initial.py").read_text(
         encoding="utf-8"

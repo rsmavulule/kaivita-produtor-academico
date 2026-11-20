@@ -1,0 +1,74 @@
+Evidência dos endpoints — I3
+Chamada real com TestClient e PostgreSQL, dentro de uma transacção desfeita.
+Não se guardam tokens, palavras-passe nem o segredo.
+
+POST /actors/{actor_id}/products
+Authorization: Bearer <token omitido>
+{"name":"Mel","description":"Mel de miombo","category":"mel"}
+HTTP 201
+{"id":"<uuid>","owner_actor_id":"<actor do caminho>","name":"Mel","description":"Mel de miombo","category":"mel","image_ref":null,"status":"active"}
+O dono é o actor autorizado. Dois produtos podem ter o mesmo nome.
+O actor pode ter producer juntamente com buyer e partner.
+
+POST /actors/{actor_id}/products
+Sem Authorization.
+HTTP 401
+{"detail":"Token inválido."}
+
+POST /actors/{actor_id}/products
+Representação read, associação revoked, ou sem representação.
+HTTP 404
+{"detail":"Actor não encontrado."}
+Não fica produto. O nome de um produto já existente não sai na resposta.
+
+POST /actors/{actor_id}/products
+manage activo, papéis sem producer.
+HTTP 422
+{"detail":"O actor não tem o papel producer."}
+A listagem desse actor continua 200 e pode ser vazia.
+
+POST /actors/{actor_id}/products
+Nome, descrição ou categoria vazios; image_ref vazio; price, status,
+quantity, delivery_terms ou owner_actor_id no corpo; actor_id que não é UUID.
+HTTP 422
+O valor enviado não é devolvido. Não há campo input. Não fica produto.
+
+GET /actors/{actor_id}/products
+read ou manage activos.
+HTTP 200
+Lista só os produtos desse actor, por nome e id, incluindo archived.
+Outro actor do mesmo utilizador não aparece. Sem representação: 404.
+
+GET /actors/{actor_id}/products/{product_id}
+Dono ou leitor do mesmo actor.
+HTTP 200
+Os sete campos. image_ref null quando não foi enviada.
+
+GET /actors/{actor_id}/products/{product_id}
+Produto de outro actor, no caminho do actor autorizado.
+HTTP 404
+{"detail":"Produto não encontrado."}
+O nome do produto alheio não vem na resposta.
+
+GET /actors/{actor_id}/products/{product_id}
+Caminho de um actor que a conta não representa.
+HTTP 404
+{"detail":"Actor não encontrado."}
+
+PATCH /actors/{actor_id}/products/{product_id}
+manage activo e papel producer.
+HTTP 200
+Aceita name, description, category e image_ref. image_ref null limpa a
+referência. {} não altera. status e owner_actor_id são recusados.
+Com read: 404, "Actor não encontrado.", e a ficha mantém-se.
+
+POST /actors/{actor_id}/products/{product_id}/archive
+manage activo e papel producer.
+HTTP 200
+status passa a archived. name, description, category, image_ref, id e
+owner_actor_id mantêm-se. A linha continua na listagem e na consulta.
+A segunda chamada devolve o mesmo corpo e não volta a escrever.
+DELETE no mesmo caminho: HTTP 405. A linha permanece.
+
+Sem o papel producer, o PATCH e o arquivo de um produto já criado
+respondem 422. O GET continua a devolver a ficha active.

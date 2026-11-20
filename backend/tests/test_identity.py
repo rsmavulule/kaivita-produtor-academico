@@ -146,13 +146,13 @@ def _reject(session: Session, statement: str, params: dict | None = None) -> Non
             session.execute(text(statement), params or {})
 
 
-def test_database_is_at_the_identity_revision_with_the_catalog(db_session):
+def test_role_catalog_remains_after_the_products_revision(db_session):
     version = db_session.execute(
         text("SELECT version_num FROM alembic_version")
     ).scalar_one()
     roles = db_session.execute(select(Role).order_by(Role.code)).scalars().all()
 
-    assert version == "0002_identity_access"
+    assert version == "0003_products"
     assert [role.code for role in roles] == [
         RoleCode.BUYER,
         RoleCode.PARTNER,
@@ -162,6 +162,9 @@ def test_database_is_at_the_identity_revision_with_the_catalog(db_session):
 
 
 def test_commercial_role_seed_is_idempotent(db_session):
+    # A transacção do teste desfaz estes DELETE. Associações já gravadas
+    # na base de desenvolvimento não ficam apagadas.
+    db_session.execute(text("DELETE FROM actor_roles"))
     db_session.execute(text("DELETE FROM roles"))
     seed_commercial_roles(db_session.connection())
     seed_commercial_roles(db_session.connection())

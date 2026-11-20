@@ -1,0 +1,49 @@
+Verificação complementar — isolamento entre actores
+PostgreSQL 16 em localhost:5435. Revisão Alembic: 0003_products.
+Sem endpoints novos, sem alteração do diagrama e sem commit.
+
+Inspecção dos testes já existentes
+
+test_listing_returns_only_the_authorized_actors_products
+  O mesmo utilizador gere os dois actores. Confirma a listagem por caminho.
+  Não separa dois representantes exclusivos.
+
+test_product_of_another_actor_is_not_disclosed
+  Duas contas, cada uma com o seu actor. Confirma a consulta: o produto de
+  B no caminho de B da outra conta responde 404 de actor, e o mesmo produto
+  no caminho de A responde 404 de produto. Não percorre criação, actualização
+  nem arquivo.
+
+test_producer_role_does_not_grant_access_to_another_actor
+  A segunda conta tem o papel producer noutro actor. Confirma listagem,
+  consulta individual e PATCH recusados. Não confirma criação nem arquivo,
+  nem a gestão completa do próprio actor no mesmo cenário.
+
+O conjunto pedia um só teste: U1 com manage exclusivo em A, U2 com manage
+exclusivo em B, produtos nos dois, as quatro operações autorizadas no
+próprio actor e recusadas no outro, e o produto de B inalcançável pelo
+caminho de A. Essa combinação não estava coberta. Foi acrescentado
+test_managers_are_isolated_between_actors. A associação nasce no
+POST /actors da fixture, que dá manage activo ao criador. Não foi criada
+rota de gestão de representantes.
+
+Resultado
+
+PASSED test_managers_are_isolated_between_actors
+
+U1 cria, consulta, actualiza e arquiva o produto de A.
+U1, sobre B: criar, listar, consultar, actualizar e arquivar respondem 404
+"Actor não encontrado." O nome e a descrição de B não saem na resposta.
+U1, com o id do produto de B no caminho de A: consultar, actualizar e
+arquivar respondem 404 "Produto não encontrado."
+U2 cria, consulta, actualiza e arquiva o produto de B.
+U2, sobre A, recebe o mesmo 404 de actor nas cinco operações.
+Depois das recusas, o produto de A continua de A e archived; o de B
+continua de B e archived.
+
+Suite completa: 122 passed em 14.00s. Ver pytest-resultados.txt.
+Contagens confirmadas antes e depois da suite, iguais:
+1 conta, 5 actores, 7 associações de papel, 5 representações,
+3 papéis de catálogo, 4 produtos.
+Não houve falha. Não se classifica erro de implementação, divergência de
+requisitos nem lacuna de especificação. A lacuna era só de cobertura.

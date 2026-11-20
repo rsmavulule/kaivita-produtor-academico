@@ -1,0 +1,38 @@
+Matriz de rastreabilidade — I3 catálogo de produtos
+Fontes: SRS v1.1 e docs/srs/diagramas/02-classes.drawio (diagrama 02-classes-v15).
+Não foi consultado código do projecto comercial.
+
+SRS / UML                                      Implementação                                      Situação
+---------------------------------------------  -------------------------------------------------  ------------------------------------------
+§3 Product: id, owner_actor_id, name,          products.id, owner_actor_id, name, description,   Alinhado. JSON em snake_case, como o resto
+description, category, image_ref, status       category, image_ref, status                       da API.
+UML Product: id, ownerActorId, name,           Os mesmos campos. ownerActorId → owner_actor_id.  Alinhado.
+description, category, imageRef, status        imageRef → image_ref.
+UML Actor 1 — Product 0..*                     owner_actor_id NOT NULL, FK para actors.id,       Alinhado. Vários produtos por actor.
+                                               ON DELETE RESTRICT. Índice ix_products_owner_actor_id.
+RF-02 criar, editar, arquivar, consultar       POST, PATCH, POST .../archive, GET colecção       Alinhado. Não há DELETE.
+nome, categoria, descrição, fotografia         e GET individual.
+opcional
+RF-02 actor produtor; §3 "owner deve ter       Escrita exige o código producer entre os papéis   Confirmado e compatível com papéis múltiplos.
+papel producer"; UC-04 "pertence a actor       do actor. buyer e partner podem coexistir.        A base não tem esta regra.
+produtor"
+UC-04 outro actor não altera                   O produto só é lido quando owner_actor_id é o     Alinhado. 404 sem divulgar o outro produto.
+                                               actor do caminho.
+RB-02 produto tem actor proprietário           FK obrigatória. O cliente não envia o dono.       Alinhado.
+RB-02 só produtor publica oferta               Não implementado.                                  Oferta fora do I3. A frase da RB-02 sobre
+                                                                                                  publicação refere-se à oferta.
+RB-10 representação válida                     actor_for_read e actor_for_manage.                Alinhado com o I1.3.
+RF-08 autenticação e representação             Todas as rotas usam get_current_user.             Alinhado.
+UML updateDetails(name) e archive()            PATCH aceita name, description, category e        A operação UML só nomeia name. O RF-02 pede
+                                               image_ref. archive() é a rota /archive.           editar os campos descritivos. O estado não
+                                                                                                  entra no PATCH.
+ProductStatus, sem literais na SRS nem no UML  active na criação; archived no arquivo.           Decisão. CHECK ck_products_status.
+Legenda UML [0..1] não marca imageRef          image_ref é NULL ou texto não vazio.              Decisão a favor do RF-02: fotografia opcional.
+SRS §12 numera o catálogo como I2              Este repositório implementa-o no I3.              Decisão já registada no I2. Mantida.
+Offer, preço, quantidade, entrega              Ausentes da tabela e do corpo.                    Fora do I3. extra=forbid recusa esses campos.
+RB-06 consulta pública de produtos elegíveis   Não há rota pública.                              Fora do I3.
+RB-08 publicação de fotografias                image_ref não é resolvido nem guardado como       Fora do I3. Sem armazenamento de ficheiros.
+                                               ficheiro.
+RNF-03 e RNF-04 integridade e autorização      FK, CHECK, validação no servidor, 404 único para  Alinhado no perímetro do catálogo.
+                                               actor inacessível.
+RNF-05 testes e evidências                     backend/tests/test_products.py e esta pasta.      Executado. 121 passed.

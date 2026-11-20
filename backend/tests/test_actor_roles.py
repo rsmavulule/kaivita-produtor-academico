@@ -310,7 +310,8 @@ def test_empty_name_is_rejected(api, db_session):
     assert blank.status_code == 422
     assert empty.status_code == 422
     assert "Nome inválido." in blank.text
-    assert db_session.scalars(select(Actor)).all() == []
+    _assert_absent(db_session, "   ")
+    _assert_absent(db_session, "")
 
 
 def test_unknown_role_is_rejected(api, db_session):
@@ -340,7 +341,11 @@ def test_duplicate_roles_are_rejected(api, db_session):
     assert response.status_code == 422
     assert "Papel repetido." in response.text
     _assert_absent(db_session, "Papel repetido")
-    assert db_session.scalars(select(ActorRole)).all() == []
+    assert db_session.scalars(
+        select(ActorRole).join(Actor, Actor.id == ActorRole.actor_id).where(
+            Actor.display_name == "Papel repetido"
+        )
+    ).all() == []
 
 
 def test_role_catalog_returns_the_three_seeded_roles(api, db_session):
@@ -546,6 +551,8 @@ def test_replacing_roles_with_the_same_set_is_idempotent(api, db_session):
 
 def test_failed_creation_leaves_no_partial_rows(api, db_session, monkeypatch):
     user = _user(db_session, "falha-criacao@example.com")
+    actors_before = set(db_session.scalars(select(Actor.id)))
+    links_before = set(db_session.execute(select(ActorRole.actor_id, ActorRole.role_id)))
 
     def explode(session, current, actor):
         raise RuntimeError("falha na representação")
@@ -557,8 +564,9 @@ def test_failed_creation_leaves_no_partial_rows(api, db_session, monkeypatch):
 
     db_session.expire_all()
     assert db_session.get(User, user.id) is not None
-    assert db_session.scalars(select(Actor)).all() == []
-    assert db_session.scalars(select(ActorRole)).all() == []
+    assert set(db_session.scalars(select(Actor.id))) == actors_before
+    assert set(db_session.execute(select(ActorRole.actor_id, ActorRole.role_id))) == links_before
+    _assert_absent(db_session, "Não pode ficar")
     assert (
         db_session.scalars(
             select(UserActorAccess).where(UserActorAccess.user_id == user.id)

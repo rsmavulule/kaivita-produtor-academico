@@ -1,0 +1,79 @@
+Decisões técnicas — I3
+
+A SRS v1.1 §3 e o diagrama 02-classes-v15 descrevem o mesmo Product:
+id, dono, nome, descrição, categoria, referência de imagem e estado.
+Não há divergência de atributos. A implementação seguiu esses sete campos
+e não acrescentou preço, quantidade, entrega, oferta, categoria-tabela
+nem ficheiro.
+
+ProductStatus não tem literais na SRS nem no diagrama. A escolha é
+active e archived, no mesmo registo em que o I1.1 fechou ActorStatus
+sem lista na SRS. active é o estado com que o produto nasce. archived
+é o resultado de archive(). Não há rascunho nem publicação: a SRS reserva
+publicar, suspender e retirar para a oferta (RF-03), não para o produto.
+Os dois valores estão no CHECK ck_products_status da migração 0003_products.
+Um valor novo exige migração nova. 0001_initial e 0002_identity_access
+não foram editados.
+
+A fotografia é opcional no RF-02. O UML lista imageRef sem a marca [0..1]
+da legenda. Segue-se o RF-02, como o I1.1 fez com general_location:
+NULL significa ausência. Texto só com espaços é recusado. A referência
+não é descarregada nem guardada como ficheiro.
+
+Nome, descrição e categoria são obrigatórios no RF-02. Não há vocabulário
+fechado de categorias nem limite de tamanho ou de quantidade de produtos.
+A coluna é text, com CHECK de texto não vazio depois de btrim. Não foi
+inventado um máximo.
+
+O dono é o actor do caminho, já autorizado. owner_actor_id no corpo é
+recusado por extra=forbid, na criação e no PATCH. A resposta inclui o
+dono para o contrato mostrar a quem o produto pertence.
+
+§3 diz que o owner do produto deve ter o papel producer. RF-02 e UC-04
+falam em actor produtor. A restrição foi aplicada em todas as escritas
+(criar, alterar, arquivar), não só na criação: o invariante é do dono no
+momento da escrita. É compatível com papéis múltiplos porque basta o
+código producer estar presente; buyer e partner podem acompanhá-lo.
+Quem tem manage e não tem producer recebe 422, "O actor não tem o papel
+producer." A consulta não exige esse papel. O papel não substitui
+user_actor_access. A base não verifica o papel: um INSERT directo pode
+gravar o produto de um actor sem producer. É o mesmo tipo de limite já
+assumido no I2 para a lista de papéis vazia. Não foi criado um trigger.
+
+Actor inexistente, sem associação, com associação revoked ou com nível
+insuficiente responde 404, "Actor não encontrado." Produto ausente ou de
+outro actor, num caminho já autorizado, responde 404, "Produto não
+encontrado.", sem nome nem outros campos desse produto. Leitura exige
+read ou manage activos. Escrita exige manage activo. A ordem é autorização
+do actor, depois pertença do produto, depois papel producer.
+
+A listagem devolve todos os produtos do actor, incluindo archived, ordenados
+por name e id. O índice ix_products_owner_actor_id existe para esse filtro.
+A consulta individual usa a chave primária e o mesmo owner_actor_id.
+Não há paginação: a SRS não a pede.
+
+Arquivar é idempotente. Se o estado já é archived, a segunda chamada não
+escreve. Os outros campos mantêm-se. Não há DELETE na API. A chave
+estrangeira recusa apagar o actor enquanto o produto existir. Um PATCH
+depois do arquivo pode corrigir a ficha e deixa o estado archived. Não há
+rota para voltar a active. O UML não define essa transição e a SRS não a pede.
+
+Não há SELECT FOR UPDATE. Em READ COMMITTED, outra transacção pode revogar
+o acesso ou retirar o papel producer depois da leitura e antes da escrita,
+como já ficou registado no I1.3.
+
+A criação, a alteração e o arquivo usam um savepoint na sessão do pedido.
+get_session confirma uma vez, no fim, ou desfaz o pedido se a excepção sobe.
+Os testes de falha injectam a excepção depois de um flush dentro do savepoint.
+Não simulam uma queda do PostgreSQL.
+
+A §12 da SRS chama I2 ao catálogo de produtos. Neste repositório esse
+catálogo é o I3. A decisão ficou escrita no I2 e mantém-se.
+
+Quatro testes anteriores comparavam actors ou actor_roles com uma tabela
+vazia, ou apagavam roles sem remover associações. A base de desenvolvimento
+já tinha um actor e as respectivas ligações, criados fora desta suite.
+As asserções passam a comparar o conjunto anterior com o posterior. O teste
+da semente apaga actor_roles e roles dentro da transacção do teste; o
+rollback repõe as linhas. Depois da suite continuam 1 conta, 1 actor,
+2 associações de papel, 1 representação, 3 papéis e 0 produtos confirmados.
