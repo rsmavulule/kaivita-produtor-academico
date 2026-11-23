@@ -1,0 +1,31 @@
+Decisões — I5.1
+
+A sessão é o JWT já emitido pela API, guardado pelo Next.js. Não foi criado
+um segundo modelo de sessão nem refresh token.
+
+Secure segue o protocolo observado pelo Next.js, gravado pelo middleware
+em x-kaivita-proto, por cima do cabeçalho enviado pelo cliente. Só um http
+observado desliga Secure. Um x-forwarded-proto: http não desliga Secure
+quando a ligação é HTTPS. Não está ligado só por NODE_ENV=production,
+porque o Compose serve HTTP e o browser rejeitaria o cookie.
+
+O proxy de confiança define x-forwarded-proto: https e reencaminha o Host
+público. A origem compara-se com esse Host. X-Forwarded-Host não é aceite.
+
+API_URL não usa o prefixo NEXT_PUBLIC. NEXT_PUBLIC_API_URL continua só nas
+ligações de /health e /docs, que o browser abre directamente.
+
+O 404 de representação e o campo representation não entram neste incremento.
+A autorização de cada pedido continua na FastAPI.
+
+Não há revogação do JWT no logout. A interface diz que a sessão terminou
+neste browser.
+
+Os testes de interface usam a porta 3100 para não ocuparem um servidor que
+já esteja em 3000. A conta de teste é criada com python -m app.create_user.
+A palavra-passe fica em frontend/e2e/.credentials.json, fora do Git, e não
+é escrita nestas evidências.
+
+GET /sessao/invalida responde com Location relativo. request.nextUrl, dentro
+do contentor, aponta para 0.0.0.0:3000. Um Location absoluto levaria o browser
+para esse endereço. Os caminhos permitidos são só /login e /inicio.

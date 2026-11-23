@@ -1,0 +1,33 @@
+Playwright 1.65.1, Chromium, contra o contentor web publicado em
+http://127.0.0.1:3010. O Next.js desse contentor chama a API em
+http://api:8000. Não foi levantado um segundo servidor de desenvolvimento.
+
+A conta foi criada na base de desenvolvimento. A palavra-passe não fica neste
+ficheiro. Não se guardam tokens.
+
+16 passed (17.5s)
+
+ok  o cookie fica Secure em HTTPS e um proto http não o desliga
+ok  o middleware grava o protocolo observado e não segue o cabeçalho cru
+ok  login e logout exigem a origem deste host
+ok  falhas de rede e respostas 5xx não são 401
+ok  a entrada e o login cabem em 360 px e em 1280 px
+ok  o teclado percorre email, palavra-passe e entrar
+ok  credenciais inválidas não criam sessão
+ok  uma origem em falta ou estrangeira não cria nem apaga a sessão
+ok  x-forwarded-proto http não marca Secure nem bloqueia o login local
+ok  a validação da API aparece nos campos sem ecoar os valores
+ok  /inicio sem sessão volta ao login
+ok  um cookie inválido termina a sessão
+ok  um token expirado termina a sessão
+ok  um cookie já expirado no browser não abre a área privada
+ok  terminar sessão impede o acesso seguinte
+ok  uma falha de ligação não é tratada como credencial inválida
+
+Capturas em docs/evidencias/I5.1/capturas/, tiradas nesta execução:
+  login-360.png
+  login-1280.png
+  inicio-360.png
+  inicio-1280.png
+  credenciais-invalidas.png
+  ligacao-indisponivel.png

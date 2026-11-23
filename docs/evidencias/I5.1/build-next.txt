@@ -1,0 +1,18 @@
+Next.js 15.5.29, npm run build, no anfitrião.
+Compilou em 3.8s. Verificação de tipos concluída. Exit code 0.
+O tsconfig exclui e2e e playwright.config.ts, para o build da imagem
+não procurar esses ficheiros: o .dockerignore não os copia.
+
+Route (app)
+  /                 estática
+  /_not-found       estática
+  /inicio           dinâmica
+  /login            dinâmica
+  /sessao/invalida  dinâmica
+  Middleware        presente
+
+○  prerendered as static content
+ƒ  server-rendered on demand
+
+O mesmo next build, dentro da imagem web, compilou em 9.8s e terminou
+sem erro de tipos.

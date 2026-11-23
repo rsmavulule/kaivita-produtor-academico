@@ -1,0 +1,26 @@
+docker compose up --build -d web
+Imagens api e web construídas. Exit code 0.
+O next build dentro da imagem compilou em 9.8s.
+
+Serviços depois do arranque e depois da suite Playwright
+  db   healthy   0.0.0.0:5435 -> 5432
+  api  healthy   0.0.0.0:8010 -> 8000
+  web  healthy   0.0.0.0:3010 -> 3000
+
+Dentro do contentor web, API_URL=http://api:8000.
+GET http://127.0.0.1:3010/login respondeu 200.
+
+Sem cookie, GET /inicio
+  307  location: /login
+O mesmo destino relativo com Host: evil.example. O Location não contém
+0.0.0.0 nem o host do pedido.
+
+Playwright contra http://127.0.0.1:3010: 16 passed (17.5s).
+O último teste pára a API e volta a arrancá-la.
+Depois disso, GET http://127.0.0.1:8010/health devolveu
+{"status":"ok","database":"up"}.
+
+git check-ignore -v frontend/e2e/.credentials.json
+  .gitignore:21:frontend/e2e/.credentials.json
+O ficheiro não está no índice. No contentor web, /app/e2e/.credentials.json
+não existe.

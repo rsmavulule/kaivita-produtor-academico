@@ -1,0 +1,9 @@
+Diagnóstico — I5.1 sessão da interface
+Baseline de código: bd6b884. A SRS e os diagramas não foram alterados.
+
+Antes deste incremento a interface era a página estática do I0: Next.js 15.5.29,
+React 19.3.1 e TypeScript 5.9.3, App Router, sem cliente HTTP, sem sessão e sem
+testes. A API já autenticava com JWT Bearer e não tinha CORS.
+
+O I5.1 acrescenta login, sessão e a página privada /inicio. Actores, produtos,
+ofertas e o campo representation ficam de fora.

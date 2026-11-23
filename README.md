@@ -4,8 +4,8 @@ Protótipo de Licenciatura em Desenvolvimento de Software. É um projecto
 independente, construído de raiz para a monografia. O repositório contém a
 fundação técnica (I0), o modelo de identidade (I1.1), a autenticação (I1.2),
 a autorização de representação (I1.3), a gestão de actores e papéis
-comerciais (I2), o catálogo de produtos (I3) e a gestão de ofertas
-comerciais (I4).
+comerciais (I2), o catálogo de produtos (I3), a gestão de ofertas
+comerciais (I4) e a sessão da interface (I5.1).
 
 Não há registo público, recuperação de palavra-passe, refresh tokens,
 concessão de acessos a outros utilizadores, consulta pública de ofertas,
@@ -18,17 +18,19 @@ Três processos, um repositório:
 
 | Serviço | Tecnologia | Função neste incremento |
 | --- | --- | --- |
-| `web` | Next.js e TypeScript | Página inicial com ligações à API |
+| `web` | Next.js e TypeScript | Entrada, login e sessão HttpOnly |
 | `api` | FastAPI e Python | Saúde, autenticação, actores, papéis, produtos e ofertas |
 | `db` | PostgreSQL 16 | Identidade, acesso, produtos e ofertas, versão Alembic `0004_offers` |
 
-A interface não chama a API por JavaScript. Os botões abrem `/health` e
-`/docs` no browser, por isso este incremento não configura CORS.
+Os pedidos autenticados ficam no servidor Next.js. O browser não recebe o
+JWT e não chama a API para login ou sessão. As ligações de `/health` e
+`/docs` continuam a ser navegações directas, por isso a API não tem CORS.
 
 ```text
 browser ──► Next.js :3000
-   │
-   └──► FastAPI :8000 ──► PostgreSQL :5432
+              │  cookie HttpOnly
+              ▼
+            FastAPI :8000 ──► PostgreSQL :5432
 ```
 
 A API confirma a base com `SELECT 1`. Se o PostgreSQL responder, `/health`
@@ -59,8 +61,8 @@ Sem ele, a API não arranca. A expiração inicial é 30 minutos e o emissor
 `compose.yaml` e no `.env.example`. O `.env` real fica de fora do Git.
 A palavra-passe de desenvolvimento tem de ser segura para uma URL.
 - **Dependências curtas.** Sem ORM de sessão, sem CORS, sem biblioteca de
-componentes e sem cliente HTTP no frontend. Cada dependência corresponde a
-uma peça pedida neste incremento.
+componentes e sem cliente HTTP de terceiros no frontend. O servidor Next.js
+usa `fetch`. Cada dependência corresponde a uma peça pedida.
 
 ## Árvore
 
@@ -122,10 +124,39 @@ uma peça pedida neste incremento.
     ├── tsconfig.json
     ├── next.config.ts
     ├── next-env.d.ts
+    ├── middleware.ts
+    ├── playwright.config.ts
+    ├── lib/
+    │   ├── api.ts
+    │   ├── cookie-name.ts
+    │   ├── cookie-policy.ts
+    │   ├── current-session.ts
+    │   ├── errors.ts
+    │   ├── origin.ts
+    │   └── session.ts
+    ├── e2e/
+    │   ├── auth.spec.ts
+    │   ├── global-setup.ts
+    │   └── support.ts
     └── app/
         ├── layout.tsx
         ├── page.tsx
-        └── globals.css
+        ├── globals.css
+        ├── login/
+        │   ├── page.tsx
+        │   ├── login-form.tsx
+        │   ├── actions.ts
+        │   └── form-state.ts
+        ├── sessao/
+        │   └── invalida/
+        │       └── route.ts
+        └── (privada)/
+            ├── layout.tsx
+            ├── loading.tsx
+            ├── error.tsx
+            ├── reload-on-back.tsx
+            └── inicio/
+                └── page.tsx
 ```
 
 ## Arranque com Docker Compose
@@ -222,9 +253,11 @@ Na pasta `frontend`, depois de `npm install`:
 npm run dev
 ```
 
-A página fica em http://localhost:3000. As ligações apontam para
-http://localhost:8000, por isso a API tem de estar no ar para esses destinos
-responderem. A página em si não depende da API.
+A página fica em http://localhost:3000. O servidor lê `API_URL`. Se a
+variável não estiver no ambiente, o `next.config.ts` usa `API_URL` ou
+`API_PORT` do `.env` da raiz. A API tem de estar publicada nesse endereço
+para o login responder. As ligações de saúde e documentação usam
+`NEXT_PUBLIC_API_URL`, gravado no arranque do `next dev`.
 
 ## Incremento I1.1 — identidade e acesso
 
@@ -423,6 +456,30 @@ Essa oferta não entra na consulta pública, que este incremento não expõe.
 - O preço fraccionário tem de ir em texto JSON. Um número com casa decimal
 é recusado, para não passar por ponto flutuante.
 - Não há registo de auditoria das mudanças de publicação.
+- A interface autentica e mostra a conta. Actores, produtos e ofertas ainda
+não têm ecrãs. O logout apaga o cookie e não revoga o JWT na API.
+
+## Incremento I5.1 — sessão da interface
+
+O browser fala com o Next.js. O servidor chama `POST /auth/login` e
+`GET /auth/me` com `Authorization: Bearer`. O `access_token` fica num
+cookie `HttpOnly`, `SameSite=Lax` e `Path=/`, com `Max-Age` igual a
+`expires_in`. `Secure` liga-se quando o protocolo observado é HTTPS.
+Um `x-forwarded-proto: http` não o desliga. No Compose HTTP fica
+desactivado. Um proxy que termina TLS e envia `x-forwarded-proto: https`
+faz o Next.js observar HTTPS.
+
+`API_URL` é lida no servidor. No Compose o valor é `http://api:8000`.
+No `npm run dev` aponta para a porta publicada no anfitrião. Não há CORS
+nem proxy genérico. Não há registo na interface.
+
+Rotas: `/`, `/login`, `/inicio`. Sem cookie, `/inicio` volta a `/login`.
+Cookie inválido ou expirado também volta a `/login`, depois de a API
+responder 401. Uma falha de ligação ou um 5xx não apagam o cookie.
+
+Os testes de ponta a ponta estão em `frontend/e2e` e usam Playwright.
+A conta é criada na base de desenvolvimento e a palavra-passe não entra
+no Git.
 
 ## Fora deste incremento
 

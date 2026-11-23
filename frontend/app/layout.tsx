@@ -5,7 +5,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Kaivita Produtor Académico",
-  description: "Protótipo académico — fundação técnica do incremento I0.",
+  description: "Protótipo académico. Sessão do representante no servidor Next.js.",
+  referrer: "same-origin",
 };
 
 export default function RootLayout({

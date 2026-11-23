@@ -1,0 +1,31 @@
+Verificação final — I5.1
+
+1. Cookie Secure
+HTTPS observado fica com Secure, mesmo que x-forwarded-proto seja http.
+HTTP observado, como no Compose, fica sem Secure. Um valor em falta não
+desliga Secure. O middleware grava o protocolo que o Next.js observou em
+x-kaivita-proto e substitui o cabeçalho do cliente. O login local com
+x-forwarded-proto: http criou sessão e o Set-Cookie não levou Secure.
+
+2. Origem
+Login e logout recusam origem em falta, origem de outro host e
+Sec-Fetch-Site diferente de same-origin. O Host público com porta 443
+omissa coincide com a origem https. X-Forwarded-Host não é consultado.
+Os destinos são /inicio, /login e /login?motivo=terminada ou sessao.
+Sem cookie, /inicio responde location: /login, também quando o Host é
+outro nome.
+
+3. Credenciais e imagem
+git check-ignore confirma frontend/e2e/.credentials.json.
+O índice não o contém. A imagem web não tem /app/e2e/.credentials.json.
+As evidências não contêm a palavra-passe nem um JWT.
+GET / e GET /login no contentor não contêm access_token nem um JWT.
+
+4. Regressão
+Playwright: 16 passed (17.5s), contra http://127.0.0.1:3010.
+npm run build: exit 0, compilou em 3.8s.
+docker compose up --build -d web: exit 0, imagem compilou em 9.8s.
+pytest RUN_DB_TESTS=1: 156 passed (30.39s).
+git diff --check: sem avisos.
+
+Não houve commit nem push.

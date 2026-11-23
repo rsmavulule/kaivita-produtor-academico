@@ -1,0 +1,29 @@
+Rotas e funcionalidades — I5.1
+
+Públicas
+  /        Entrada, ligação para /login, e ligações directas a /health e /docs.
+  /login   Email e palavra-passe. Sem registo.
+
+Privadas
+  /inicio  Email devolvido por GET /auth/me e botão Terminar sessão.
+
+Apoio, só no servidor
+  POST da acção de login     chama POST /auth/login e grava o cookie.
+  POST da acção de logout    apaga o cookie e volta a /login?motivo=terminada.
+  GET /sessao/invalida       apaga o cookie só quando /auth/me responde 401
+                             e volta a /login?motivo=sessao.
+                             O Location é um caminho relativo. No contentor,
+                             o URL interno é 0.0.0.0:3000 e não pode ir no
+                             cabeçalho.
+
+Cookie kaivita_session
+  HttpOnly, SameSite=Lax, Path=/, Max-Age = expires_in.
+  Secure quando o pedido é HTTPS. Em HTTP local fica desligado.
+
+Erros mostrados
+  401 no login: Credenciais inválidas.
+  422: mensagem do campo, sem o valor rejeitado.
+  Rede ou 5xx: Não foi possível contactar o serviço. Tente novamente.
+  Origem diferente: Pedido recusado.
+
+Fora desta etapa: actores, papéis, produtos, ofertas e representation.

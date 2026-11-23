@@ -53,6 +53,10 @@ services:
       context: ./frontend
       args:
         NEXT_PUBLIC_API_URL: http://localhost:${API_PORT:-8000}
+    environment:
+      # Pedidos autenticados saem do servidor Next.js. O browser não chama a API.
+      # O valor do .env no anfitrião é para o npm run dev e não entra aqui.
+      API_URL: http://api:8000
     ports:
       - "${WEB_PORT:-3000}:3000"
     depends_on:

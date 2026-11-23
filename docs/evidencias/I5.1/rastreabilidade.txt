@@ -1,0 +1,22 @@
+Rastreabilidade — I5.1
+Fontes: SRS v1.1 e os diagramas já presentes. A SRS e os diagramas não foram alterados.
+Não foi consultado código do projecto comercial.
+
+SRS / UML                         Implementação                         Situação
+--------------------------------  ------------------------------------  ---------------------------
+UC-01 autenticar                  /login, cookie, /inicio, /auth/me     Coberto na interface.
+RF-08 autenticar e impedir        O token fica no servidor. A API       Coberto. A autorização
+alteração sem representação       continua a exigir Bearer.             de actores segue na API.
+RNF-01 360 px e 1280 px           CSS próprio. Testes Playwright       Coberto nas páginas desta
+                                  nas duas larguras.                    etapa.
+RNF-02 erros, obrigatórios,       Labels, required, alertas e Tab       Coberto no login.
+teclado                           email → palavra-passe → entrar.
+RNF-03 sessão protegida e         Cookie HttpOnly. Validade confirmada  Coberto no perímetro da
+autorização no servidor           com /auth/me. Sem CORS.               sessão. Sem revogação.
+RNF-05 testes de autenticação     frontend/e2e/auth.spec.ts e os 156    Executados. Ver os
+                                  testes de backend.                    resultados nesta pasta.
+RF-01 a RF-07, RF-09, RF-10       Sem ecrãs de actor, produto, oferta,  Fora do I5.1.
+UC-02 a UC-08                     pesquisa ou contacto.
+Diagrama 06, Next.js chama a API  O servidor Next.js faz o POST e o     Alinhado na sessão.
+                                  GET. O caminho de publicação de
+                                  oferta não entra aqui.

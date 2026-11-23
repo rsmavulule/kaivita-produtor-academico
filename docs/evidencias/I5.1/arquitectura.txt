@@ -1,0 +1,32 @@
+Arquitectura implementada — I5.1
+
+O browser fala com o Next.js. O servidor Next.js chama a FastAPI com
+Authorization: Bearer. O access_token fica num cookie HttpOnly e não é
+devolvido ao browser.
+
+```text
+browser ──► Next.js
+              │  cookie HttpOnly, SameSite=Lax, Path=/
+              ▼
+            FastAPI ──► PostgreSQL
+```
+
+API_URL é lida no servidor, em cada pedido, com uma chave composta para o
+compilador não a gravar no bundle. No Compose o valor é http://api:8000.
+No npm run dev aponta para a porta publicada no anfitrião.
+
+Não há CORS, proxy genérico, localStorage, sessionStorage, NextAuth, Axios,
+Tailwind, React Query nem biblioteca de componentes.
+
+A presença do cookie só encaminha /inicio para /login quando falta. A validade
+é GET /auth/me. 401 apaga o cookie. Falha de rede e 5xx mantêm o cookie e
+mostram indisponibilidade.
+
+O destino depois do login é sempre /inicio. O logout volta a
+/login?motivo=terminada. Não há parâmetro de redireccionamento.
+Sem cookie, /inicio responde com destino /login e sem query.
+Pedidos que criam ou apagam a sessão exigem Origin igual ao Host público e,
+quando existe, Sec-Fetch-Site same-origin. Sem Origin o pedido é recusado.
+
+O logout apaga o cookie. A API não revoga o JWT. O token continua válido até
+expirar.

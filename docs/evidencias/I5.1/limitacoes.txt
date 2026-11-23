@@ -1,0 +1,27 @@
+Limitações — I5.1
+
+O logout não invalida um JWT já copiado. A API não tem denylist nem refresh.
+O prazo continua a ser o expires_in, 1800 segundos nesta configuração.
+
+Não há registo, recuperação de palavra-passe, actores, produtos nem ofertas
+na interface.
+
+Uma falha de rede durante GET /auth/me não distingue token expirado de API
+em baixo: o cookie mantém-se e o ecrã pede para tentar de novo. Só o 401
+termina a sessão.
+
+Secure fica desligado só quando o protocolo observado é http. Um
+x-forwarded-proto: http não o desliga numa ligação HTTPS. No Compose o
+protocolo observado é http.
+
+Um proxy de confiança define x-forwarded-proto: https e reencaminha o Host
+público. A interface não consulta X-Forwarded-Host. Se o proxy deixar passar
+um x-forwarded-proto: http vindo do cliente, o Next.js observa http e o
+cookie sai sem Secure.
+
+A página inicial é estática. O endereço de /health e /docs fica gravado no
+build através de NEXT_PUBLIC_API_URL.
+
+A prova de execução do contentor está em compose.txt. Os 12 testes passaram
+contra http://127.0.0.1:3010, com API_URL=http://api:8000 dentro do web.
+O teste de ligação pára a API e volta a arrancá-la.

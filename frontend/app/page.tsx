@@ -6,18 +6,19 @@ export default function HomePage() {
       <p className="eyebrow">Licenciatura em Desenvolvimento de Software</p>
       <h1>Kaivita Produtor Académico</h1>
       <p className="lead">
-        Protótipo independente para a monografia. Este incremento, o I0,
-        estabelece só a fundação técnica: interface, API e base de dados.
+        Protótipo independente para a monografia. A interface autentica o
+        representante. A sessão fica no servidor Next.js e a API continua a
+        autorizar cada pedido.
       </p>
 
       <section className="grid" aria-label="Componentes da fundação">
         <article>
           <h2>Interface</h2>
-          <p>Next.js com TypeScript. Esta página é o ponto de entrada.</p>
+          <p>Next.js com TypeScript. O login e a área privada começam aqui.</p>
         </article>
         <article>
           <h2>API</h2>
-          <p>FastAPI expõe o estado do serviço e a documentação interactiva.</p>
+          <p>FastAPI valida a conta e continua a exigir o token Bearer.</p>
         </article>
         <article>
           <h2>Dados</h2>
@@ -25,8 +26,14 @@ export default function HomePage() {
         </article>
       </section>
 
+      <nav className="links" aria-label="Entrada">
+        <a className="primary" href="/login">
+          Entrar
+        </a>
+      </nav>
+
       <nav className="links" aria-label="Ligações da API">
-        <a className="primary" href={`${apiUrl}/health`}>
+        <a className="secondary" href={`${apiUrl}/health`}>
           Estado da API
         </a>
         <a className="secondary" href={`${apiUrl}/docs`}>
@@ -35,8 +42,8 @@ export default function HomePage() {
       </nav>
 
       <p className="note">
-        Produtores, produtos, ofertas e autenticação ficam para os incrementos
-        seguintes.
+        Actores, produtos e ofertas na interface ficam para os incrementos
+        seguintes. Não há registo público.
       </p>
     </main>
   );
