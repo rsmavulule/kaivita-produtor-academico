@@ -1,0 +1,37 @@
+Limitações — I5.2
+
+Não há ecrã para conceder ou revogar representação. A revogação de teste
+é uma escrita controlada na base, fora da interface.
+
+Não há ecrãs de produtos nem de ofertas. A autorização desses recursos
+não mudou.
+
+Não há SELECT FOR UPDATE nem outro bloqueio da linha. O isolamento é
+READ COMMITTED, como no I1.3.
+
+Há três momentos distintos:
+
+- Revogação já confirmada quando o pedido lê user_actor_access.
+  A verificação recusa a operação com 404. A interface, se estava a
+  escrever, pede a ficha outra vez.
+- Revogação confirmada por outra transacção depois dessa leitura e
+  antes do commit da escrita. A escrita deste pedido já foi autorizada
+  e pode concluir. Este incremento não impede esse caso.
+- Pedido novo, depois da revogação confirmada. A leitura da associação
+  volta a correr e a operação recebe 404. Se a consulta da ficha também
+  for 404, os dados protegidos deixam de ser apresentados.
+
+representation descreve a conta que fez o pedido. Não lista os outros
+representantes do actor.
+
+O catálogo de papéis continua fixo: producer, buyer, partner. A interface
+não cria papéis.
+
+A sessão e o cookie Secure mantêm as limitações do I5.1. Um proxy que
+reencaminhe o x-forwarded-proto do cliente, sem o substituir, pode fazer
+o Next.js observar HTTP.
+
+O logout continua a apagar o cookie sem revogar o JWT na API.
+
+Não há registo público, recuperação de palavra-passe nem auditoria das
+edições do actor.

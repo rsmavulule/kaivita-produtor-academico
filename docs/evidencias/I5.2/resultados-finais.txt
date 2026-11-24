@@ -1,0 +1,24 @@
+Resultados finais da verificação — I5.2
+Baseline a53f484. Sem commit e sem push.
+
+PostgreSQL, RUN_DB_TESTS=1:
+  160 passed in 32.62s
+
+Playwright, http://127.0.0.1:3010:
+  24 passed (29.3s)
+
+Next.js 15.5.29:
+  npm run build compilou e verificou os tipos.
+
+Docker Compose:
+  db, api e web healthy.
+  GET /health: {"status":"ok","database":"up"}
+  API_URL no contentor web: http://api:8000
+  Credenciais de teste na imagem: ausentes.
+
+Correcção desta passagem:
+  A limitação de concorrência deixou de tratar uma revogação posterior
+  à autorização como impedimento da escrita já autorizada.
+  Não houve SELECT FOR UPDATE nem alteração de código de domínio.
+
+Não foram acrescentados testes. A cobertura está em cobertura.txt.

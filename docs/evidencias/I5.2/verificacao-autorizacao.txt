@@ -1,0 +1,38 @@
+Verificação final da autorização — I5.2
+Inspecção do código em backend/app. Sem alteração de comportamento.
+
+ActorView
+---------
+A classe só é referenciada em app/actors.py. O response_model list[ActorView]
+está em GET /actors. O response_model ActorView está em GET /actors/{actor_id}.
+POST usa ActorCreatedResponse. PATCH usa ActorResponse. GET e PUT dos papéis
+usam list[RoleResponse]. _view constrói o objecto à mão e não aceita corpo.
+
+representation
+--------------
+accessible_actors filtra user_actor_access.user_id pelo utilizador do token
+e status active. O nível da linha vem na mesma consulta.
+represented_actor lê a chave (user_id, actor_id) e só devolve o nível se a
+associação estiver active e o nível for read ou manage.
+Dois representantes do mesmo actor recebem o nível da sua própria linha.
+test_representation_stays_with_the_authenticated_user observa read numa
+conta e manage na outra, sem user_id, access_level, id ou email de nenhuma
+das contas na resposta.
+
+Escrita
+-------
+ActorCreate, ActorUpdate e RoleUpdate mantêm extra=forbid.
+test_client_cannot_set_representation recusa representation no POST e no PATCH.
+test_write_responses_keep_the_previous_contract confirma as chaves anteriores.
+actor_for_manage continua a delegar em _actor_for(..., manage=True).
+O corpo da função não foi alterado.
+
+Produtos e ofertas
+------------------
+catalog.py e offer_catalog.py continuam a chamar actor_for_read e
+actor_for_manage. actor_for_read passou a obter o actor por
+represented_actor e a ignorar o nível. As condições são as mesmas de
+_actor_for com manage falso: associação active desta conta e nível read
+ou manage. Associação em falta, revogada ou de outra conta continua a
+levantar ActorUnavailable, mapeado para o mesmo 404.
+A suite de produtos e ofertas cobre esse isolamento.

@@ -5,12 +5,24 @@ export const REJECTED_MESSAGE = "Pedido recusado.";
 
 export type ApiKind = "unauthorized" | "validation" | "unavailable" | "rejected";
 
+const FIELD_NAMES = [
+  "email",
+  "password",
+  "display_name",
+  "general_location",
+  "kind",
+  "roles",
+] as const;
+
+export type FieldName = (typeof FIELD_NAMES)[number];
+
 export type ParsedApiError = {
   kind: ApiKind;
   status: number;
   message: string;
   emailError?: string;
   passwordError?: string;
+  fieldErrors?: Partial<Record<FieldName, string>>;
 };
 
 /** 401 é só autenticação. Rede e 5xx não terminam a sessão. */
@@ -37,19 +49,30 @@ export function parseApiError(status: number, body: unknown): ParsedApiError {
 
 function validationError(status: number, body: unknown): ParsedApiError {
   const issues = validationIssues(body);
-  let emailError: string | undefined;
-  let passwordError: string | undefined;
+  const fieldErrors: Partial<Record<FieldName, string>> = {};
   for (const issue of issues) {
     const text = cleanMessage(issue.msg);
-    if (issue.loc.includes("email")) emailError = text;
-    else if (issue.loc.includes("password")) passwordError = text;
+    const field = issue.loc.find(
+      (part): part is FieldName =>
+        typeof part === "string" && (FIELD_NAMES as readonly string[]).includes(part),
+    );
+    if (field) fieldErrors[field] = text;
   }
+  const emailError = fieldErrors.email;
+  const passwordError = fieldErrors.password;
   const detail = stringDetail(body);
   const message =
-    emailError || passwordError
+    emailError || passwordError || Object.keys(fieldErrors).length > 0
       ? "Alguns campos não foram aceites."
       : (detail ?? "Alguns campos não foram aceites.");
-  return { kind: "validation", status, message, emailError, passwordError };
+  return {
+    kind: "validation",
+    status,
+    message,
+    emailError,
+    passwordError,
+    fieldErrors,
+  };
 }
 
 function validationIssues(body: unknown): { loc: unknown[]; msg: string }[] {

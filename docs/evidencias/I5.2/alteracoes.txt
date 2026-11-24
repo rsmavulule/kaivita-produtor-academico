@@ -1,0 +1,63 @@
+Alterações — I5.2
+Base: a53f484. Sem commit e sem push.
+
+Backend
+-------
+app/authorization.py
+  accessible_actors passa a devolver o actor e o nível activo desta conta,
+  numa só consulta. represented_actor faz a leitura individual.
+  actor_for_read usa essa leitura. actor_for_manage fica igual.
+
+app/actors.py
+  ActorView é o schema só dos dois GET. POST, PATCH e papéis mantêm
+  os schemas anteriores.
+
+Testes de backend
+  test_authorization.py e test_actor_roles.py passam a esperar
+  representation nos GET e a ausência do campo nas escritas.
+  Novos casos: leitura, gestão, lista com níveis diferentes, isolamento,
+  associação revogada, rejeição do campo no POST e no PATCH,
+  preservação dos contratos de escrita.
+
+Frontend
+--------
+lib/actor-view.ts
+  Rótulos, identificador e tipos. Não lê a sessão, para o formulário
+  de cliente não importar next/headers.
+
+lib/actors.ts
+  Consulta e escrita pelo servidor Next.js, com o cookie HttpOnly.
+  O corpo nunca inclui representation. Um UUID inválido não chega à API.
+  A resposta é recusada se trouxer user_id, access_level ou, na escrita,
+  representation.
+
+lib/errors.ts
+  O 422 em lista preenche erros de display_name, general_location,
+  kind e roles. O 422 em texto usa o detail. O valor rejeitado não
+  entra na mensagem.
+
+app/(privada)/actores
+  Lista, estado vazio, erro de ligação e criação com pelo menos um papel.
+  A ficha mostra leitura sem formulários e gestão com nome, localização
+  e substituição integral dos papéis.
+  Se a escrita recebe 404, o formulário deixa de mostrar os dados e o
+  browser volta a pedir a mesma ficha. Se essa consulta também for 404,
+  a página fica em "Actor não encontrado."
+
+middleware.ts e next.config.ts
+  /actores entra nas rotas privadas e em Cache-Control: private, no-store.
+
+Navegação
+  O cabeçalho da área privada liga a /actores.
+
+Testes de interface
+  e2e/actors.spec.ts cobre a lista, as criações, a gestão, a leitura,
+  a recusa da API, o actor inacessível, a revogação, a limpeza da
+  localização, a substituição de papéis e os 422.
+  e2e/access.ts grava a representação de teste directo na base.
+  Não há endpoint administrativo.
+
+Fora desta alteração
+--------------------
+Produtos, ofertas, concessão e revogação na interface, SRS, diagramas,
+migrações e o registo público.

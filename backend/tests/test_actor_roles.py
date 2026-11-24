@@ -37,6 +37,7 @@ PASSWORD = "palavra-de-teste"
 NOT_FOUND = {"detail": "Actor não encontrado."}
 ACTOR_KEYS = {"id", "kind", "display_name", "general_location", "status"}
 CREATED_KEYS = ACTOR_KEYS | {"roles"}
+VIEW_KEYS = ACTOR_KEYS | {"representation"}
 ROLE_KEYS = {"id", "code"}
 CATALOG = {
     code.value: str(role_id) for code, role_id in COMMERCIAL_ROLE_IDS.items()
@@ -223,14 +224,16 @@ def test_creator_receives_active_manage_access(api, db_session):
     listing = api.get("/actors", headers=headers)
 
     assert read.status_code == 200
-    assert set(read.json()) == ACTOR_KEYS
+    assert set(read.json()) == VIEW_KEYS
+    assert read.json()["representation"] == "manage"
     assert "roles" not in read.json()
     assert updated.status_code == 200
     assert updated.json()["display_name"] == "Produtor actualizado"
     assert updated.json()["kind"] == "person"
     assert updated.json()["status"] == "active"
     assert [item["id"] for item in listing.json()] == [actor_id]
-    assert set(listing.json()[0]) == ACTOR_KEYS
+    assert set(listing.json()[0]) == VIEW_KEYS
+    assert listing.json()[0]["representation"] == "manage"
 
 
 def test_actor_roles_and_access_are_created_together(api, db_session):

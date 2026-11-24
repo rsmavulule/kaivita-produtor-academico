@@ -1,0 +1,28 @@
+Playwright — I5.2
+Alvo: http://127.0.0.1:3010, o contentor web publicado.
+E2E_NO_SERVER=1. Chromium. 1 worker.
+
+Resultado da verificação final, contra o contentor em http://127.0.0.1:3010:
+  24 passed (29.3s)
+
+Actores, e2e/actors.spec.ts:
+  422 em texto e em lista, sem repetir o valor rejeitado.
+  Lista e criação de pessoa e de organização.
+  Teclado no formulário de criação.
+  Gestão: editar perfil, limpar localização, substituir papéis.
+  Erro de perfil e de papéis preserva o que estava gravado.
+  Leitura sem formulários. O PATCH directo à API responde 404.
+  Actor inacessível, com UUID desconhecido e com identificador inválido.
+  Associação revogada durante a sessão. A ficha deixa de mostrar os dados.
+
+Sessão, e2e/auth.spec.ts: os 16 testes do I5.1 continuam a passar,
+incluindo a falha de ligação, que pára e volta a arrancar a API.
+
+Capturas em docs/evidencias/I5.2/capturas:
+  actores-1280.png
+  actores-360.png
+  actor-manage-1280.png
+  actor-manage-360.png
+  actor-read.png
+
+Não há palavras-passe nem tokens nestes resultados.

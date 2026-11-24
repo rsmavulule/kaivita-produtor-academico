@@ -1,0 +1,33 @@
+Decisões — I5.2
+
+1. representation existe só em ActorView, usado pelos dois GET.
+   POST, PATCH e papéis ficam nos schemas anteriores, para o cliente
+   não poder tratar a resposta de escrita como autorização.
+
+2. O nível é lido da associação active do utilizador do token.
+   A lista traz o actor e o nível na mesma consulta. A ficha individual
+   reutiliza essa leitura para a autorização de consulta.
+   actor_for_manage não foi fundido com ela.
+
+3. A interface não autoriza. Com read não há formulário. Com manage o
+   pedido segue para a API. O 404 ocorre quando a leitura de autorização
+   desse pedido já vê a associação em falta ou revogada. Uma revogação
+   confirmada depois dessa leitura não é tratada como impedimento da
+   escrita já autorizada.
+
+4. Depois de um 404 na escrita, a acção não faz redirect para o mesmo
+   endereço. Esse redirect, quando o formulário sai da árvore, não
+   entrega a página nova. A acção devolve a perda de acesso, o formulário
+   deixa de mostrar os valores e o browser pede outra vez a mesma ficha.
+   Se a nova consulta for 404, os dados protegidos não são renderizados.
+
+5. O 422 da API chega como texto ou como lista. A mensagem de campo usa
+   o texto limpo. O valor rejeitado não é acrescentado.
+
+6. A representação read e a revogação de teste são escritas na base por
+   uma fixture local. Não há rota administrativa.
+
+7. Os rótulos ficam num módulo sem next/headers, para o formulário de
+   cliente não puxar a sessão para o bundle.
+
+8. Não há migração: as tabelas e os valores read e manage já existiam.

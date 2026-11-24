@@ -1,0 +1,13 @@
+PostgreSQL — I5.2
+Comando, a partir de backend, com a base do Compose:
+  RUN_DB_TESTS=1
+  .venv\Scripts\python.exe -m pytest -q --tb=line
+
+Resultado da verificação final:
+  160 passed in 32.62s
+
+A suite anterior, no I5.1, tinha 156 testes. Os quatro novos estão em
+test_authorization.py: nível por conta, associação revogada, rejeição de
+representation no POST e no PATCH, e preservação dos contratos de escrita.
+Os GET existentes passaram a incluir representation. Produtos e ofertas
+correm na mesma suite.

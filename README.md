@@ -456,8 +456,8 @@ Essa oferta não entra na consulta pública, que este incremento não expõe.
 - O preço fraccionário tem de ir em texto JSON. Um número com casa decimal
 é recusado, para não passar por ponto flutuante.
 - Não há registo de auditoria das mudanças de publicação.
-- A interface autentica e mostra a conta. Actores, produtos e ofertas ainda
-não têm ecrãs. O logout apaga o cookie e não revoga o JWT na API.
+- A interface autentica, mostra a conta e gere actores e papéis. Produtos
+e ofertas ainda não têm ecrãs. O logout apaga o cookie e não revoga o JWT.
 
 ## Incremento I5.1 — sessão da interface
 
@@ -480,6 +480,16 @@ responder 401. Uma falha de ligação ou um 5xx não apagam o cookie.
 Os testes de ponta a ponta estão em `frontend/e2e` e usam Playwright.
 A conta é criada na base de desenvolvimento e a palavra-passe não entra
 no Git.
+
+## Incremento I5.2 — actores e papéis
+
+`GET /actors` e `GET /actors/{actor_id}` incluem `representation`, com o
+valor `read` ou `manage` da associação activa do utilizador autenticado.
+`POST`, `PATCH` e os endpoints de papéis não devolvem nem aceitam esse campo.
+
+A interface lista os actores em `/actores` e abre a ficha em
+`/actores/[actorId]`. A edição do nome, da localização e dos papéis só
+aparece quando a representação é `manage`. A autorização continua na API.
 
 ## Fora deste incremento
 

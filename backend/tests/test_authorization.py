@@ -35,6 +35,7 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 PASSWORD = "palavra-de-teste"
 NOT_FOUND = {"detail": "Actor não encontrado."}
 ACTOR_KEYS = {"id", "kind", "display_name", "general_location", "status"}
+VIEW_KEYS = ACTOR_KEYS | {"representation"}
 
 
 @pytest.fixture(scope="session")
@@ -121,12 +122,14 @@ def test_reader_can_consult_the_actor(api, db_session):
 
     assert response.status_code == 200
     body = response.json()
-    assert set(body) == ACTOR_KEYS
+    assert set(body) == VIEW_KEYS
     assert body["id"] == str(actor.id)
     assert body["display_name"] == "Cooperativa do Sul"
     assert body["kind"] == "person"
     assert body["status"] == "active"
+    assert body["representation"] == "read"
     assert "access_level" not in body
+    assert "user_id" not in body
     assert PASSWORD not in response.text
 
 
@@ -162,7 +165,10 @@ def test_manager_can_consult_and_modify(api, db_session):
 
     assert read.status_code == 200
     assert read.json()["display_name"] == "Nome antigo"
+    assert read.json()["representation"] == "manage"
     assert updated.status_code == 200
+    assert set(updated.json()) == ACTOR_KEYS
+    assert "representation" not in updated.json()
     assert updated.json()["display_name"] == "Nome novo"
     assert updated.json()["general_location"] is None
     assert updated.json()["kind"] == "person"
@@ -284,7 +290,9 @@ def test_listing_contains_only_authorized_actors(api, db_session):
     assert response.status_code == 200
     names = [item["display_name"] for item in response.json()]
     assert names == ["Também visível", "Visível"]
-    assert all(set(item) == ACTOR_KEYS for item in response.json())
+    assert all(set(item) == VIEW_KEYS for item in response.json())
+    levels = {item["display_name"]: item["representation"] for item in response.json()}
+    assert levels == {"Também visível": "manage", "Visível": "read"}
 
 
 def test_update_rejects_fields_outside_the_contract(api, db_session):
@@ -463,3 +471,107 @@ def test_authorization_and_update_share_one_database_session(api, db_session, mo
     assert seen["transaction"] is db_session.get_transaction()
     assert seen["actor"] is actor
     assert actor.display_name == "Nome na mesma sessão"
+
+
+def test_representation_stays_with_the_authenticated_user(api, db_session):
+    reader = _user(db_session, "nivel-leitor@example.com")
+    manager = _user(db_session, "nivel-gestor@example.com")
+    actor = _actor(db_session, "Actor com dois níveis")
+    _grant(db_session, reader, actor, AccessLevel.READ)
+    _grant(db_session, manager, actor, AccessLevel.MANAGE)
+
+    reader_view = api.get(f"/actors/{actor.id}", headers=_bearer(reader))
+    manager_view = api.get(f"/actors/{actor.id}", headers=_bearer(manager))
+
+    assert reader_view.status_code == 200
+    assert reader_view.json()["representation"] == "read"
+    assert manager_view.status_code == 200
+    assert manager_view.json()["representation"] == "manage"
+    for response in (reader_view, manager_view):
+        body = response.json()
+        assert set(body) == VIEW_KEYS
+        assert "user_id" not in body
+        assert "access_level" not in body
+        assert str(reader.id) not in response.text
+        assert str(manager.id) not in response.text
+        assert reader.email not in response.text
+        assert manager.email not in response.text
+
+
+def test_revoked_association_is_absent_from_representation(api, db_session):
+    user = _user(db_session, "nivel-revogado@example.com")
+    actor = _actor(db_session, "Já não representa")
+    _grant(db_session, user, actor, AccessLevel.MANAGE, AccessStatus.REVOKED)
+    headers = _bearer(user)
+
+    read = api.get(f"/actors/{actor.id}", headers=headers)
+    listing = api.get("/actors", headers=headers)
+
+    assert read.status_code == 404
+    assert read.json() == NOT_FOUND
+    assert "representation" not in read.text
+    assert listing.json() == []
+
+
+def test_client_cannot_set_representation(api, db_session):
+    user = _user(db_session, "nivel-corpo@example.com")
+    headers = _bearer(user)
+    created = api.post(
+        "/actors",
+        headers=headers,
+        json={
+            "kind": "person",
+            "display_name": "Não escolhe o nível",
+            "roles": ["producer"],
+            "representation": "read",
+        },
+    )
+
+    assert created.status_code == 422
+    assert "read" not in created.text
+    assert all("input" not in error for error in created.json()["detail"])
+
+    actor = _actor(db_session, "Nível fixo", "Maputo")
+    _grant(db_session, user, actor, AccessLevel.MANAGE)
+    updated = api.patch(
+        f"/actors/{actor.id}",
+        headers=headers,
+        json={"display_name": "Continua gestor", "representation": "read"},
+    )
+
+    assert updated.status_code == 422
+    assert "read" not in updated.text
+    assert actor.display_name == "Nível fixo"
+    access = db_session.get(UserActorAccess, (user.id, actor.id))
+    assert access is not None
+    assert access.access_level is AccessLevel.MANAGE
+    assert access.status is AccessStatus.ACTIVE
+
+
+def test_write_responses_keep_the_previous_contract(api, db_session):
+    user = _user(db_session, "contrato-escrita@example.com")
+    headers = _bearer(user)
+    created = api.post(
+        "/actors",
+        headers=headers,
+        json={
+            "kind": "organization",
+            "display_name": "Contrato antigo",
+            "general_location": "Beira",
+            "roles": ["buyer"],
+        },
+    )
+    actor_id = created.json()["id"]
+    updated = api.patch(
+        f"/actors/{actor_id}",
+        headers=headers,
+        json={"general_location": None},
+    )
+
+    assert created.status_code == 201
+    assert set(created.json()) == {"id", "kind", "display_name", "general_location", "status", "roles"}
+    assert "representation" not in created.json()
+    assert updated.status_code == 200
+    assert set(updated.json()) == ACTOR_KEYS
+    assert updated.json()["general_location"] is None
+    assert "representation" not in updated.json()

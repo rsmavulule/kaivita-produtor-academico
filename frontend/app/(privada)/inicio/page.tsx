@@ -18,9 +18,12 @@ export default async function InicioPage() {
         Entrou como <strong>{session.email}</strong>. A autorização de cada
         pedido continua a ser verificada pela API.
       </p>
-      <p className="note">
-        Actores, produtos e ofertas ficam para os incrementos seguintes.
+      <p className="links">
+        <a className="primary" href="/actores">
+          Actores
+        </a>
       </p>
+      <p className="note">Produtos e ofertas ficam para os incrementos seguintes.</p>
     </main>
   );
 }

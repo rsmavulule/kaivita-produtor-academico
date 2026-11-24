@@ -1,0 +1,15 @@
+Build Next.js — I5.2
+Next.js 15.5.29. Na verificação final, npm run build no anfitrião
+compilou e verificou os tipos. A imagem web não foi reconstruída nesta
+passagem: o código da aplicação não mudou.
+
+Rotas:
+  /                         estática
+  /login                    dinâmica
+  /inicio                   dinâmica
+  /actores                  dinâmica
+  /actores/[actorId]        dinâmica
+  /sessao/invalida          dinâmica
+
+O contentor publica a porta 3010. API_URL dentro dele é http://api:8000.
+/app/e2e/.credentials.json não está na imagem.

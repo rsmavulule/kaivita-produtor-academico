@@ -20,6 +20,14 @@ const nextConfig: NextConfig = {
         source: "/login",
         headers: [{ key: "Cache-Control", value: "private, no-store" }],
       },
+      {
+        source: "/actores",
+        headers: [{ key: "Cache-Control", value: "private, no-store" }],
+      },
+      {
+        source: "/actores/:path*",
+        headers: [{ key: "Cache-Control", value: "private, no-store" }],
+      },
     ];
   },
 };

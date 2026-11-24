@@ -1,0 +1,15 @@
+Docker Compose — I5.2
+Projecto kaivita-produtor-academico. Na verificação final os três
+serviços ficaram healthy depois da suite, incluindo o rearranque da API
+no teste de ligação. A imagem web não foi reconstruída: o código da
+aplicação não mudou nesta passagem.
+
+  db    postgres:16    0.0.0.0:5435->5432/tcp    healthy
+  api   FastAPI        0.0.0.0:8010->8000/tcp    healthy
+  web   Next.js        0.0.0.0:3010->3000/tcp    healthy
+
+GET http://127.0.0.1:8010/health
+  {"status":"ok","database":"up"}
+
+API_URL no contentor web: http://api:8000
+Credenciais de teste na imagem: ausentes.

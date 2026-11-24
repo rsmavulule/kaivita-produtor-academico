@@ -15,7 +15,7 @@ export function middleware(request: NextRequest) {
     request.nextUrl.protocol === "https:" ? "https" : "http",
   );
 
-  if (request.nextUrl.pathname === "/inicio" && !request.cookies.get(SESSION_COOKIE)?.value) {
+  if (isPrivate(request.nextUrl.pathname) && !request.cookies.get(SESSION_COOKIE)?.value) {
     const login = request.nextUrl.clone();
     login.pathname = "/login";
     login.search = "";
@@ -25,12 +25,16 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next({
     request: { headers: requestHeaders },
   });
-  if (request.nextUrl.pathname === "/inicio") {
+  if (isPrivate(request.nextUrl.pathname)) {
     response.headers.set("Cache-Control", "private, no-store");
   }
   return response;
 }
 
+function isPrivate(pathname: string): boolean {
+  return pathname === "/inicio" || pathname === "/actores" || pathname.startsWith("/actores/");
+}
+
 export const config = {
-  matcher: ["/inicio", "/login"],
+  matcher: ["/inicio", "/login", "/actores", "/actores/:path*"],
 };

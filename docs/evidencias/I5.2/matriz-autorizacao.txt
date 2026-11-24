@@ -1,0 +1,30 @@
+Matriz de autorização — I5.2
+O nível mostrado é o da conta autenticada. A API volta a verificar cada escrita.
+A mensagem de 404 é sempre "Actor não encontrado."
+
+Operação                         read activo    manage activo    sem associação,
+                                                                    revogada ou
+                                                                    outra conta
+-------------------------------  -------------  ---------------  -----------------
+GET /actors                      vê os seus     vê os seus       não vê o actor
+GET /actors/{id}                 200, read      200, manage      404
+GET /actors/{id}/roles           200            200              404
+PATCH /actors/{id}               404            200              404
+PUT /actors/{id}/roles           404            200              404
+POST /actors                     cria e recebe manage na conta que cria
+Produtos e ofertas               as regras do I3 e do I4, sem este campo
+
+A interface
+-----------
+read     mostra a ficha e os papéis. Não apresenta os formulários.
+manage   apresenta nome, localização e papéis. O PATCH e o PUT seguem
+         para a API, que pode ainda recusar.
+404      a ficha deixa de ser mostrada. Não se distingue ausência de
+         falta de acesso.
+422      os valores introduzidos ficam no formulário. A ficha gravada
+         não muda.
+401      segue para /sessao/invalida.
+rede e 5xx  a sessão mantém-se e a página oferece nova tentativa.
+
+O formulário não tem campos para owner, kind na edição, status,
+user_id nem representation.

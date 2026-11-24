@@ -27,9 +27,17 @@ from app.authorization import (
     accessible_actors,
     actor_for_manage,
     actor_for_read,
+    represented_actor,
 )
 from app.db import get_session
-from app.identity import Actor, ActorKind, ActorStatus, RoleCode, User
+from app.identity import (
+    AccessLevel,
+    Actor,
+    ActorKind,
+    ActorStatus,
+    RoleCode,
+    User,
+)
 from app.roles import RoleResponse
 
 router = APIRouter(prefix="/actors", tags=["actores"])
@@ -45,6 +53,17 @@ class ActorResponse(BaseModel):
     status: ActorStatus
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ActorView(BaseModel):
+    """Consulta do actor com o nível desta conta. Não serve para criar nem editar."""
+
+    id: UUID
+    kind: ActorKind
+    display_name: str
+    general_location: str | None
+    status: ActorStatus
+    representation: AccessLevel
 
 
 class ActorCreate(BaseModel):
@@ -130,6 +149,17 @@ def _present(actor: Actor) -> ActorResponse:
     return ActorResponse.model_validate(actor)
 
 
+def _view(actor: Actor, representation: AccessLevel) -> ActorView:
+    return ActorView(
+        id=actor.id,
+        kind=actor.kind,
+        display_name=actor.display_name,
+        general_location=actor.general_location,
+        status=actor.status,
+        representation=representation,
+    )
+
+
 def _roles(roles) -> list[RoleResponse]:
     return [RoleResponse.model_validate(role) for role in roles]
 
@@ -174,25 +204,25 @@ def create_actor(
     )
 
 
-@router.get("", response_model=list[ActorResponse])
+@router.get("", response_model=list[ActorView])
 def list_actors(
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
-) -> list[ActorResponse]:
-    return [_present(actor) for actor in accessible_actors(session, user)]
+) -> list[ActorView]:
+    return [_view(actor, level) for actor, level in accessible_actors(session, user)]
 
 
-@router.get("/{actor_id}", response_model=ActorResponse)
+@router.get("/{actor_id}", response_model=ActorView)
 def read_actor(
     actor_id: UUID,
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
-) -> ActorResponse:
+) -> ActorView:
     try:
-        actor = actor_for_read(session, user, actor_id)
+        actor, level = represented_actor(session, user, actor_id)
     except ActorUnavailable:
         raise _missing_actor() from None
-    return _present(actor)
+    return _view(actor, level)
 
 
 @router.patch("/{actor_id}", response_model=ActorResponse)

@@ -37,6 +37,10 @@ export default async function PrivateLayout({ children }: { children: ReactNode 
         <div>
           <p className="eyebrow">Sessão</p>
           <p className="session-email">{session.email}</p>
+          <nav className="links" aria-label="Área privada">
+            <a href="/inicio">Início</a>
+            <a href="/actores">Actores</a>
+          </nav>
         </div>
         <LogoutForm />
       </header>

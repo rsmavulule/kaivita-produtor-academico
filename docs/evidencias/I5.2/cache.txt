@@ -1,0 +1,36 @@
+Estratégia de cache — I5.2
+Inspecção de frontend/lib/api.ts, current-session.ts, middleware.ts,
+next.config.ts, o layout privado e as acções de actores.
+
+Partilha entre utilizadores
+---------------------------
+O pedido à FastAPI usa cache: no-store e o Bearer do cookie daquele pedido.
+loadSession usa cache do React para repetir /auth/me dentro do mesmo pedido,
+não entre pedidos nem entre contas.
+O layout privado é force-dynamic. O middleware e o next.config põem
+Cache-Control: private, no-store em /actores e /actores/:path*.
+A página privada não fica numa cache partilhada.
+
+Permissões em pedidos novos
+---------------------------
+Cada GET de actor volta a ler user_actor_access. O Next.js não guarda o
+JSON da API. Uma escrita com sucesso chama revalidatePath e redirecciona
+para a ficha, que é renderizada de novo.
+
+Escrita recusada com 404
+------------------------
+A acção devolve lostAccess, deixa de mostrar o formulário e o browser faz
+location.replace do mesmo caminho. Esse carregamento consulta a API outra
+vez. Se a consulta for 404, a página renderiza só "Actor não encontrado."
+e o link de volta. Os campos do actor não entram nessa resposta.
+
+Origem e erros
+--------------
+createActorAction, updateProfileAction e replaceRolesAction chamam
+sameOrigin antes de contactar a API. Origem em falta ou estrangeira
+devolve "Pedido recusado." e não escreve.
+401 redirecciona para /sessao/invalida.
+404 de consulta mostra a página sem dados do actor.
+422 mantém os valores introduzidos e a mensagem por campo, em texto ou
+em lista, sem repetir o valor rejeitado.
+Rede e 5xx devolvem a mensagem de indisponibilidade e não apagam o cookie.

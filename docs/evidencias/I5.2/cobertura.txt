@@ -1,0 +1,54 @@
+Matriz de cobertura — I5.2
+Camadas: E2E em frontend/e2e/actors.spec.ts, backend em pytest, inspecção
+quando o comportamento é de cache ou de apresentação e já tem prova na API.
+
+Cenário                                      Teste                                                                 Ficheiro                         Camada     Resultado
+-------------------------------------------  --------------------------------------------------------------------  -------------------------------  ---------  ---------
+Listagem de actores                          a lista e a criação de pessoa e organização                           e2e/actors.spec.ts               E2E        suite
+                                             test_listing_contains_only_authorized_actors                          tests/test_authorization.py      backend    suite
+Criação de pessoa                            a lista e a criação de pessoa e organização                           e2e/actors.spec.ts               E2E        suite
+                                             test_creates_a_person_actor                                           tests/test_actor_roles.py        backend    suite
+Criação de organização                       a lista e a criação de pessoa e organização                           e2e/actors.spec.ts               E2E        suite
+                                             test_creates_an_organization_actor                                    tests/test_actor_roles.py        backend    suite
+Criação com pelo menos um papel              a lista e a criação de pessoa e organização                           e2e/actors.spec.ts               E2E        suite
+                                             test_empty_role_list_is_rejected                                      tests/test_actor_roles.py        backend    suite
+Consulta e edição com manage                 a gestão edita o perfil, limpa a localização e substitui os papéis    e2e/actors.spec.ts               E2E        suite
+                                             test_manager_can_consult_and_modify                                   tests/test_authorization.py      backend    suite
+Consulta sem edição com read                 a leitura não edita e a API recusa a escrita                          e2e/actors.spec.ts               E2E        suite
+                                             test_reader_can_consult_the_actor                                     tests/test_authorization.py      backend    suite
+Recusa de PATCH com read                     a leitura não edita e a API recusa a escrita                          e2e/actors.spec.ts               E2E        suite
+                                             test_reader_cannot_modify_the_actor                                   tests/test_authorization.py      backend    suite
+Recusa de PUT com read                       test_reader_cannot_replace_actor_roles                                tests/test_actor_roles.py        backend    suite
+                                             A página read não renderiza o formulário de papéis.                   e2e/actors.spec.ts               E2E        suite
+Isolamento entre utilizadores                test_representation_stays_with_the_authenticated_user                 tests/test_authorization.py      backend    suite
+                                             test_several_users_can_represent_the_same_actor                       tests/test_authorization.py      backend    suite
+                                             test_listing_contains_only_authorized_actors                          tests/test_authorization.py      backend    suite
+Actor inacessível                            um actor inacessível não revela dados                                 e2e/actors.spec.ts               E2E        suite
+                                             test_unknown_actor_returns_404                                        tests/test_authorization.py      backend    suite
+                                             test_unauthorized_actor_returns_the_same_404                          tests/test_authorization.py      backend    suite
+Associação revogada durante a sessão         uma associação revogada deixa de mostrar o actor                      e2e/actors.spec.ts               E2E        suite
+Remoção dos dados após perda confirmada      uma associação revogada deixa de mostrar o actor                      e2e/actors.spec.ts               E2E        suite
+                                             test_revoked_association_is_absent_from_representation                 tests/test_authorization.py      backend    suite
+                                             test_revocation_after_the_token_applies_on_the_next_request           tests/test_authorization.py      backend    suite
+Limpeza da localização geral                 a gestão edita o perfil, limpa a localização e substitui os papéis    e2e/actors.spec.ts               E2E        suite
+                                             test_manager_can_consult_and_modify                                   tests/test_authorization.py      backend    suite
+                                             test_write_responses_keep_the_previous_contract                       tests/test_authorization.py      backend    suite
+Substituição de papéis                       a gestão edita o perfil, limpa a localização e substitui os papéis    e2e/actors.spec.ts               E2E        suite
+                                             test_manager_replaces_actor_roles                                     tests/test_actor_roles.py        backend    suite
+Lista vazia de papéis                        um erro de perfil ou de papéis preserva o que estava gravado          e2e/actors.spec.ts               E2E        suite
+                                             test_empty_role_list_is_rejected                                      tests/test_actor_roles.py        backend    suite
+Papel repetido                               um erro de perfil ou de papéis preserva o que estava gravado          e2e/actors.spec.ts               E2E        suite
+                                             test_duplicate_roles_are_rejected                                     tests/test_actor_roles.py        backend    suite
+Papel desconhecido                           um erro de perfil ou de papéis preserva o que estava gravado          e2e/actors.spec.ts               E2E        suite
+                                             test_unknown_role_is_rejected                                         tests/test_actor_roles.py        backend    suite
+Preservação dos dados após erro              um erro de perfil ou de papéis preserva o que estava gravado          e2e/actors.spec.ts               E2E        suite
+                                             test_invalid_replacement_keeps_the_previous_roles                      tests/test_actor_roles.py        backend    suite
+Responsividade 360 px e 1280 px              a lista e a criação; a gestão edita o perfil                          e2e/actors.spec.ts               E2E        suite
+Navegação por teclado                        o teclado percorre o formulário de criação                            e2e/actors.spec.ts               E2E        suite
+Regressão de produtos e ofertas              tests/test_products.py e tests/test_offers.py na suite PostgreSQL    tests/test_products.py           backend    suite
+                                                                                                                   tests/test_offers.py             backend    suite
+
+Não foi acrescentado teste novo. A recusa de PUT com read já existe na API.
+A revogação concorrente, depois da autorização e antes do commit, não tem
+teste: o incremento não a impede e não a simula com bloqueio.
+A cache foi verificada por inspecção do código, registada em cache.txt.

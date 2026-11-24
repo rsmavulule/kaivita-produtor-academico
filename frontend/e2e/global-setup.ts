@@ -25,6 +25,9 @@ export default function globalSetup() {
   mkdirSync(path.resolve(process.cwd(), "..", "docs", "evidencias", "I5.1", "capturas"), {
     recursive: true,
   });
+  mkdirSync(path.resolve(process.cwd(), "..", "docs", "evidencias", "I5.2", "capturas"), {
+    recursive: true,
+  });
   writeFileSync(credentialsPath, JSON.stringify({ email, password }), {
     encoding: "utf8",
     mode: 0o600,

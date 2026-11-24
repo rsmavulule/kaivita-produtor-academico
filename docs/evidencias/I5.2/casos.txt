@@ -1,0 +1,38 @@
+Casos de teste — I5.2
+
+Backend, com PostgreSQL
+-----------------------
+GET individual com read.
+GET individual com manage. O PATCH de seguida não devolve representation.
+Lista com read e manage no mesmo utilizador.
+Isolamento: cada conta vê só o seu nível; a resposta não traz user_id,
+access_level, o id ou o email da outra conta.
+Associação revogada: 404 e lista vazia.
+POST e PATCH com representation no corpo: 422, sem gravar o valor.
+POST e PATCH sem esse campo: contratos anteriores.
+A suite completa inclui a regressão de produtos e ofertas.
+
+Interface
+---------
+Lista de actores, com nome, tipo, localização e nível.
+Criação de pessoa.
+Criação de organização.
+Criação com papel comercial.
+Consulta e edição com manage.
+Consulta sem edição com read.
+PATCH com read recusado pela API, com 404 e sem alterar o nome.
+Actor inacessível, incluindo identificador que não é UUID.
+Associação revogada durante a sessão: a escrita é recusada e a ficha
+deixa de mostrar os dados.
+Limpeza da localização geral.
+Substituição dos papéis, mostrados na ordem do catálogo.
+Lista vazia de papéis.
+Papel repetido.
+Papel desconhecido.
+Valores introduzidos preservados depois do 422, sem repetir o valor
+rejeitado na mensagem.
+360 px, 1280 px e percurso por teclado.
+
+Os dados de leitura e de revogação são gravados na base pela fixture
+e2e/access.ts. Não foi criado um endpoint de administração.
+As palavras-passe e os tokens não entram nesta pasta.

@@ -1,0 +1,28 @@
+Rastreabilidade — I5.2
+Fontes: SRS v1.1 e os diagramas já presentes. A SRS e os diagramas não foram alterados.
+Não foi consultado código do projecto comercial.
+
+SRS / UML                         Implementação                         Situação
+--------------------------------  ------------------------------------  ---------------------------
+RF-01 criar e manter actor        /actores e /actores/[actorId].        Coberto para nome, tipo,
+                                  person e organization.                localização e papéis.
+RF-02 papéis comerciais           Criação e substituição do conjunto.   Coberto. A ordem é a do
+                                  producer, buyer, partner.             catálogo. Não são permissões.
+RB-10 e RF-08 representação       GET com read ou manage desta conta.   Coberto na consulta.
+                                  Escritas continuam na API.            Sem concessão nem revogação
+                                                                        na interface.
+UC-02 representar um actor        Lista só os actores acessíveis.       Coberto. Outra conta recebe
+                                  404 único.                            a mesma mensagem.
+RNF-01 360 px e 1280 px           CSS próprio. Playwright nas duas      Coberto na lista e na ficha.
+                                  larguras.
+RNF-02 erros, obrigatórios,       Campos com label, alerta e Tab.       Coberto na criação.
+teclado                           422 por campo ou em texto.
+RNF-03 sessão e autorização       Cookie HttpOnly do I5.1. A API        Coberto. O nível mostrado
+no servidor                       decide a escrita.                     não autoriza o PATCH.
+RNF-04 integridade                extra=forbid. Sem migração.           O cliente não define
+                                                                        representation.
+RNF-05 testes                     Suite PostgreSQL e Playwright.        Executados. Ver os
+                                                                        resultados nesta pasta.
+RF-03, RF-04, RF-07, RF-09        Sem ecrãs de produto, oferta,         Fora do I5.2. A API
+UC-03 a UC-08                     pesquisa ou contacto.                 mantém-se.
+Diagrama 06                       O Next.js chama a API no servidor.    Alinhado. Sem proxy genérico.

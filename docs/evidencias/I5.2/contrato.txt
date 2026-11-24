@@ -1,0 +1,43 @@
+Contrato de representation — I5.2
+Não foi consultado código do projecto comercial.
+Não há migração. O cliente não envia nem altera este campo.
+
+Onde aparece
+-------------
+GET /actors
+GET /actors/{actor_id}
+
+Schema de resposta, ActorView:
+  id
+  kind
+  display_name
+  general_location
+  status
+  representation: "read" | "manage"
+
+O valor é o access_level da linha user_actor_access do utilizador
+autenticado, e só quando status é active. A consulta não lê níveis de
+outras contas. A resposta não inclui user_id nem access_level.
+
+Actor inexistente, associação em falta, revogada ou de nível
+desconhecido: 404 com detail "Actor não encontrado."
+
+Onde não aparece
+----------------
+POST /actors devolve o contrato anterior: id, kind, display_name,
+general_location, status, roles. Sem representation.
+PATCH /actors/{actor_id} devolve ActorResponse, sem representation.
+GET e PUT /actors/{actor_id}/roles devolvem id e code. Sem representation.
+GET /roles não muda.
+
+Corpos recusados
+----------------
+ActorCreate, ActorUpdate e RoleUpdate continuam com extra=forbid.
+representation, user_id, access_level, owner, kind no PATCH e status
+no corpo são 422. O valor rejeitado não é ecoado. A ficha não muda.
+
+Autorização que se mantém
+--------------------------
+actor_for_manage não foi alterado. Produtos e ofertas continuam a usar
+actor_for_read e actor_for_manage. read consulta. manage altera.
+A interface mostra o nível, mas a escrita volta a ser verificada na API.
