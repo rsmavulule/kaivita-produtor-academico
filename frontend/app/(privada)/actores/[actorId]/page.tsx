@@ -55,6 +55,9 @@ export default async function ActorPage({
         </ul>
       )}
       <p className="links">
+        <a className="primary" href={`/actores/${profile.id}/produtos`}>
+          Produtos
+        </a>
         <a className="secondary" href="/actores">
           Voltar aos actores
         </a>

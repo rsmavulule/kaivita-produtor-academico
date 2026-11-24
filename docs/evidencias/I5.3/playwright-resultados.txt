@@ -1,0 +1,15 @@
+Playwright — I5.3
+Contra o contentor publicado, sem o servidor de desenvolvimento:
+
+  E2E_NO_SERVER=1
+  E2E_BASE_URL=http://127.0.0.1:3010
+  npm run test:e2e
+
+Resultado: 31 passed (47.8s).
+Eram 24 testes do I5.1 e do I5.2. Os sete novos estão em
+frontend/e2e/products.spec.ts.
+
+As capturas deste incremento foram geradas por essa suite.
+As capturas publicadas do I5.1 e do I5.2 foram repostas depois da
+execução, porque o texto do início e a ligação Produtos alteram esses
+ecrãs. Não substituem a evidência já versionada.

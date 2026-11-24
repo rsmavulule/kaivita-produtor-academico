@@ -1,0 +1,32 @@
+Matriz de cobertura — I5.3
+E2E: Playwright contra o contentor em http://127.0.0.1:3010.
+Backend: suite já existente em backend/tests, sem alteração neste incremento.
+Inspecção: leitura do código da interface e dos contratos do I3.
+
+Cenário                                      E2E                         Backend              Inspecção
+-------------------------------------------  --------------------------  -------------------  -------------------------
+1. Listagem vazia                            products.spec, catálogo     GET da colecção      Página sem produtos
+2. Criação                                   o mesmo teste               POST cria active     Dono vem da rota
+3. Consulta do produto criado                o mesmo teste               GET individual       Sete campos visíveis
+4. Edição dos campos autorizados             o mesmo teste               PATCH descritivo     Sem id, dono ou estado
+5. Limpeza da referência                     o mesmo teste               image_ref null       Vazio enviado como null
+6. Arquivo com confirmação                   teste do arquivo            POST /archive        Só em produto active
+7. Cancelar a confirmação                    o mesmo teste               —                    Não há pedido
+8. Consulta e edição de arquivado            o mesmo teste               PATCH não reactiva   Acção de arquivo ausente
+9. Representante read                        teste de leitura            actor_for_read       Sem botões de escrita
+10. manage sem producer                      o mesmo teste               422 producer         Formulário oculto
+11. manage com producer                      catálogo e arquivo          actor_for_manage     Formulários presentes
+12. Perda do producer na sessão              teste de revogação          422 e GET seguinte   Formulário retirado
+13. Revogação da representação               o mesmo teste               404 do actor         Nome deixa de aparecer
+14. Produto de outro actor                   teste de isolamento         404 do produto       Nome do outro não sai
+15. Campo inválido                           teste do nome em branco     422 por campo        Mensagem sem o valor
+16. Dados gravados preservados               o mesmo teste               PATCH vazio/422      Título continua Arroz
+17. 360 px e 1280 px                         capturas e sem overflow     —                    Duas larguras
+18. Teclado                                  Tab no formulário novo      —                    Nome até à referência
+
+Identificador que não é UUID e associação revogada ficam no teste de
+isolamento e no de revogação. O 422 sem ecoar o valor também tem uma
+asserção directa a parseApiError.
+A idempotência do arquivo, a recusa de status no PATCH e a ausência de
+DELETE continuam cobertas pelos testes de produtos do I3, dentro dos
+160 pytest. Não foi criado endpoint para preparar dados.

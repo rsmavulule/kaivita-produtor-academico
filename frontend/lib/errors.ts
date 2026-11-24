@@ -12,6 +12,10 @@ const FIELD_NAMES = [
   "general_location",
   "kind",
   "roles",
+  "name",
+  "description",
+  "category",
+  "image_ref",
 ] as const;
 
 export type FieldName = (typeof FIELD_NAMES)[number];
@@ -23,6 +27,7 @@ export type ParsedApiError = {
   emailError?: string;
   passwordError?: string;
   fieldErrors?: Partial<Record<FieldName, string>>;
+  detail?: string;
 };
 
 /** 401 é só autenticação. Rede e 5xx não terminam a sessão. */
@@ -44,7 +49,7 @@ export function parseApiError(status: number, body: unknown): ParsedApiError {
   if (kind === "validation") {
     return validationError(status, body);
   }
-  return { kind, status, message: REJECTED_MESSAGE };
+  return { kind, status, message: REJECTED_MESSAGE, detail: stringDetail(body) ?? undefined };
 }
 
 function validationError(status: number, body: unknown): ParsedApiError {

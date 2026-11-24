@@ -1,0 +1,36 @@
+Alterações — I5.3
+O backend, a SRS e os diagramas UML não foram alterados. Não há migração
+nem dependência de execução nova.
+
+Interface
+  frontend/lib/product-view.ts
+    Rótulos Activo e Arquivado, ProductView e a condição manage + producer.
+  frontend/lib/products.ts
+    Leitura, criação, PATCH e arquivo. O corpo só leva name, description,
+    category e image_ref. O identificador é validado antes do pedido.
+    owner_actor_id tem de ser o actor da rota.
+  frontend/lib/errors.ts
+    Os campos do produto entram nas mensagens 422. O detalhe 404 fica
+    disponível para a página distinguir actor e produto, sem o mostrar
+    como texto genérico das outras rotas.
+  frontend/app/(privada)/actores/[actorId]/produtos/
+    Listagem, criação, ficha, edição e arquivo com confirmação.
+    Server Actions com sameOrigin, cache no-store e redireccionamentos
+    relativos. Uma escrita recusada volta a ler o contexto.
+  frontend/app/(privada)/actores/[actorId]/page.tsx
+    Ligação Produtos na ficha do actor.
+  frontend/app/globals.css
+    A textarea partilha o estilo dos campos.
+  frontend/app/page.tsx e inicio/page.tsx
+    O texto passa a dizer que os produtos estão na ficha do actor.
+
+Testes
+  frontend/e2e/products.spec.ts
+  frontend/e2e/roles.ts
+    Substitui os papéis comerciais pela função já existente no backend,
+    sem endpoint administrativo.
+  frontend/e2e/global-setup.ts
+    Cria a pasta das capturas.
+
+Documentação
+  README.md, secção do I5.3, e esta pasta.

@@ -1,0 +1,32 @@
+Contrato utilizado — I5.3
+Fonte: backend/app/catalog.py e backend/app/products.py, o I3.
+O backend não foi alterado.
+
+POST /actors/{actor_id}/products
+  Corpo: name, description, category, image_ref opcional.
+  O dono é o actor do caminho. O estado inicial é active.
+  201 devolve id, owner_actor_id, name, description, category,
+  image_ref e status.
+
+GET /actors/{actor_id}/products
+  Lista só os produtos desse actor, por nome e id, incluindo archived.
+  read ou manage activos. Sem o papel producer a consulta continua.
+
+GET /actors/{actor_id}/products/{product_id}
+  Os mesmos sete campos. Produto de outro actor: 404
+  "Produto não encontrado." Actor inacessível: 404
+  "Actor não encontrado."
+
+PATCH /actors/{actor_id}/products/{product_id}
+  name, description, category e image_ref. image_ref null limpa a
+  referência. status e owner_actor_id são recusados. {} não altera.
+  Um produto archived pode ser corrigido e continua archived.
+
+POST /actors/{actor_id}/products/{product_id}/archive
+  Passa o estado a archived. Repetir não reescreve os outros campos.
+  Não há DELETE nem reactivação.
+
+Escrita exige manage activo e o papel producer. Sem producer: 422
+"O actor não tem o papel producer." Sem manage: 404 do actor.
+Nome, descrição e categoria vazios, e image_ref só com espaços: 422.
+Não há limite de tamanho nem tabela de categorias.

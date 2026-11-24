@@ -1,0 +1,22 @@
+Rotas e fluxo — I5.3
+
+/actores/[actorId]
+  Liga a Produtos. O actor seleccionado fica no caminho.
+
+/actores/[actorId]/produtos
+  Nome, categoria, estado e ligação para a ficha.
+  Vazio: "Este actor ainda não tem produtos."
+  Indisponível: mensagem e nova tentativa.
+  "Registar produto" só com manage e producer.
+
+/actores/[actorId]/produtos/novo
+  Formulário de nome, descrição, categoria e referência textual.
+  Depois do 201, a ficha do produto criado.
+
+/actores/[actorId]/produtos/[productId]
+  Consulta. Com manage e producer: edição e, se activo, arquivo
+  com confirmação. Cancelar não chama a API.
+  Arquivado: o estado fica visível e a acção de arquivo sai.
+
+O identificador não é gravado em cookie, localStorage nem sessionStorage.
+Voltar aos produtos e voltar ao actor usam o caminho.

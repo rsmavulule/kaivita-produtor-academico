@@ -126,7 +126,8 @@ article p {
   font-weight: 650;
 }
 
-.field input {
+.field input,
+.field textarea {
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
@@ -136,6 +137,11 @@ article p {
   color: var(--ink);
   font: inherit;
   font-size: 1rem;
+}
+
+.field textarea {
+  min-height: 120px;
+  resize: vertical;
 }
 
 .field-error {

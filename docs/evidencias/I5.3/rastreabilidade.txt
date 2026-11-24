@@ -1,0 +1,19 @@
+Rastreabilidade — I5.3
+Fontes: SRS v1.1, pela matriz do I3, e os contratos em backend/app/catalog.py.
+A SRS e os diagramas não foram editados. Não foi consultado o projecto
+comercial.
+
+SRS / regra do I3                         Interface I5.3
+----------------------------------------  ------------------------------------------
+RF-02 criar, editar, arquivar, consultar  Listagem, ficha, formulário e arquivo.
+nome, categoria, descrição, fotografia    image_ref é texto opcional. Sem ficheiro.
+RF-02 e UC-04 actor produtor              Escrita só com manage e producer.
+UC-04 outro actor não altera              404 do produto, sem mostrar o nome.
+RB-02 o cliente não envia o dono          owner_actor_id não é campo do formulário.
+RB-10 representação válida                read consulta. Sem associação, sem acesso.
+RF-08 autenticação                        Cookie HttpOnly e rotas privadas.
+ProductStatus active e archived           Rótulos Activo e Arquivado.
+Arquivo não reactiva                      PATCH de arquivado mantém o estado.
+RB-06 consulta pública                    Fora. Não há catálogo público.
+RB-08 publicação de fotografias           Fora. Sem armazenamento nem URL automática.
+Ofertas, contactos, encomendas, pagamentos Fora deste incremento.

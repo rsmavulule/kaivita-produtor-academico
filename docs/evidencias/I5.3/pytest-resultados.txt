@@ -1,0 +1,10 @@
+PostgreSQL — I5.3
+Comando, a partir de backend, com a base do Compose na porta 5435:
+
+  RUN_DB_TESTS=1
+  python -m pytest -q
+
+Resultado: 160 passed in 27.64s.
+
+O backend não foi alterado. A regressão de produtos e de ofertas está
+incluída nesta suite.

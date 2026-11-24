@@ -1,0 +1,29 @@
+Decisões e limitações — I5.3
+
+Decisões
+  O contrato do I3 chega para a interface. O backend ficou intacto.
+  O actor seleccionado existe só no caminho. Não há cookie nem
+  localStorage para esse identificador.
+  image_ref vazio é enviado como null. Espaços são enviados e a API
+  recusa, sem a mensagem repetir o texto.
+  O estado inicial e o dono são decididos pela API.
+  A confirmação de arquivo é um passo no browser. Cancelar não chama
+  a API. Confirmar usa só POST .../archive.
+  401 segue para /sessao/invalida. 404 não distingue recurso em falta
+  de recurso inacessível. Sem producer, a escrita recebe 422 e a página
+  volta a ler papéis e ficha, retirando os formulários.
+  Uma escrita recusada que passa a 404 deixa de mostrar os dados quando
+  a nova consulta confirma a perda de acesso.
+  Falha de rede ou 5xx mantém a sessão e mostra indisponibilidade.
+
+Limitações
+  As condições da interface são informativas. A API autoriza cada escrita.
+  Se o papel ou a representação mudar depois da leitura e antes do commit,
+  essa escrita já autorizada pode concluir. O pedido seguinte vê a recusa.
+  É a mesma limitação de isolamento READ COMMITTED registada no I5.2.
+  Não há paginação, pesquisa, upload, categorias administráveis,
+  eliminação física nem reactivação.
+  Não há limite de tamanho nem de quantidade. A categoria é texto livre.
+  As capturas mostram contas sintéticas @example.com. Não há JWT,
+  palavra-passe nem dados pessoais reais.
+  A gestão de ofertas na interface não foi implementada.

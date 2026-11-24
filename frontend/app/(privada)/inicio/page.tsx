@@ -23,7 +23,7 @@ export default async function InicioPage() {
           Actores
         </a>
       </p>
-      <p className="note">Produtos e ofertas ficam para os incrementos seguintes.</p>
+      <p className="note">Os produtos ficam na ficha de cada actor. As ofertas ficam para o incremento seguinte.</p>
     </main>
   );
 }
