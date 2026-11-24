@@ -1,0 +1,27 @@
+Pytest — I6.1
+
+Ambiente: backend, RUN_DB_TESTS=1, PostgreSQL em 127.0.0.1:5435.
+Os testes usam transacção revertida. Não substituem o serviço publicado.
+
+Execução isolada inicial de tests/test_public_offers.py, antes da correcção
+do contador:
+
+  20 passed, 1 failed.
+  Falha: test_list_and_detail_each_execute_one_select.
+  Causa: a lista é uma instrução WITH e o contador só reconhecia SELECT.
+  Correcção: contar instruções cujo início, sem espaços, é SELECT ou WITH.
+  Reexecução desse teste: 1 passed em 0.40s.
+
+Suite completa, nesta validação final, a partir de backend:
+
+  python -m pytest -q --tb=no
+  188 passed in 27.05s
+  código de saída 0
+
+188 = 167 testes já existentes no baseline + 21 testes novos.
+Nenhum teste anterior foi modificado.
+O ficheiro novo contribui com 21 testes recolhidos: 18 funções, das quais
+a de indisponibilidade corre 2 casos e a de estados não publicados corre
+3 casos.
+
+A suite correu depois do Playwright e não em paralelo com ele.

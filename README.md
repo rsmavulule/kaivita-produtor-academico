@@ -5,12 +5,13 @@ independente, construído de raiz para a monografia. O repositório contém a
 fundação técnica (I0), o modelo de identidade (I1.1), a autenticação (I1.2),
 a autorização de representação (I1.3), a gestão de actores e papéis
 comerciais (I2), o catálogo de produtos (I3), a gestão de ofertas
-comerciais (I4) e a sessão da interface (I5.1).
+comerciais (I4), a sessão da interface (I5) e a descoberta pública de
+ofertas na API (I6.1).
 
 Não há registo público, recuperação de palavra-passe, refresh tokens,
-concessão de acessos a outros utilizadores, consulta pública de ofertas,
-contactos públicos, filas, Redis, inteligência artificial nem sincronização
-offline.
+concessão de acessos a outros utilizadores, contactos públicos, filas,
+Redis, inteligência artificial nem sincronização offline. A descoberta
+pública existe na API. A interface ainda não a apresenta.
 
 ## Arquitectura
 
@@ -19,7 +20,7 @@ Três processos, um repositório:
 | Serviço | Tecnologia | Função neste incremento |
 | --- | --- | --- |
 | `web` | Next.js e TypeScript | Entrada, login e sessão HttpOnly |
-| `api` | FastAPI e Python | Saúde, autenticação, actores, papéis, produtos e ofertas |
+| `api` | FastAPI e Python | Saúde, autenticação, actores, papéis, produtos, ofertas privadas e descoberta pública |
 | `db` | PostgreSQL 16 | Identidade, acesso, produtos e ofertas, versão Alembic `0004_offers` |
 
 Os pedidos autenticados ficam no servidor Next.js. O browser não recebe o
@@ -103,6 +104,8 @@ usa `fetch`. Cada dependência corresponde a uma peça pedida.
 │   │   ├── catalog.py
 │   │   ├── offers.py
 │   │   ├── offer_catalog.py
+│   │   ├── public_offers.py
+│   │   ├── public_catalog.py
 │   │   ├── roles.py
 │   │   ├── create_user.py
 │   │   └── main.py
@@ -115,7 +118,8 @@ usa `fetch`. Cada dependência corresponde a uma peça pedida.
 │       ├── test_foundation.py
 │       ├── test_identity.py
 │       ├── test_products.py
-│       └── test_offers.py
+│       ├── test_offers.py
+│       └── test_public_offers.py
 └── frontend/
     ├── Dockerfile
     ├── .dockerignore
@@ -462,8 +466,8 @@ pertençam ao mesmo produto.
 Arquivar o produto não muda as ofertas já gravadas. Não nascem ofertas
 novas para esse produto, nem se publica ou republica uma oferta dele.
 Uma oferta que já estava `published` continua nesse estado na consulta
-privada e não será elegível para a consulta pública futura. O estado
-`published` não autoriza a divulgação de contactos.
+privada. A descoberta pública deixa de a mostrar. O estado `published`
+não autoriza a divulgação de contactos.
 
 ## Limitações deste incremento
 
@@ -499,12 +503,13 @@ retirar o papel `producer` ou a representação depois da leitura e antes da
 escrita. A igualdade entre o dono da oferta e o dono do produto fica na
 chave estrangeira composta.
 - Uma oferta publicada cujo produto foi arquivado depois mantém o estado.
-Essa oferta não entra na consulta pública, que este incremento não expõe.
+A descoberta pública do I6.1 não a devolve.
 - O preço fraccionário tem de ir em texto JSON. Um número com casa decimal
 é recusado, para não passar por ponto flutuante.
 - Não há registo de auditoria das mudanças de publicação.
 - A interface autentica, mostra a conta e gere actores, papéis, produtos e ofertas.
-Não há catálogo público, contactos, encomendas nem pagamentos. O logout apaga o cookie e não revoga o JWT.
+Ainda não há páginas públicas de ofertas. Não há contactos, encomendas nem
+pagamentos. O logout apaga o cookie e não revoga o JWT.
 
 ## Incremento I5.1 — sessão da interface
 
@@ -561,11 +566,52 @@ gestor, leitura e ausência de representação ficam num teste de ponta a ponta.
 A regressão não reescreve as capturas dos incrementos anteriores. Duas suites
 Playwright não partilham o mesmo ambiente.
 
+## Incremento I6.1 — descoberta pública na API
+
+`GET /public/offers` e `GET /public/offers/{offer_id}` não pedem token.
+Um cabeçalho `Authorization` não muda a resposta. As rotas privadas
+permanecem como no I4.
+
+Entram na consulta as ofertas `published` cujo produto está `active`,
+cujo actor está `active` e que ainda têm o papel `producer`. A
+disponibilidade `unavailable`, incluindo quantidade zero, continua
+visível com esse valor. Rascunho, suspensa, retirada, produto arquivado,
+actor inactivo e actor sem o papel ficam de fora da lista e do GET
+directo, com o mesmo 404: `Oferta não encontrada.` A representação
+`UserActorAccess` não entra no predicado. Não há coluna nova nem migração.
+
+A resposta pública leva o identificador da oferta, preço, moeda,
+quantidade, unidade, disponibilidade, condições de entrega, e o nome,
+a descrição e a categoria do produto, mais o nome, o tipo e a localização
+geral do produtor. Preço e quantidade saem como texto decimal, com os
+exemplos `150.00` e `2.50`. Não vão identificadores de produto ou de
+produtor, estado, `image_ref`, email, representação nem contactos
+estruturados. O texto livre pode conter dados que alguém tenha escrito;
+a API não os censura.
+
+A pesquisa aceita `q`, `category` e `location`, até 100 caracteres.
+`q` procura no nome ou na descrição. Os filtros diferentes combinam-se
+por conjunção. Maiúsculas e os acentos portugueses do mapa são ignorados.
+Espaços nas pontas saem e espaços internos seguidos viram um só. `%`, `_`
+e `\` são literais. `limit` vai de 1 a 50, com omissão 20. `offset` vai
+de 0 a 1000, com omissão 0. A ordenação é o nome normalizado do produto
+e depois o identificador da oferta. `total` usa o mesmo predicado e os
+mesmos filtros, na mesma instrução SQL, inclusive quando a página vem
+vazia. Parâmetro desconhecido, repetido, tipo inválido ou UUID mal
+formado responde 422 sem o valor recebido.
+
+As respostas de `/public/`, incluindo erros, levam `Cache-Control: no-store`.
+O mapa não cobre caracteres fora dele, como `ñ`, nem formas Unicode
+decompostas. O SQL normaliza espaços POSIX; um espaço Unicode gravado na
+coluna pode não coincidir com o termo. Não há índice novo nem meta de
+desempenho medida.
+
 ## Fora deste incremento
 
 Registo público, recuperação de palavra-passe, refresh tokens, concessão
 e revogação de acessos a outros representantes, alteração do catálogo
-global de papéis, consulta pública, contactos públicos, autorização de
-publicação de contactos, interfaces de gestão, carregamento de ficheiros,
-filas e qualquer sincronização entre clientes. A consulta pública de
-ofertas fica para um incremento posterior.
+global de papéis, contactos públicos, autorização de publicação de
+contactos, catálogos públicos independentes de produtos e actores,
+páginas de descoberta na interface, carregamento de ficheiros, área de
+actuação, filas e qualquer sincronização entre clientes. A interface da
+descoberta fica para o I6.2.

@@ -1,0 +1,76 @@
+Fumo da API publicada — I6.1
+
+Alvo: http://127.0.0.1:8010, depois do rebuild, do Playwright e da suite
+pytest. Leitura apenas. Nenhuma linha foi criada, alterada ou apagada.
+A base de desenvolvimento já tinha 20 ofertas publicadas confirmadas,
+restos de execuções anteriores. O total 20 não foi produzido pelos testes
+do I6.1, que revertem a transacção.
+
+GET /public/offers?limit=1
+  HTTP 200
+  cache-control: no-store
+  chaves da página: items, limit, offset, total
+  limit 1, offset 0, total 20, um item
+  chaves do item: availability, currency, delivery_terms, id, price,
+  producer, product, quantity, unit
+  product: category, description, name
+  producer: display_name, general_location, kind
+  price e quantity chegaram como string JSON
+  availability: available
+  delivery_terms: null
+  general_location: null
+  O mesmo pedido com Authorization: Bearer isto-nao-e-um-token devolveu
+  JSON igual, HTTP 200 e cache-control: no-store.
+  O nome e o identificador observados pertencem a dados sintéticos já
+  gravados. Não são reproduzidos aqui como dados criados pelo I6.1.
+
+GET /public/offers/11111111-1111-4111-8111-111111111111
+  HTTP 404
+  cache-control: no-store
+  {"detail":"Oferta não encontrada."}
+
+GET /public/offers/NAO-E-UUID-MARCADOR-I61-SINTETICO
+  HTTP 422
+  cache-control: no-store
+  {"detail":[{"loc":["path","offer_id"],"msg":"Value error, UUID inválido.","type":"value_error"}]}
+  O marcador não aparece no corpo.
+
+GET /public/offers?limit=0
+  HTTP 422
+  cache-control: no-store
+  msg: "Input should be greater than or equal to 1"
+  type: greater_than_equal
+  O valor 0 não aparece na mensagem.
+
+GET /public/offers?extra=MARCADOR-I61-SINTETICO
+  HTTP 422
+  cache-control: no-store
+  msg: "Parâmetro desconhecido."
+  O marcador não aparece no corpo.
+
+GET /public/offers?q=MARCADOR-I61-SINTETICO&q=MARCADOR-I61-SINTETICO-2
+  HTTP 422
+  cache-control: no-store
+  msg: "Parâmetro repetido."
+
+GET /public/offers?q=mel%20claro&category=mel&location=inhambane&limit=1
+  HTTP 200
+  cache-control: no-store
+  {"items":[],"limit":1,"offset":0,"total":0}
+  Coerente com localizações null nas linhas já gravadas: o filtro de
+  localização não as inclui.
+
+GET /actors
+  HTTP 401
+  {"detail":"Token inválido."}
+  sem cache-control: no-store
+
+GET /health
+  HTTP 200
+  {"status":"ok","database":"up"}
+  sem cache-control: no-store
+
+OpenAPI no mesmo serviço: /public/offers e /public/offers/{offer_id}
+sem security; price string com example 150.00; quantity string com
+example 2.50; limit 1..50 omissão 20; offset 0..1000 omissão 0;
+q, category e location com maxLength 100. Ver contrato-publico.txt.

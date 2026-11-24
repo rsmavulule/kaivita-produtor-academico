@@ -1,0 +1,85 @@
+Segurança e privacidade — I6.1
+
+Autenticação
+
+  As rotas públicas não chamam get_current_user nem exigem UserActorAccess.
+  OpenAPI: as duas operações não têm security.
+  O teste envia a lista sem cabeçalho, com Bearer isto-nao-e-um-token e
+  com o token válido do dono. Os três JSON são iguais.
+  No serviço publicado, GET /public/offers?limit=1 sem cabeçalho e com
+  Authorization: Bearer isto-nao-e-um-token devolveram o mesmo JSON,
+  HTTP 200 e Cache-Control: no-store.
+  GET /actors sem token respondeu 401 {"detail":"Token inválido."} e
+  não levou Cache-Control: no-store.
+
+Cache
+
+  PublicNoStore é o middleware exterior. CommitBeforeResponse continua
+  interior e inalterado. O cabeçalho é escrito na resposta de caminhos
+  que começam por /public/, incluindo 404 e 422.
+  GET /health no TestClient e no serviço publicado responde 200 sem
+  esse cabeçalho.
+  Não foi introduzido CDN nem cache intermédio.
+
+Validação
+
+  O handler hide_rejected_input já existia e reduz cada erro a loc, msg
+  e type. Não foi alterado. Os endpoints privados continuam a passar
+  por ele.
+  FastAPI, por omissão, inclui input e ctx. O teste
+  test_invalid_parameters_do_not_echo_the_rejected_value usa o marcador
+  SEGREDO-QUE-NAO-PODE-SAIR e exige que o corpo não contenha o marcador,
+  nem as chaves input e ctx.
+  Parâmetro desconhecido: "Parâmetro desconhecido."
+  Escalar repetido: "Parâmetro repetido."
+  UUID público: OfferPath, mensagem "UUID inválido.", sem o texto recebido.
+  No serviço: GET /public/offers/NAO-E-UUID-MARCADOR-I61-SINTETICO
+  respondeu 422 com "Value error, UUID inválido." e sem o marcador.
+  limit=0 respondeu "Input should be greater than or equal to 1", sem o
+  valor. extra=MARCADOR-I61-SINTETICO respondeu "Parâmetro desconhecido."
+  sem o marcador. q repetido respondeu "Parâmetro repetido."
+
+Projecção
+
+  As colunas seleccionadas são as do contrato público.
+  A serialização constrói PublicOffer a partir de PublicOfferData.
+  O teste da oferta elegível confirma a ausência, no texto da resposta, de
+  email, user id, actor id, product id, image_ref, password, owner_actor_id,
+  product_id, representation, access_level, password_hash, user_id e status.
+  O mesmo teste confirma que delivery_terms pode transportar o texto livre
+  "Combinar pelo 840000001 {token}". A API não o censura.
+  Esta prova cobre atributos estruturados. Não afirma que um texto livre
+  arbitrário esteja isento de contactos.
+
+Registo
+
+  O código novo não escreve logs de token, email, valor rejeitado nem corpo.
+  O access log do Uvicorn, inspeccionado com docker compose logs api depois
+  do fumo, regista a linha do pedido. Linhas observadas, com marcador
+  sintético:
+
+    GET /public/offers?limit=1 HTTP/1.1 200
+    GET /public/offers/NAO-E-UUID-MARCADOR-I61-SINTETICO HTTP/1.1 422
+    GET /public/offers?extra=MARCADOR-I61-SINTETICO HTTP/1.1 422
+    GET /public/offers?q=MARCADOR-I61-SINTETICO&q=MARCADOR-I61-SINTETICO-2 HTTP/1.1 422
+    GET /public/offers?q=mel%20claro&category=mel&location=inhambane&limit=1 HTTP/1.1 200
+
+  A query string e o texto inválido do caminho ficam no access log.
+  A linha do pedido com Authorization não mostrou o cabeçalho, só
+  GET /public/offers?limit=1. Não se alega ausência absoluta de outros
+  registos fora deste access log.
+
+Limitações separadas, por inspecção, sem teste de corrida nem de carga:
+
+  READ COMMITTED: a instrução pública vê o que já estava confirmado quando
+  começou. Uma revogação de representação confirmada durante a instrução
+  só pode ser vista pelo pedido seguinte. Além disso, a representação não
+  entra no predicado: uma revogação confirmada não torna a oferta
+  inelegível. O teste de revogação cobre o efeito funcional, não uma
+  corrida temporal.
+
+  CommitBeforeResponse continua a chamar session.commit() de forma
+  síncrona dentro do middleware ASGI, antes de enviar a resposta. Esse
+  commit pode bloquear o event loop. O I6.1 não alterou esse mecanismo.
+  As leituras públicas não escrevem dados de negócio; o commit da
+  transacção de leitura permanece o do middleware existente.

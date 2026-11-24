@@ -6,7 +6,8 @@ Actor inacessível, associação revogada e nível insuficiente respondem
 um actor autorizado, responde 404 sem devolver os dados desse recurso.
 
 O dono é o actor do caminho. ``owner_actor_id`` no corpo é recusado.
-Publicar, suspender e retirar mudam o estado. Não há rota pública.
+Publicar, suspender e retirar mudam o estado. A consulta pública está
+em ``public_catalog`` e usa outro schema.
 """
 
 import re

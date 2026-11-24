@@ -1,0 +1,36 @@
+Playwright — regressão I6.1
+
+Não foram criados testes de interface pública. A suite é a existente.
+Directório frontend. Variáveis:
+
+  NO_PROXY=127.0.0.1,localhost
+  E2E_NO_SERVER=1
+  E2E_BASE_URL=http://127.0.0.1:3010
+
+E2E_EVIDENCE não foi definido. As capturas do I5.5 não foram reescritas.
+O comando foi npm run test:e2e. Não houve rebuild durante a suite.
+
+Primeira execução, antes do browser exigido por @playwright/test 1.65.1:
+
+  7 passed, 35 failed, 23.2s.
+  As falhas ocorreram em browserType.launch, em 1–2 ms.
+  O executável em falta era chromium_headless_shell-1255.
+  Os 7 testes que não lançam browser passaram.
+  Isto foi falha de ambiente local, não regressão da aplicação.
+
+Instalação seguinte, no frontend:
+
+  npx playwright install chromium
+  código de saída 0
+  Chrome for Testing e Chrome Headless Shell 159.0.8154.6 (v1255).
+  Não é dependência do repositório nem alteração de package.json.
+
+Segunda execução, com API e web já saudáveis e sem cadeado e2e/.run.lock:
+
+  42 passed (1.9m)
+  código de saída 0
+
+Os 42 testes cobrem e2e/actors.spec.ts, e2e/auth.spec.ts,
+e2e/integracao.spec.ts, e2e/offers.spec.ts e e2e/products.spec.ts.
+O teardown libertou o cadeado. Depois da suite, GET /health na porta 8010
+respondeu 200 e GET /login na porta 3010 respondeu 200.

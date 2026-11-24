@@ -1,0 +1,58 @@
+Matriz de visibilidade — I6.1
+
+O predicado é único, em backend/app/public_offers.py, função _eligible.
+Lista, contagem, filtros e ficha usam _catalog, que aplica esse predicado.
+
+Condições cumulativas:
+
+  Offer.status = published
+  Product.status = active
+  Actor.status = active
+  EXISTS papel producer no actor proprietário
+  Offer.availability em (available, unavailable)
+
+O join do produto exige Product.id = Offer.product_id e
+Product.owner_actor_id = Offer.owner_actor_id.
+O papel usa EXISTS. Vários papéis não multiplicam a linha.
+
+Condição                                      Lista    GET directo    Estado persistido
+--------------------------------------------  -------  -------------  ---------------------------
+published + available                         visível  200            inalterado
+published + unavailable, quantidade positiva  visível  200            inalterado
+published + unavailable, quantidade zero      visível  200            inalterado
+draft                                         ausente  404 uniforme   draft
+suspended                                     ausente  404 uniforme   suspended
+withdrawn                                     ausente  404 uniforme   withdrawn
+produto archived                              ausente  404 uniforme   oferta continua published
+actor inactive                                ausente  404 uniforme   oferta continua published
+actor sem papel producer                      ausente  404 uniforme   oferta continua published
+representação revogada                        visível  200            oferta continua published;
+                                                                       a rota privada responde 404
+UUID válido inexistente                       —        404 uniforme   —
+UUID mal formado                              —        422            —
+
+404 uniforme, corpo exacto:
+
+  {"detail": "Oferta não encontrada."}
+
+_assert_hidden compara o 404 da oferta inelegível com o 404 de um UUID
+válido inexistente e exige o mesmo JSON e Cache-Control: no-store.
+
+Ciclo posterior, no mesmo teste, com leitura a seguir a cada escrita
+confirmada pelo endpoint privado:
+
+  rascunho oculto
+  publicar torna visível
+  suspender oculta
+  republicar torna visível, preço 150.00 e available
+  PATCH preço 45.00 e unavailable aparece na leitura seguinte,
+  quantidade permanece 2.50
+  retirar oculta e o estado privado fica withdrawn
+
+Arquivar o produto oculta a oferta e o GET privado continua published.
+Perder producer oculta. Recuperar producer, buyer e producer, torna
+visível outra vez. O estado privado permanece published.
+
+Nenhuma destas leituras públicas altera o número de ofertas nem o estado
+gravado. O teste da oferta elegível conta as linhas de offers antes e
+depois.

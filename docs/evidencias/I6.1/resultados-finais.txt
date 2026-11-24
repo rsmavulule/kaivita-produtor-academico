@@ -1,0 +1,36 @@
+Resultados finais — I6.1
+
+Data da validação final: 24 de Novembro de 2026.
+
+Implementação backend concluída, sem commit e sem push.
+HEAD permanece 4d049b1b84892a97cd1a5d98d2b459458b943568, branch main.
+
+Ficheiros novos, por versionar quando houver autorização:
+
+  backend/app/public_offers.py
+  backend/app/public_catalog.py
+  backend/tests/test_public_offers.py
+  docs/evidencias/I6.1/
+
+Ficheiros seguidos e alterados:
+
+  backend/app/main.py          registo do router e do middleware PublicNoStore
+  backend/app/offer_catalog.py documentação: a consulta pública usa outro schema
+  README.md                    secção do I6.1
+
+Não alterados: modelos, migrações, contratos privados, frontend, SRS,
+diagramas, requirements.txt, evidências históricas.
+_srs_extract.txt e docs/srs/ continuam por versionar, como dantes.
+
+Resultados:
+
+  pytest, RUN_DB_TESTS=1: 188 passed in 27.05s
+  Playwright existente: 42 passed (1.9m), depois de instalar o Chromium 1255
+  primeira tentativa Playwright: 7 passed, 35 failed por browser em falta
+  Alembic: 0004_offers (head)
+  health: {"status":"ok","database":"up"} HTTP 200
+  login da interface: HTTP 200
+  git diff --check: limpo
+  fumo público: 200, 404, 422 e no-store conforme smoke-api.txt
+
+A implementação fica à espera de revisão e de autorização de versionamento.

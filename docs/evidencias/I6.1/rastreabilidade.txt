@@ -1,0 +1,45 @@
+Rastreabilidade — I6.1
+
+Fonte dos identificadores: a matriz do I5.5, que os leu da SRS v1.1.
+A SRS e os diagramas não foram alterados. Este ficheiro actualiza o estado
+só para o que o I6.1 implementou na API. A interface pública continua por
+fazer, no I6.2.
+
+ID      Estado depois do I6.1
+------  --------------------------------------------------------------------
+RF-04   Implementado na API e validado por pytest. Pesquisa por texto,
+        categoria e localização geral em GET /public/offers.
+        A interface de visitante fica no I6.2.
+RF-05   A localização geral passa a sair em producer.general_location na
+        oferta pública. Contactos autorizados continuam por implementar,
+        I7. A área de apresentação na interface fica no I6.2.
+RF-06   delivery_terms sai na oferta pública e pode ser null. Não há cálculo
+        de frete. A página pública fica no I6.2.
+RF-07   Implementado na API para ofertas elegíveis, sem autenticação.
+        Rascunho, suspensa, retirada, produto arquivado, actor inactivo e
+        actor sem producer ficam de fora. A página de visitante fica no I6.2.
+RF-03   Gestão privada preservada. A suite anterior e o Playwright de ofertas
+        passaram. A publicação pública não foi acrescentada a este requisito.
+RB-02   Continua válido na gestão privada. A descoberta também exige o papel
+        producer, calculado na leitura.
+RB-06   Implementado na API e validado. Só a oferta que cumpre o predicado
+        entra. Unavailable continua visível com a disponibilidade real.
+        A interface ainda não apresenta a descoberta.
+RB-07   Continua por implementar. Não há contactos estruturados públicos nem
+        revogação de autorização de contactos.
+RF-10   Continua por implementar. I7.
+RNF-05  Os testes de pesquisa pública existem agora no pytest. O Playwright
+        de regressão privada passou, 42 testes. Não há testes de interface
+        da descoberta.
+RNF-06  A resposta pública omite identificadores internos, estado, email,
+        representação e contactos estruturados. Não há consentimento por
+        finalidade nem censura de texto livre. O requisito continua parcial.
+RNF-07  Continua por implementar. O access log do Uvicorn regista a query
+        string. Ver seguranca-privacidade.txt.
+UC-06   A consulta e a pesquisa de visitante existem na API. A interface
+        do caso de uso fica no I6.2.
+UC-07   Continua por implementar.
+
+Requisitos que este incremento não fecha: RF-01 área de actuação, RF-02
+fotografia como ficheiro, RF-10, RB-07, RB-08, RNF-06 na parte de
+consentimento, RNF-07, UC-07, catálogos independentes do I8.

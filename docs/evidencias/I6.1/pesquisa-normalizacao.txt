@@ -1,0 +1,67 @@
+Pesquisa e normalização — I6.1
+
+Parâmetros: q, category, location. Máximo 100 caracteres antes da
+normalização, validado pelo FastAPI. Depois da normalização, texto vazio
+equivale a filtro ausente.
+
+Semântica:
+
+  q         nome do produto OU descrição do produto, pesquisa parcial
+  category  categoria, pesquisa parcial
+  location  general_location do actor, pesquisa parcial
+  filtros diferentes combinam-se por AND
+  localização null não satisfaz location
+  sem filtro location, actor elegível com localização null permanece visível
+
+Mapa explícito, o mesmo em Python e em SQL via translate:
+
+  áàâãÁÀÂÃ -> a
+  éèêÉÈÊ   -> e
+  íìîÍÌÎ   -> i
+  óòôõÓÒÔÕ -> o
+  úùûüÚÙÛÜ -> u
+  çÇ       -> c
+  A-Z      -> a-z
+
+Python: str.translate e re \\s+ substituído por um espaço, depois strip.
+SQL: translate, regexp_replace com [[:space:]]+, depois btrim.
+A pesquisa é ILIKE com ESCAPE '\\'.
+Antes do padrão, a barra invertida, % e _ são escapados, por esta ordem.
+O visitante não controla wildcards.
+
+Resultados do teste unitário de normalização:
+
+  "  AÇÚCAR   mascavado " -> "acucar mascavado"
+  "MéL"                   -> "mel"
+  "lingüiça"              -> "linguica"
+  "   "                   -> ""
+  "100%_puro"             -> "100%_puro"
+  "a" + acento combinante -> permanece decomposto
+  "ñ" e "Ñ"               -> permanecem
+  like_pattern("100%")    -> "%100\\%%"
+  like_pattern("a_b")     -> "%a\\_b%"
+  like_pattern("\\")      -> "%\\\\%"
+
+Teste com PostgreSQL:
+
+  "  {token}   acucar   mascavado " encontra o produto "Açúcar mascavado"
+  "descricao {token}" encontra a descrição, não o nome
+  "{token} mel claro" encontra o nome gravado com espaços internos
+  category "  CAT   {token} " encontra só essa categoria
+  location "loc {token}" encontra as três ofertas desse actor
+  q + category + location devolve uma oferta e total 1
+  q só com espaços mais category equivale ao filtro de category
+  q "{token}-nenhum" devolve items [] e total 0
+  "100%" e "100%_" encontram "100%_puro" e não "100x puro"
+  q "{token}'; DELETE FROM offers; --" responde 200, items [], e a oferta
+  de controlo continua na base
+
+Limites da normalização, inspecção do código e do teste:
+
+  ñ e Ñ não são dobrados.
+  Formas Unicode decompostas não são recompostas.
+  O termo Python trata espaços Unicode, incluindo o espaço não separável,
+  como espaço. O SQL só colapsa [[:space:]]. Um espaço Unicode gravado na
+  coluna pode não coincidir com o termo.
+  Não foi instalada extensão PostgreSQL nem motor de pesquisa.
+  Não há índice novo. Não há medição de desempenho.

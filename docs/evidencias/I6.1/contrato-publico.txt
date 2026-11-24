@@ -1,0 +1,95 @@
+Contrato público — I6.1
+
+Endpoints, sem autenticação:
+
+  GET /public/offers
+  GET /public/offers/{offer_id}
+
+OpenAPI lido em http://127.0.0.1:8010/openapi.json depois do rebuild da API.
+Título: Kaivita Produtor Académico. As duas operações não têm security.
+GET /actors/{actor_id}/offers mantém security HTTPBearer.
+
+Parâmetros de GET /public/offers:
+
+  q         string ou null, maxLength 100
+            "Texto parcial do nome ou da descrição do produto. Vazio depois
+            da normalização equivale a filtro ausente."
+  category  string ou null, maxLength 100
+            "Texto parcial da categoria do produto."
+  location  string ou null, maxLength 100
+            "Texto parcial da localização geral do actor. Localização vazia
+            na base não satisfaz este filtro."
+  limit     integer, mínimo 1, máximo 50, omissão 20
+  offset    integer, mínimo 0, máximo 1000, omissão 0
+            A descrição do OpenAPI declara que o máximo é 1000 e que a
+            paginação não é ilimitada.
+
+offer_id está documentado com format uuid.
+
+Schemas, additionalProperties false:
+
+  PublicOfferPage  items, limit, offset, total  (todos obrigatórios)
+  PublicOffer      id, price, currency, quantity, unit, availability,
+                   delivery_terms, product, producer  (todos obrigatórios)
+  PublicProduct    name, description, category
+  PublicProducer   display_name, kind, general_location
+
+price é string, examples ["150.00"].
+quantity é string, examples ["2.50"].
+availability é o enum available | unavailable.
+kind é o enum person | organization.
+delivery_terms e general_location admitem string ou null.
+
+Exemplo sintético, igual ao afirmado pelo teste de oferta elegível:
+
+{
+  "items": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "price": "150.00",
+      "currency": "MZN",
+      "quantity": "2.50",
+      "unit": "kg",
+      "availability": "available",
+      "delivery_terms": "Combinar pelo 840000001 i61",
+      "product": {
+        "name": "i61 Mel claro",
+        "description": "Mel claro de exemplo",
+        "category": "mel"
+      },
+      "producer": {
+        "display_name": "Produtor Exemplo",
+        "kind": "person",
+        "general_location": "Inhambane"
+      }
+    }
+  ],
+  "limit": 20,
+  "offset": 0,
+  "total": 1
+}
+
+O identificador acima é ilustrativo. O teste usa um UUID gerado na base
+e confirma price "150.00", quantity "2.50", currency "MZN" e unit "kg".
+
+404, para UUID válido inexistente ou inelegível:
+
+{
+  "detail": "Oferta não encontrada."
+}
+
+422 de UUID mal formado, observado no serviço publicado:
+
+{
+  "detail": [
+    {
+      "loc": ["path", "offer_id"],
+      "msg": "Value error, UUID inválido.",
+      "type": "value_error"
+    }
+  ]
+}
+
+O schema privado de oferta não é o response_model destas rotas.
+O teste confirma que a resposta pública tem exactamente PUBLIC_KEYS e que
+a resposta privada autenticada mantém product_id, owner_actor_id e status.

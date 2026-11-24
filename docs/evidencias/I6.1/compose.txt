@@ -1,0 +1,42 @@
+Docker Compose — I6.1
+
+Projecto: kaivita-produtor-academico.
+O serviço api foi reconstruído e recriado antes dos fumos e antes do
+Playwright. A imagem reutilizou a camada de dependências. Não foi
+adicionada dependência em backend/requirements.txt.
+Durante o pytest e durante o Playwright não houve build que substituísse
+serviços.
+
+Estado observado depois da recuperação feita pelo teardown do Playwright,
+antes do fumo final:
+
+  kaivita-produtor-academico-api-1   Up (healthy)   0.0.0.0:8010->8000/tcp
+  kaivita-produtor-academico-db-1    postgres:16-alpine   Up (healthy)   0.0.0.0:5435->5432/tcp
+  kaivita-produtor-academico-web-1   Up (healthy)   0.0.0.0:3010->3000/tcp
+
+Alembic, docker compose exec -T api alembic current:
+
+  0004_offers (head)
+
+Não foi criada revisão nova.
+
+GET http://127.0.0.1:8010/health:
+
+  HTTP 200
+  {"status":"ok","database":"up"}
+
+GET http://127.0.0.1:3010/login:
+
+  HTTP 200
+
+git diff --check, nos ficheiros já seguidos:
+
+  sem saída, código de saída 0
+
+Verificação adicional de espaços no fim da linha, nos ficheiros alterados
+e nos três módulos novos:
+
+  0 ocorrências
+
+_srs_extract.txt e docs/srs/ permanecem por versionar e não foram
+alterados por este incremento.

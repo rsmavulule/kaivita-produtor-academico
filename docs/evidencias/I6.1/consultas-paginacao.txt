@@ -1,0 +1,54 @@
+Consultas e paginação — I6.1
+
+Modelos usados: Offer, Product, Actor, ActorRole, Role.
+Não há migração nem índice novo.
+
+Lista e total, uma instrução SQL:
+
+  CTE eligible com as colunas públicas, o nome normalizado sort_name,
+  o predicado, os filtros e o join produto-proprietário.
+  Subconsulta totals = count(*) de eligible.
+  LEFT JOIN LATERAL da página ordenada, com LIMIT e OFFSET, ON true.
+  A página vazia devolve a linha de totals com id nulo. O Python lê
+  total e devolve items [].
+
+Ficha: um SELECT com o mesmo predicado e Offer.id = parâmetro ligado.
+Inexistente e inelegível produzem zero linhas e o mesmo 404.
+
+Ordenação: sort_name ascendente, offers.id ascendente.
+O teste cria "banana", "Água" e "agua". A ordem observada é a de
+normalize_search_text do nome e, em empate, o UUID.
+
+Paginação observada nesse teste, total 3:
+
+  omissão: limit 20, offset 0, três itens
+  limit 1, offset 0: o primeiro, total 3
+  limit 2, offset 0: os dois primeiros
+  limit 2, offset 2: o último, total 3
+  limit 1, offset 3: items [], total 3, HTTP 200
+  limit 50, offset 1000: items [], total 3, HTTP 200
+
+O tecto de offset é 1000. A profundidade navegável do catálogo fica
+limitada por esse tecto. A paginação não é ilimitada.
+
+Contagem de instruções, com before_cursor_execute na sessão do teste:
+
+  lista filtrada: 1 (WITH ou SELECT)
+  ficha: 1
+  página com offset 1000: 1
+
+O teste falhou uma primeira vez porque o contador só reconhecia SELECT.
+A lista começa por WITH. O contador passou a contar SELECT e WITH.
+A suite completa posterior ficou verde. Ver pytest-resultados.txt.
+
+Isolamento: a sessão global permanece READ COMMITTED. Não foi alterada.
+Como lista e total saem da mesma instrução, não há divergência entre
+total e items dentro desse pedido. Uma escrita confirmada depois do
+início da instrução só é observada pelo pedido seguinte.
+
+Duas ofertas do mesmo produto, preços "10.00" e "11.00", com papéis
+partner, producer e buyer: total 2, sem duplicados, ordenadas por UUID.
+
+Não há meta de desempenho declarada. O número de instruções foi medido
+pelo listener do teste. O tempo de resposta do catálogo real não foi
+medido como critério de aceitação.

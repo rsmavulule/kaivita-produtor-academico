@@ -1,0 +1,83 @@
+Matriz de cobertura — I6.1
+
+Ficheiro: backend/tests/test_public_offers.py
+PostgreSQL real, RUN_DB_TESTS=1, transacção revertida no fim, dados
+sintéticos com token próprio. 21 testes recolhidos, com parametrização.
+Não são 46 funções.
+
+A. Elegibilidade
+
+ 1  consulta anónima de oferta elegível
+    test_published_available_offer_is_public_without_authentication
+ 2  published e available                         mesmo teste
+ 3  published e unavailable, quantidade "3.00"    test_unavailable_published_offers_stay_visible
+ 4  published e unavailable, quantidade "0"       mesmo teste, segundo parâmetro
+ 5  draft oculto                                  test_unpublished_states_are_hidden_on_list_and_detail
+ 6  suspended oculto                              mesmo teste
+ 7  withdrawn oculto                              mesmo teste
+ 8  produto archived oculto                       test_archiving_the_product_hides_the_offer_without_changing_it
+ 9  actor inactive oculto                         test_inactive_actor_is_hidden_from_public_discovery
+10  actor sem producer oculto                    test_losing_and_restoring_the_producer_role
+11  revogação de representação mantém a oferta   test_revoked_representation_does_not_hide_the_public_offer
+12  ficha de cada condição inelegível            _assert_hidden, usado por 5 a 10 e pelo ciclo
+13  404 inexistente igual ao 404 inelegível      _assert_hidden
+
+B. Alterações posteriores
+
+14  publicar torna elegível                       test_publication_cycle_and_later_edits_are_visible_on_the_next_read
+15  suspender retira                              mesmo teste
+16  republicar restabelece                        mesmo teste
+17  retirar elimina a visibilidade                mesmo teste
+18  arquivo do produto, estado published intacto  teste do arquivo
+19  perda e recuperação do papel                  teste do papel
+20  preço "45.00" e unavailable na leitura seguinte  teste do ciclo
+
+C. Pesquisa
+
+21  nome                                          test_search_combines_text_category_and_location
+22  descrição                                     mesmo teste
+23  categoria                                     mesmo teste
+24  localização                                   mesmo teste
+25  os três critérios                             mesmo teste
+26  maiúsculas, acentos e espaços                 teste de normalização e o de pesquisa
+27  wildcards literais                            test_wildcards_and_sql_like_text_stay_literal
+28  texto com aparência de SQL                    mesmo teste; a linha de offers permanece
+29  localização null com e sem filtro             test_null_location_stays_visible_until_a_location_filter_is_used
+30  pesquisa vazia e sem resultados               teste de pesquisa; q em branco não filtra, termo ausente dá total 0
+
+D. Contrato e paginação
+
+31  limit 20 e offset 0                           oferta elegível e teste de ordenação
+32  mínimos e máximos                             ordenação (50 e 1000) e test_invalid_parameters (0, 51, -1, 1001, 1.5, texto)
+33  desconhecido e repetido                       test_invalid_parameters_do_not_echo_the_rejected_value
+34  tipos e UUID inválidos                        mesmo teste
+35  ordenação e desempate por UUID                test_ordering_pagination_and_bounds
+36  página, total filtrado e página vazia        mesmo teste
+37  duas ofertas do mesmo produto                 test_several_offers_and_roles_do_not_duplicate_rows
+38  três papéis sem duplicar                      mesmo teste
+39  precisão decimal                              "150.00", "2.50", "3.00", "0", "45.00", "10.00", "11.00"
+40  conjunto exacto de atributos                  PUBLIC_KEYS, PRODUCT_KEYS, PRODUCER_KEYS e OpenAPI
+41  ausência de atributos privados estruturados  oferta elegível; o texto livre de entrega continua presente
+42  Authorization não altera o JSON               oferta elegível; fumo do serviço também
+43  Cache-Control: no-store                       _catalog, _assert_hidden, _assert_error_shape, ficha e fumo
+
+E. Regressão
+
+44  autorização privada                           401 sem token; 200 com token; 404 privado após revogação
+45  contrato privado                              PRIVATE_KEYS e security HTTPBearer no OpenAPI
+46  167 testes anteriores                         suite completa: 188 passed. 21 são os novos. Nenhum teste antigo foi alterado.
+
+Outros testes do ficheiro:
+
+  test_normalization_folds_portuguese_accents_and_escapes_wildcards
+  test_openapi_documents_the_public_contract
+  test_health_does_not_receive_the_public_cache_header
+  test_list_and_detail_each_execute_one_select
+
+Classificação:
+
+  Validação automatizada: os testes acima e as suites pytest e Playwright.
+  Inspecção de código: mapa Unicode, middleware, projecção de colunas,
+  ausência de migração e de dependência nova.
+  Ainda não avaliado: tempo de resposta, corrida READ COMMITTED, bloqueio
+  do event loop, interface pública. Ver limitacoes.txt.

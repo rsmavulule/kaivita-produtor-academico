@@ -1,0 +1,57 @@
+Limitações e riscos — I6.1
+
+Avaliadas por teste automatizado:
+
+  Predicado único na lista, na contagem e na ficha.
+  Estados e papéis descritos na matriz de visibilidade.
+  Pesquisa, escape de wildcards e texto com aparência de SQL.
+  Contrato, paginação, decimais em string e Cache-Control: no-store.
+  Rotas privadas e 167 testes anteriores.
+  Regressão Playwright das 42 provas de interface já existentes.
+
+Avaliadas por inspecção de código, sem medição própria:
+
+  Não há coluna de elegibilidade nem migração.
+  A projecção lista as colunas públicas e constrói um schema dedicado.
+  O mapa de acentos é explícito. ñ, Ñ e Unicode decomposto ficam de fora.
+  O SQL colapsa [[:space:]]; o termo Python colapsa \\s. Um espaço Unicode
+  gravado na coluna pode não coincidir com o termo.
+  offset máximo 1000 limita a profundidade navegável.
+  PublicNoStore só escreve o cabeçalho em caminhos /public/.
+
+Ainda não avaliadas:
+
+  Tempo de resposta e plano de execução. Não há índice novo e não há meta
+  de desempenho satisfeita.
+  Corrida temporal em READ COMMITTED. A representação não altera a
+  elegibilidade; uma mudança de papel confirmada durante a instrução só
+  aparece no pedido seguinte. Não houve teste de concorrência.
+  O commit síncrono de CommitBeforeResponse pode bloquear o event loop.
+  O mecanismo não foi alterado nem medido.
+  Interface de visitante, avisos de texto livre, contactos e consentimento.
+  Catálogos públicos independentes, fotografias e área de actuação.
+
+Texto livre
+
+  name, description, category, display_name, general_location e
+  delivery_terms podem conter dados pessoais escritos manualmente.
+  Não há filtro heurístico nem censura. O I6.2 precisa de aviso na
+  interface. O I7 precisa de reconciliar a autorização de contactos.
+  Os testes provam a ausência de atributos privados estruturados e também
+  provam que o texto de entrega é devolvido tal como foi gravado.
+
+Registo
+
+  O access log do Uvicorn inclui a query string e o texto inválido do
+  caminho. Ver as linhas em seguranca-privacidade.txt.
+
+Dados já presentes na base de desenvolvimento
+
+  O fumo leu total 20. Essas linhas já estavam confirmadas. Não foram
+  apagadas. Os testes do I6.1 não dependem delas.
+
+Fora deste incremento
+
+  I6.2 interface, I7 contactos e consentimento, I8 catálogos independentes,
+  fotografias, área de actuação, migrações, dependências novas, código do
+  projecto comercial e versionamento.

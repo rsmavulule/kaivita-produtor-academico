@@ -1,0 +1,40 @@
+Decisões implementadas — I6.1
+
+Baseline de partida: branch main, commit 4d049b1b84892a97cd1a5d98d2b459458b943568.
+Alembic 0004_offers. PostgreSQL 16. API 8010, interface 3010, PostgreSQL 5435.
+O relatório I6.0 foi usado como referência técnica, subordinado às decisões
+desta autorização. A fase de análise não foi repetida.
+
+DA-I6-01  Ofertas published com disponibilidade unavailable permanecem
+           publicamente visíveis, incluindo quantidade zero. O valor gravado
+           de disponibilidade e de quantidade é o que a resposta mostra.
+           Teste: test_unavailable_published_offers_stay_visible, quantidades
+           "3.00" e "0".
+
+DA-I6-02  A elegibilidade é calculada na leitura. Não há coluna nova, nem
+           migração, nem atributo persistido de elegibilidade.
+
+DA-I6-03  A perda do papel producer exclui a oferta da descoberta e não
+           altera offers.status. A recuperação do papel torna a oferta
+           novamente elegível, sem transição automática de estado.
+           Teste: test_losing_and_restoring_the_producer_role. O estado
+           privado permanece published nos dois momentos.
+
+DA-I6-04  UserActorAccess não entra no predicado. Uma associação revogada
+           mantém a oferta na consulta pública e continua a recusar a
+           consulta privada com 404.
+           Teste: test_revoked_representation_does_not_hide_the_public_offer.
+
+DA-I6-05  Não há catálogos públicos independentes de produtos nem de
+           actores. O produto e o produtor aparecem só como projecção
+           dentro da oferta. A reconciliação fica para o I8.
+
+DA-I6-06  A pesquisa aceita q, category e location, com a semântica
+           descrita em pesquisa-normalizacao.txt.
+
+Contrato público desta autorização, que substitui o desenho I6.0 nesses
+pontos: PublicOffer não inclui product.id, producer.id nem status.
+
+Não foram alterados modelos, migrações, contratos privados, SRS, diagramas
+UML, frontend, dependências nem evidências históricas.
+Não houve commit nem push.
