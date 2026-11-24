@@ -1,0 +1,23 @@
+Rotas e fluxo — I5.4
+
+/actores/[actorId]
+  Liga a Ofertas. O actor fica no caminho.
+
+/actores/[actorId]/produtos/[productId]
+  Um produto activo, com gestão e producer, liga a
+  /ofertas/nova?produto=<id>. O parâmetro só é aceite se o produto
+  pertence ao actor e está activo.
+
+/actores/[actorId]/ofertas
+  Nome do produto, preço, moeda, quantidade, unidade, disponibilidade
+  e estado. A lista inclui ofertas de produtos arquivados.
+  Os nomes vêm de um único GET dos produtos do actor.
+
+/actores/[actorId]/ofertas/nova
+  Rascunho. Sem produtos activos, explica a precondição e liga ao catálogo.
+
+/actores/[actorId]/ofertas/[offerId]
+  Ficha, ligação ao produto, edição dos campos comerciais e transições.
+  Retirada: só consulta. O regresso usa o caminho.
+
+O actor seleccionado não é gravado em cookie, localStorage nem sessionStorage.

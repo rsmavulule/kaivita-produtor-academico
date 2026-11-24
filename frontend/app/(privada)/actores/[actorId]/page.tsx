@@ -58,6 +58,9 @@ export default async function ActorPage({
         <a className="primary" href={`/actores/${profile.id}/produtos`}>
           Produtos
         </a>
+        <a className="secondary" href={`/actores/${profile.id}/ofertas`}>
+          Ofertas
+        </a>
         <a className="secondary" href="/actores">
           Voltar aos actores
         </a>

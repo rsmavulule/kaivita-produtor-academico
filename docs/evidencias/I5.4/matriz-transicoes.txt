@@ -1,0 +1,21 @@
+Matriz de transições — I5.4
+O PATCH não muda o estado. Os botões seguem esta matriz.
+A API recusa o que ela não desenha, com 422 e sem reescrever.
+
+Estado       Publicar              Suspender    Retirar    Editar
+-----------  --------------------  -----------  ---------  -------------------------
+draft        sim                   não          sim        sim, pode ficar incompleta
+published    não                   sim          sim        sim, tem de continuar válida
+suspended    sim, como republicar  não          sim        sim
+withdrawn    não                   não          não        não
+
+Publicar e republicar exigem produto activo, preço, moeda, quantidade,
+unidade e disponibilidade válidos, e recusam quantidade zero com
+available. A retirada pede confirmação e é definitiva.
+Cancelar a confirmação não chama a API.
+
+Um produto arquivado não cria oferta, não publica e não republica.
+Não muda sozinho o estado de uma oferta já gravada. A consulta, a
+correcção permitida pelo estado, a suspensão e a retirada continuam.
+A pesquisa pública futura deve excluir essa oferta, mesmo published.
+Essa pesquisa não existe neste incremento.

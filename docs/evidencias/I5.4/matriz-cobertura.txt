@@ -1,0 +1,41 @@
+Matriz de cobertura — I5.4
+E2E: Playwright contra o contentor em http://127.0.0.1:3010.
+Backend: suite já existente, incluindo test_offers.py. A API não mudou.
+Inspecção: leitura do código e do contrato do I4.
+
+Cenário                                              E2E                         Backend                 Inspecção
+---------------------------------------------------  --------------------------  ----------------------  -------------------------
+1. Lista vazia                                       lista vazia e decimais      GET da colecção         Texto de lista vazia
+2. Rascunho incompleto                               publicar e corrigir         POST só com product_id  Campos não obrigatórios
+3. Produto pré-seleccionado                          lista vazia e decimais      —                       parâmetro produto validado
+4. Sem produtos activos                              produto arquivado           criação recusada        Ligação ao catálogo
+5. Consulta e edição                                 lista, publicar, ciclo      GET e PATCH             Sem id, dono ou estado
+6. Decimais exactos                                  lista vazia e decimais      texto "150.00"          sem ponto flutuante
+7. Zero distinto de vazio                            lista vazia e decimais      zero com unavailable    "0" e "por preencher"
+8. Publicação válida                                 publicar e corrigir         POST publish            Só muda o estado
+9. Publicação incompleta                             publicar e corrigir         422 de publicação       Mensagem da API
+10. Zero com available                               publicar e corrigir         ck e ZERO_AVAILABLE     Valores conservados
+11. Edição de publicada                              publicar e corrigir         PATCH válido            Estado mantém-se
+12. Edição que a invalida                            publicar e corrigir         published must stay     Resumo anterior fica
+13. Suspensão                                        suspender e retirar         POST suspend            Estado Suspensa
+14. Republicação                                     suspender e retirar         publish desde suspended Botão Republicar
+15. Cancelar a retirada                              suspender e retirar         —                       Sem pedido
+16. Retirada definitiva                              suspender e retirar         POST withdraw           Confirmação explícita
+17. Sem edição nem reactivação                       suspender e retirar         422 se withdrawn        Formulário ausente
+18. Arquivado fora da criação                        produto arquivado           422 archived            Sem opção no select
+19. Sem publicar nem republicar                     produto arquivado           publish recusado        Estado anterior fica
+20. Consulta, correcção, suspensão e retirada        produto arquivado           regras do estado        Aviso contextual
+21. Representante read                               leitura sem produtor        actor_for_read          Sem botões de escrita
+22. manage sem producer                              leitura sem produtor        422 producer            Formulário oculto
+23. manage com producer                              fluxos de escrita           actor_for_manage        Formulários presentes
+24. Perda do producer                                perder o produtor           422 e GET seguinte      Valor recusado some
+25. Revogação                                        perder o produtor           404 do actor            Nome deixa de aparecer
+26. Oferta de outro actor                            outro actor                 404 da oferta           Nome não sai
+27. Produto de outro actor                           outro actor                 404 do produto          Nome não sai
+28. Dados conservados após erro                      preço inválido              422 sem gravar          "abc" só no campo
+29. 360 px e 1280 px                                 capturas e sem overflow     —                       Duas larguras
+30. Teclado                                          Tab no rascunho             —                       Produto até à entrega
+
+A idempotência das transições, a recusa de status no PATCH e a ausência
+de DELETE ficam nos testes de ofertas do I4, dentro dos 160 pytest.
+Não foi criado endpoint para preparar dados.

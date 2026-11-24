@@ -1,0 +1,27 @@
+Alterações — I5.4
+O backend, a SRS, os diagramas e as migrações não foram alterados.
+Não há dependência de execução nova.
+
+Interface
+  frontend/lib/decimal.ts
+    Leitura de decimais em texto.
+  frontend/lib/offer-view.ts e frontend/lib/offers.ts
+    Consulta, criação, PATCH e transições. O corpo não leva id, dono
+    nem estado. O identificador é validado antes do pedido.
+  frontend/lib/errors.ts
+    Campos da oferta nas mensagens 422.
+  frontend/app/(privada)/actores/[actorId]/ofertas/
+    Listagem, rascunho, ficha, edição e ciclo de vida.
+    Server Actions com sameOrigin, cache no-store e redireccionamentos
+    relativos. Botões desactivados enquanto a operação está pendente.
+  Ficha do actor e ficha do produto activo
+    Ligações Ofertas e Criar oferta.
+  globals.css
+    O select segue o estilo dos campos.
+  Textos de início, entrada e README.
+
+Testes
+  frontend/e2e/offers.spec.ts
+  frontend/e2e/global-setup.ts cria a pasta das capturas.
+
+As capturas do I5.1, I5.2 e I5.3 foram repostas depois da suite.

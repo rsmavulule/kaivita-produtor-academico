@@ -16,6 +16,13 @@ const FIELD_NAMES = [
   "description",
   "category",
   "image_ref",
+  "product_id",
+  "price",
+  "currency",
+  "quantity",
+  "unit",
+  "availability",
+  "delivery_terms",
 ] as const;
 
 export type FieldName = (typeof FIELD_NAMES)[number];

@@ -1,0 +1,40 @@
+Contrato utilizado — I5.4
+Fonte: backend/app/offer_catalog.py, backend/app/offers.py e docs/evidencias/I4.
+O backend não foi alterado. Alembic permanece em 0004_offers.
+
+POST /actors/{actor_id}/offers
+  product_id obrigatório. price, currency, quantity, unit, availability
+  e delivery_terms podem ser null. O estado inicial é draft.
+  O dono é o actor do caminho. Produto archived: 422
+  "O produto está arquivado." Produto de outro actor: 404
+  "Produto não encontrado."
+
+GET /actors/{actor_id}/offers
+  Lista só as ofertas desse actor, por id, em qualquer estado.
+  read ou manage. Sem producer a consulta continua.
+
+GET /actors/{actor_id}/offers/{offer_id}
+  Os dez campos. Oferta de outro actor: 404 "Oferta não encontrada."
+
+PATCH /actors/{actor_id}/offers/{offer_id}
+  price, currency, quantity, unit, availability e delivery_terms.
+  null limpa o campo. status, product_id e owner_actor_id são recusados.
+  Oferta published tem de continuar válida. Oferta withdrawn: 422
+  "A oferta retirada não pode ser alterada."
+
+POST .../publish
+  De draft ou suspended para published, com produto active e os cinco
+  campos válidos. Muda só o estado.
+
+POST .../suspend
+  De published para suspended.
+
+POST .../withdraw
+  De draft, published ou suspended para withdrawn. A linha permanece.
+  Não há DELETE nem reactivação. Repetir uma transição não desenhada
+  responde 422 e não reescreve.
+
+Preço e quantidade são texto decimal. Um número JSON com casa decimal
+é recusado. Exemplos: "150.00" e "2.50". Zero é valor. Quantidade zero
+com available é recusada. Moeda, se vier, são três letras A-Z.
+Não há catálogo de moedas nem de unidades.

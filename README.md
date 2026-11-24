@@ -456,8 +456,8 @@ Essa oferta não entra na consulta pública, que este incremento não expõe.
 - O preço fraccionário tem de ir em texto JSON. Um número com casa decimal
 é recusado, para não passar por ponto flutuante.
 - Não há registo de auditoria das mudanças de publicação.
-- A interface autentica, mostra a conta e gere actores, papéis e produtos.
-Ofertas ainda não têm ecrã. O logout apaga o cookie e não revoga o JWT.
+- A interface autentica, mostra a conta e gere actores, papéis, produtos e ofertas.
+Não há catálogo público, contactos, encomendas nem pagamentos. O logout apaga o cookie e não revoga o JWT.
 
 ## Incremento I5.1 — sessão da interface
 
@@ -498,11 +498,20 @@ e o arquivo só aparecem com representação `manage` e papel `producer`.
 A consulta fica disponível com `read` ou `manage`, mesmo sem esse papel.
 O dono e o estado inicial vêm da API. Não há carregamento de imagens.
 
+## Incremento I5.4 — ofertas
+
+A ficha do actor liga a `/actores/[actorId]/ofertas`. Um produto activo
+pode abrir `/ofertas/nova?produto=` com esse produto já escolhido.
+O rascunho pode ficar incompleto. Preço e quantidade viajam como texto
+decimal. Publicar, suspender e retirar usam os endpoints do I4.
+Uma oferta retirada fica só em consulta. Um produto arquivado não cria
+oferta nova nem se publica, e a oferta já gravada mantém o estado.
+
 ## Fora deste incremento
 
 Registo público, recuperação de palavra-passe, refresh tokens, concessão
 e revogação de acessos a outros representantes, alteração do catálogo
 global de papéis, consulta pública, contactos públicos, autorização de
 publicação de contactos, interfaces de gestão, carregamento de ficheiros,
-filas e qualquer sincronização entre clientes. A gestão de ofertas na
-interface fica para um incremento posterior.
+filas e qualquer sincronização entre clientes. A consulta pública de
+ofertas fica para um incremento posterior.

@@ -1,0 +1,15 @@
+Matriz de autorização — I5.4
+A interface só mostra as acções. Cada escrita volta à API.
+
+Representação    Papel producer    Consulta    Escrita permitida pelo estado
+---------------  ----------------  ----------  -----------------------------
+read             com ou sem        sim         não
+manage           sem               sim         não
+manage           com               sim         sim
+inexistente ou revogada            não
+
+O papel comercial não substitui user_actor_access.
+Um produto ou uma oferta de outro actor, no caminho de um actor
+autorizado, responde 404 e a página não mostra o nome.
+Perder o producer mantém a consulta e retira os formulários depois da
+escrita recusada.

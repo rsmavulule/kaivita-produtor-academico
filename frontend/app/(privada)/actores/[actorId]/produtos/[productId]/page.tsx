@@ -60,6 +60,14 @@ export default async function ProductPage({
         {sheet.imageRef ?? "sem referência"}.
       </p>
       <p className="links">
+        {canWrite && sheet.status === "active" ? (
+          <a
+            className="primary"
+            href={`/actores/${actor.value.id}/ofertas/nova?produto=${sheet.id}`}
+          >
+            Criar oferta
+          </a>
+        ) : null}
         <a className="secondary" href={`/actores/${actorId}/produtos`}>
           Voltar aos produtos
         </a>

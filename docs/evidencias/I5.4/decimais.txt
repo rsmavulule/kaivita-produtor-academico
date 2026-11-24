@@ -1,0 +1,17 @@
+Precisão decimal — I5.4
+
+price e quantity permanecem string em todo o fluxo da interface.
+Não há Number, parseFloat, parseInt nem aritmética de ponto flutuante
+em frontend/lib/decimal.ts, frontend/lib/offers.ts nem na Server Action.
+
+Vazio torna-se null. "0" e "0.00" são valores e aparecem como tal.
+"por preencher" só é usado quando o campo é null.
+
+Uma vírgula isolada passa a ponto: "2,50" é enviado como "2.50".
+Ponto e vírgula no mesmo texto, ou mais de um separador, não são
+lidos como milhares. O texto segue para a API, que recusa sem o
+devolver na mensagem. O formulário conserva o que foi escrito.
+
+Três letras na moeda passam a maiúsculas. Não há lista de moedas.
+A resposta mostrada é o texto devolvido pela API, por exemplo
+"150.00" e "2.50".

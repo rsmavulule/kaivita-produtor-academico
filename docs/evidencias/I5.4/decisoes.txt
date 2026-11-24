@@ -1,0 +1,30 @@
+Decisões e limitações — I5.4
+
+Decisões
+  O contrato do I4 chega para a interface. O backend ficou intacto.
+  O actor seleccionado existe só no caminho. O produto inicial viaja no
+  parâmetro produto e só entra no formulário se estiver activo nesse actor.
+  Preço e quantidade não passam por ponto flutuante. A vírgula decimal
+  isolada é normalizada. Separadores mistos não são interpretados.
+  A confirmação de retirada é um passo no browser. Cancelar não chama a API.
+  401 segue para /sessao/invalida. 404 não distingue recurso em falta de
+  recurso inacessível. Sem producer, ou com o contexto comercial mudado,
+  a página volta a ler papéis, produto e oferta e retira a gestão.
+  Falha de rede ou 5xx mantém a sessão. O botão fica inactivo até a API
+  responder. O cookie é HttpOnly. API_URL só é lida no servidor.
+  sameOrigin protege as escritas. Não há proxy genérico.
+
+Limitações
+  As condições da interface são informativas. A API autoriza cada escrita.
+  Se o papel ou a representação mudar depois da leitura e antes do commit,
+  essa escrita já autorizada pode concluir. O pedido seguinte vê a recusa.
+  É o isolamento READ COMMITTED já registado no I5.2 e no I5.3. Não há
+  SELECT FOR UPDATE nas ofertas.
+  Não há catálogo público, contactos, encomendas, pagamentos, reservas,
+  stock, upload, eliminação física nem reactivação de oferta retirada.
+  Não há paginação, pesquisa, tecto de preço nem catálogo de moedas.
+  Uma oferta published cujo produto foi arquivado depois mantém o estado
+  na consulta privada. A pesquisa pública futura deve excluí-la. Essa
+  pesquisa não foi implementada.
+  As capturas mostram contas sintéticas @example.com. Não há JWT,
+  palavra-passe nem dados pessoais reais.

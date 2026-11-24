@@ -1,0 +1,18 @@
+Docker Compose — I5.4
+Projecto kaivita-produtor-academico. O serviço web foi reconstruído
+com as rotas de ofertas. O teste de ligação da autenticação reinicia a API.
+No fim:
+
+  GET http://127.0.0.1:8010/health
+  {"status":"ok","database":"up"}
+
+Serviços healthy:
+  db   0.0.0.0:5435->5432/tcp
+  api  0.0.0.0:8010->8000/tcp
+  web  0.0.0.0:3010->3000/tcp
+
+Dentro de web, API_URL=http://api:8000.
+/app/e2e/.credentials.json não existe na imagem.
+frontend/.dockerignore exclui a pasta e2e.
+.gitignore exclui .env e frontend/e2e/.credentials.json.
+Alembic no contentor da API: 0004_offers (head).

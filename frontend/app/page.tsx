@@ -42,8 +42,8 @@ export default function HomePage() {
       </nav>
 
       <p className="note">
-        A gestão de actores, papéis e produtos fica em /actores, depois de entrar.
-        Ofertas ainda não têm ecrã. Não há registo público.
+        A gestão de actores, papéis, produtos e ofertas fica em /actores, depois de entrar.
+        Não há consulta pública nem registo público.
       </p>
     </main>
   );

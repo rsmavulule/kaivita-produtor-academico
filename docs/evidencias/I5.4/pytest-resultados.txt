@@ -1,0 +1,10 @@
+PostgreSQL — I5.4
+Comando, a partir de backend, com a base do Compose na porta 5435:
+
+  RUN_DB_TESTS=1
+  python -m pytest -q
+
+Resultado: 160 passed in 31.23s.
+
+O backend não foi alterado. A regressão de produtos e de ofertas está
+incluída nesta suite. Alembic current: 0004_offers (head).

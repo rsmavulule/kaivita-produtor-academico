@@ -1,0 +1,11 @@
+Build Next.js — I5.4
+Comando, na pasta frontend: npm run build.
+Next.js 15.5.29. Compilação e verificação de tipos concluídas.
+
+Rotas dinâmicas novas:
+  /actores/[actorId]/ofertas
+  /actores/[actorId]/ofertas/nova
+  /actores/[actorId]/ofertas/[offerId]
+
+As rotas de sessão, actores e produtos mantêm-se. O middleware continua
+a tratar /actores/ como área privada.

@@ -1,0 +1,21 @@
+Rastreabilidade — I5.4
+Fontes: SRS v1.1, pela matriz do I4, e os contratos em backend/app/offers.py.
+A SRS e os diagramas não foram editados. Não foi consultado o projecto
+comercial.
+
+SRS / regra do I4                         Interface I5.4
+----------------------------------------  ------------------------------------------
+RF-03 criar, editar, publicar,            Listagem, rascunho, ficha e três transições.
+suspender e retirar
+UC-05 rascunho incompleto                 Os cinco campos comerciais não são obrigatórios na criação.
+Publicação exige os cinco campos          O botão publica; a API valida e a mensagem fica visível.
+RB-04 e RB-05 decimais e zero             Texto decimal. Zero aparece. Vazio fica por preencher.
+RB-03 mesmo actor                         Opções só com produtos deste actor. 404 sem o nome alheio.
+RB-02 e papel producer                    Escrita só com manage e producer.
+RB-10 e RF-08                             read consulta. Sem associação, sem acesso.
+Diagrama 07                               Rascunho, Publicada, Suspensa, Retirada. Republicar usa publish.
+Produto archived                          Sem oferta nova nem publicação. A oferta já gravada mantém o estado.
+RF-04 e RF-07 consulta pública            Fora. O aviso regista a exclusão futura da oferta com produto archived.
+RF-05 e RF-10 contactos                   Fora. Publicar não divulga contactos.
+RF-06 entrega                             Texto opcional. Não é exigido para publicar.
+Encomendas, pagamentos, stock             Fora deste incremento.
