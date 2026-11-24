@@ -1,0 +1,40 @@
+Verificação transversal de segurança — I5.5
+
+Executado no percurso integrado
+  O cookie kaivita_session é HttpOnly.
+  O valor do token não entra no URL, no HTML, em localStorage, em
+  sessionStorage nem no corpo dos scripts com src.
+  access_token não aparece nesses scripts.
+
+Inspecção do código já publicado, sem mecanismo novo
+  As Server Actions de login, actores, produtos e ofertas chamam sameOrigin.
+  frontend/lib/api.ts lê API_URL só no servidor, com cache no-store e um
+  limite de 8 segundos. Não há proxy HTTP genérico para a API.
+  O middleware e as rotas privadas enviam Cache-Control private, no-store.
+  O layout privado é force-dynamic. A página privada sem cookie volta ao login.
+  401 segue para /sessao/invalida. 404 não distingue recurso em falta de
+  recurso inacessível e não mostra o nome protegido. 422 indica o campo e
+  não repete o valor rejeitado. Falha de rede ou 5xx mantém a sessão e
+  mostra a mensagem de indisponibilidade.
+  Os redireccionamentos de sessão usam caminhos da própria aplicação.
+  NEXT_PUBLIC_API_URL serve apenas as ligações públicas /health e /docs.
+  Os pedidos autenticados não usam essa variável.
+
+Depois da perda de acesso confirmada
+  A interface deixa de mostrar o nome, o preço e os botões de gestão.
+  O teste integrado cobre a revogação. As suites anteriores cobrem a mesma
+  saída em actores, produtos e ofertas.
+
+Limitações, não corrigidas neste incremento
+  Terminar sessão apaga o cookie neste browser. O JWT não é revogado no
+  backend e continua válido até expirar.
+  Não há refresh token.
+  O cookie Secure em produção depende de o proxy observar HTTPS e de a
+  aplicação ver esse protocolo. Um proxy mal configurado pode deixar o
+  cookie sem Secure.
+  Não há bloqueio transaccional da representação durante toda a escrita.
+  Com READ COMMITTED, uma revogação confirmada depois da leitura e antes
+  do commit pode deixar passar essa escrita. O pedido seguinte vê a recusa.
+  Não há auditoria de autorização (RNF-07).
+
+Não foi implementado mecanismo novo de autenticação.

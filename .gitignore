@@ -19,6 +19,8 @@ node_modules/
 out/
 *.tsbuildinfo
 frontend/e2e/.credentials.json
+frontend/e2e/.run.lock
+frontend/e2e/.run-manifest.json
 frontend/test-results/
 frontend/playwright-report/
 frontend/blob-report/

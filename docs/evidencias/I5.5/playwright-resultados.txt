@@ -1,0 +1,28 @@
+Resultados Playwright — I5.5
+
+As duas execuções finais, em sequência, contra http://127.0.0.1:3010,
+com E2E_NO_SERVER=1 e sem E2E_EVIDENCE:
+
+  42 passed (1.8m), código de saída 0.
+  42 passed (1.8m), código de saída 0.
+
+Incluem e2e/integracao.spec.ts. Não houve retries. workers: 1.
+
+Antes destas duas, a investigação encontrou falhas explicadas e corrigidas:
+
+  Uma suite em paralelo com npm run build falhou o teste de revogação
+  de actor aos 20 s. Isolado, o mesmo teste passou em 2.6 s.
+  Uma suite completa, já sem o build em paralelo, falhou dois testes.
+  O registo da API mostrou POST da oferta com 201 e o GET seguinte com
+  404, porque o commit ocorria depois de a resposta sair. Noutro teste,
+  o botão ficou em «A guardar…» depois de a API já ter respondido 404
+  à revogação. O commit passou a ocorrer antes da linha de estado e o
+  contentor web é reiniciado quando a API volta. Os dois testes,
+  repetidos juntos, passaram.
+  Uma suite seguinte falhou só o teclado da criação de actor: o foco
+  ficou inactivo. O teste espera o botão visível antes de tabular.
+  As duas suites finais, já com essa espera, passaram as 42.
+
+A geração de capturas permanentes, com E2E_EVIDENCE=I5.5 e apenas
+e2e/integracao.spec.ts, passou 2 testes. As imagens estão em capturas/.
+As capturas de I5.1, I5.2, I5.3 e I5.4 não aparecem no git status.

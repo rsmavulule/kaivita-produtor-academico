@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { credentialsPath } from "./global-setup";
@@ -23,6 +23,13 @@ export function hostApiUrl(): string {
   return "http://127.0.0.1:8010";
 }
 
+export function hostWebUrl(): string {
+  if (process.env.E2E_BASE_URL) return process.env.E2E_BASE_URL.replace(/\/$/, "");
+  const port = envValue("WEB_PORT");
+  if (port && /^\d+$/.test(port)) return `http://127.0.0.1:${port}`;
+  return "http://127.0.0.1:3010";
+}
+
 export function tokenLifetimeSeconds(): number {
   const raw = envValue("JWT_EXPIRES_IN");
   const parsed = raw ? Number(raw) : 1800;
@@ -30,7 +37,17 @@ export function tokenLifetimeSeconds(): number {
 }
 
 export function shot(name: string): string {
-  return path.resolve(process.cwd(), "..", "docs", "evidencias", "I5.1", "capturas", name);
+  return evidenceShot("I5.1", name);
+}
+
+/** A regressão grava capturas temporárias. E2E_EVIDENCE=I5.5 grava só esse incremento. */
+export function evidenceShot(increment: string, name: string): string {
+  const permanent = process.env.E2E_EVIDENCE === increment;
+  const dir = permanent
+    ? path.resolve(process.cwd(), "..", "docs", "evidencias", increment, "capturas")
+    : path.resolve(process.cwd(), "test-results", "capturas");
+  mkdirSync(dir, { recursive: true });
+  return path.join(dir, name);
 }
 
 function envValue(key: string): string | undefined {

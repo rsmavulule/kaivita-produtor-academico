@@ -21,6 +21,7 @@ import {
 } from "../lib/errors";
 import { originAllowed } from "../lib/origin";
 import { middleware } from "../middleware";
+import { recoverApi } from "./recover";
 import { appOrigin, credentials, hostApiUrl, shot, tokenLifetimeSeconds } from "./support";
 
 test("o cookie fica Secure em HTTPS e um proto http não o desliga", () => {
@@ -403,8 +404,7 @@ test("uma falha de ligação não é tratada como credencial inválida", async (
     await page.locator("#password").fill("");
     await page.screenshot({ path: shot("ligacao-indisponivel.png"), fullPage: true });
   } finally {
-    spawnSync("docker", ["compose", "start", "api"], { cwd: root, encoding: "utf8" });
-    await waitUntil(apiIsUp);
+    await recoverApi();
   }
 });
 

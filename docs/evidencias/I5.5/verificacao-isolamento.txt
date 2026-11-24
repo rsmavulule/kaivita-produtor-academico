@@ -1,0 +1,36 @@
+Verificação do isolamento — I5.5
+
+Aquisição
+  acquireRunLock lê frontend/e2e/.run.lock. Se o pid está vivo e não é
+  este processo, termina com erro e não apaga o ficheiro. Caso contrário
+  substitui um cadeado morto ou ilegível e cria o ficheiro com
+  openSync(path, "wx"), criação exclusiva.
+
+Recusa verificada
+  Um processo adquiriu o cadeado. Um segundo processo, com outro pid,
+  recebeu REFUSED e a mensagem «Já existe uma execução». Chamou
+  releaseRunLock e o ficheiro continuou com o pid do primeiro
+  (LOCK_HELD). O primeiro libertou-o (LOCK_RELEASED). Não correram suites.
+
+Libertação normal
+  globalTeardown chama releaseRunLock no finally, depois da limpeza.
+  releaseRunLock só apaga o ficheiro quando o pid gravado é o deste
+  processo. No fim desta verificação o ficheiro não estava presente.
+
+Cadeado residual
+  Se o processo for morto, o ficheiro pode ficar. O procedimento é
+  apagar frontend/e2e/.run.lock quando esse pid já não existir, como
+  está em procedimento.txt. Um pid morto é substituído na aquisição
+  seguinte. Um pid vivo não é.
+
+Limitações
+  A exclusão wx recusa dois processos que chegam ao mesmo tempo a um
+  ficheiro ausente, mas o segundo pode ver EEXIST em vez da mensagem
+  em português. Não foi esse o caminho exercitado: o caminho exercitado
+  foi o de um pid vivo.
+  O cadeado não atravessa máquinas nem contentores separados.
+  Não impede um npm run build, um pytest nem outro comando que não
+  adquira o mesmo ficheiro. O build em paralelo com a suite continua
+  a poder atrasar o browser. Isso não é apresentado como protecção.
+
+Os scripts temporários da verificação foram apagados.

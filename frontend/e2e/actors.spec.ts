@@ -1,15 +1,13 @@
 import { randomBytes } from "node:crypto";
-import path from "node:path";
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { isActorId, NOT_FOUND_MESSAGE } from "../lib/actor-view";
 import { parseApiError } from "../lib/errors";
 import { setAccess } from "./access";
-import { credentials, hostApiUrl } from "./support";
+import { credentials, evidenceShot, hostApiUrl } from "./support";
 
-const shot = (name: string) =>
-  path.resolve(process.cwd(), "..", "docs", "evidencias", "I5.2", "capturas", name);
+const shot = (name: string) => evidenceShot("I5.2", name);
 
 test("o 422 em texto e em lista não repete o valor rejeitado", () => {
   expect(isActorId("nao-e-uuid")).toBe(false);
@@ -74,7 +72,10 @@ test("a lista e a criação de pessoa e organização", async ({ page }) => {
 test("o teclado percorre o formulário de criação", async ({ page }) => {
   await login(page, credentials());
   await page.goto("/actores");
-  await page.locator("#create-name").focus();
+  const name = page.locator("#create-name");
+  await expect(page.getByRole("button", { name: "Criar actor" })).toBeVisible();
+  await name.focus();
+  await expect(name).toBeFocused();
   await page.keyboard.type("Teclado");
   await page.keyboard.press("Tab");
   await expect(page.locator("#create-location")).toBeFocused();

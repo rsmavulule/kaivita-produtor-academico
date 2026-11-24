@@ -1,0 +1,29 @@
+Percurso integrado — I5.5
+
+Teste: e2e/integracao.spec.ts «o percurso privado persiste até à oferta retirada».
+Os passos de negócio usam a interface. A conta é a conta sintética da execução.
+Os nomes levam o instante da execução, para se distinguirem de outra corrida.
+O cenário ilustrativo, sem sufixo, está no guião. Não é resultado de campo.
+
+1. Autenticação pela página de login.
+2. O cookie kaivita_session fica HttpOnly. O valor não aparece no URL, no
+   HTML, no armazenamento do browser nem nos scripts carregados.
+3. Criação de um actor pessoa com o papel Produtor.
+4. Registo do produto, com categoria Hortícolas.
+5. Registo de uma oferta em rascunho sem preço. O ecrã mostra Rascunho e
+   «Preço: por preencher.»
+6. Preenchimento de 45.00, MZN, 120.00, kg, Disponível e
+   «Recolha na unidade de produção». A ficha mostra esses valores.
+7. Publicação. O estado passa a Publicada.
+8. Suspensão. O estado passa a Suspensa.
+9. Republicação. O estado volta a Publicada.
+10. Retirada depois de Confirmar retirada. O estado fica Retirada.
+11. Terminar sessão volta a /login.
+12. Nova autenticação com a mesma conta.
+13. A ficha da oferta mostra o produto, Retirada, 45.00 MZN, 120.00 kg e a
+    condição de entrega.
+14. Não há Guardar oferta, Publicar, Republicar nem Suspender.
+15. Abrir o produto e voltar ao actor mostra os nomes criados neste percurso.
+
+A primeira execução isolada deste teste passou. As duas suites completas
+estão em playwright-resultados.txt.

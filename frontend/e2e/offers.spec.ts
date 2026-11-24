@@ -16,10 +16,9 @@ import {
 import { PRODUCT_NOT_FOUND } from "../lib/product-view";
 import { setAccess } from "./access";
 import { setCommercialRoles } from "./roles";
-import { credentials } from "./support";
+import { credentials, evidenceShot } from "./support";
 
-const shot = (name: string) =>
-  path.resolve(process.cwd(), "..", "docs", "evidencias", "I5.4", "capturas", name);
+const shot = (name: string) => evidenceShot("I5.4", name);
 
 test("o decimal e o 422 não passam por ponto flutuante nem repetem o valor", () => {
   expect(readDecimal("")).toEqual({ kind: "empty" });

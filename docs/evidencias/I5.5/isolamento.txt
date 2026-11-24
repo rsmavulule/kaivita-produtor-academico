@@ -1,0 +1,37 @@
+Isolamento dos testes — I5.5
+
+Causa observada
+  Duas suites Playwright em processos diferentes chegaram a correr ao mesmo
+  tempo. workers: 1 só ordena os testes de um processo. Partilhavam a mesma
+  base, a mesma conta sintética, o mesmo contentor e a geração de capturas.
+  Um teste pára a API. Outro, ao mesmo tempo, via a interface indisponível
+  ou uma resposta atrasada. As capturas da regressão também caiam nas pastas
+  versionadas dos incrementos anteriores.
+
+O que passou a acontecer
+  globalSetup adquire frontend/e2e/.run.lock com o pid. Se o pid estiver
+  vivo, a segunda execução termina antes de criar contas. Um pid morto ou
+  um ficheiro ilegível é substituído. O cadeado só é libertado no teardown,
+  depois da limpeza.
+  Cada execução regista os emails i5N-...@example.com que criou.
+  A limpeza apaga ofertas, produtos, papéis e acessos dos actores exclusivos
+  dessas contas, e depois os utilizadores. Um actor com representação de
+  outra conta perde apenas o acesso da conta de teste.
+  As capturas normais vão para frontend/test-results/capturas.
+  E2E_EVIDENCE=I5.5 grava só docs/evidencias/I5.5/capturas.
+  No fim, a API é recolocada em serviço e o contentor web é reiniciado,
+  mesmo quando um teste falha. Se a API não recuperar, a limpeza ainda corre
+  e o teardown falha com o comando de recuperação.
+
+Limitações
+  O cadeado não atravessa máquinas nem contentores de CI separados.
+  Matar o processo pode deixar o cadeado e as contas do manifesto.
+  A recuperação está no procedimento.txt.
+  Não há retries. Os tempos de espera dos testes não foram aumentados.
+  pytest e Playwright não devem correr juntos: o teste de ligação pára a API
+  e os dois usam o mesmo PostgreSQL.
+
+Correcção do foco
+  Numa suite, Tab no formulário de actor correu antes de o campo ter altura
+  e o foco ficou inactivo. O teste espera o botão «Criar actor» visível e
+  confirma o foco no nome antes de tabular. O tempo de espera não mudou.

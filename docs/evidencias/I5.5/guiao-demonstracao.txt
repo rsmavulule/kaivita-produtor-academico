@@ -1,0 +1,53 @@
+Guião de demonstração — I5.5
+
+Os dados são sintéticos e servem para a defesa. Não resultam de investigação
+de campo. A demonstração cobre a área privada já implementada. Não é a
+solução final: não há pesquisa pública, consulta pública, contactos entre
+actores, encomendas, pagamentos nem gestão de stock.
+
+Preparar o Compose como em procedimento.txt e entrar com uma conta sintética
+criada por app.create_user. Não usar uma conta real.
+
+1. Autenticação
+   Abrir a página pública. Confirmar que diz que não há consulta pública
+   nem registo público. Entrar. A sessão fica no cookie HttpOnly.
+
+2. Actor
+   Criar uma organização.
+   Nome: Associação de Produtores da Moamba.
+   Localização geral: Moamba.
+   Papel: Produtor.
+   Abrir a ficha e confirmar o nome e o papel.
+
+3. Papéis
+   Acrescentar Comprador e voltar a deixar só Produtor, para mostrar que a
+   identidade do actor não se duplica. A escrita continua a exigir Produtor.
+
+4. Produto
+   Registar Tomate.
+   Categoria: Hortícolas.
+   Descrição curta, por exemplo tomate de época.
+   A referência de imagem fica vazia. Não há carregamento de fotografia.
+
+5. Oferta
+   Criar a oferta a partir do produto activo.
+   Mostrar o rascunho incompleto, com preço por preencher.
+   Preencher preço 45.00, moeda MZN, quantidade 120.00, unidade kg,
+   disponibilidade Disponível e condições de entrega
+   «Recolha na unidade de produção».
+   Publicar. Suspender. Republicar. Retirar e confirmar.
+   Voltar a entrar e mostrar que a oferta retirada persiste e já não tem
+   edição nem reactivação.
+
+6. Autorização e isolamento
+   Com uma segunda conta de leitura, abrir a mesma ficha e mostrar que os
+   botões de gestão não aparecem.
+   Com uma conta sem representação, mostrar «Actor não encontrado» e a
+   ausência do nome e do preço.
+   Com outro actor, abrir o identificador desta oferta no caminho desse
+   actor e mostrar «Oferta não encontrada», sem o nome do produto.
+
+7. O que não se demonstra
+   Pesquisa pública, ficha pública, contacto entre actores, autorização de
+   publicação de contactos, avaliação com utilizadores, encomendas,
+   pagamentos e stock. Dizer explicitamente que ficam por implementar.

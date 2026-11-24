@@ -1,0 +1,40 @@
+Resultados finais da verificação — I5.5
+
+Transacção
+  tests/test_commit_order.py e tests/test_commit_visibility.py passaram
+  na suite completa.
+  A oferta 201 foi lida por outra sessão durante o envio do corpo, sem
+  sleep, e o GET seguinte devolveu a mesma oferta.
+  A oferta recusada respondeu 422 com o detalhe já existente e não deixou
+  linha.
+
+Backend
+  RUN_DB_TESTS=1
+  167 passed in 29.81s
+  saída 0
+  São os 162 anteriores mais cinco testes desta verificação.
+
+Playwright
+  Suite antes do ajuste do manifesto: 42 passed (2.0m), saída 0.
+  Suite depois de a limpeza do manifesto anterior passar a correr no
+  arranque: 42 passed (1.9m), saída 0.
+  Uma de cada vez. Sem E2E_EVIDENCE.
+
+Cadeado
+  Segundo processo: REFUSED, MESSAGE_OK, RELEASE_RETURNED.
+  O primeiro manteve LOCK_HELD e depois LOCK_RELEASED.
+  O ficheiro não ficou.
+
+Ambiente
+  Não houve alteração de código dentro das imagens. Os contentores não
+  foram reconstruídos nesta verificação. A imagem da API já tinha
+  CommitBeforeResponse.
+  /health: {"status":"ok","database":"up"}
+  api, db e web healthy
+  Alembic: 0004_offers (head)
+  git diff --check sem achados
+  docs/evidencias/I5.1 a I5.4 sem alterações no git status
+
+Build Next.js
+  Não foi repetido. O código da interface não mudou nesta verificação.
+  O build anterior, saída 0, continua a descrever a imagem web.

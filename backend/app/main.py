@@ -18,10 +18,11 @@ from app.auth import router as auth_router
 from app.catalog import router as catalog_router
 from app.offer_catalog import router as offer_router
 from app.config import settings
-from app.db import check_database
+from app.db import CommitBeforeResponse, check_database
 from app.roles import router as roles_router
 
 app = FastAPI(title=settings.app_name)
+app.add_middleware(CommitBeforeResponse)
 app.include_router(auth_router)
 app.include_router(actors_router)
 app.include_router(catalog_router)

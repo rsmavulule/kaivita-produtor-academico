@@ -1,0 +1,30 @@
+Docker Compose — I5.5
+
+docker compose up --build -d api
+  Imagem da API reconstruída e contentor recriado. Saída 0.
+
+docker compose restart web
+  O contentor web foi reiniciado para largar ligações ao contentor antigo
+  da API. A imagem web não foi reconstruída.
+
+Depois da suite e da recolha de capturas:
+
+  curl.exe --noproxy "*" http://127.0.0.1:8010/health
+  {"status":"ok","database":"up"}
+
+  docker compose ps
+  api   Up (healthy)
+  db    Up (healthy)
+  web   Up (healthy)
+
+  docker compose exec -T api alembic current
+  0004_offers (head)
+
+  No contentor web, o ficheiro de credenciais de teste está ausente.
+  API_URL=http://api:8000
+
+  git check-ignore confirma .env, frontend/e2e/.credentials.json,
+  frontend/e2e/.run.lock, frontend/e2e/.run-manifest.json e
+  frontend/test-results/.
+
+  git diff --check não reportou erros de espaço em branco.

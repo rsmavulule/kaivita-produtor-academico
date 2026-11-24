@@ -1,0 +1,100 @@
+Procedimento reproduzível — I5.5
+
+Ambiente: Windows PowerShell e Docker Compose do repositório.
+Portas deste ambiente: interface 3010, API 8010, PostgreSQL 5435.
+A palavra-passe de desenvolvimento está no .env, que o Git ignora, e no
+.env.example. Este documento não a repete. Não há tokens.
+
+Pré-requisitos
+  Docker Desktop.
+  Node.js e npm.
+  Python 3.13 com o ambiente backend/.venv.
+  Chromium do Playwright.
+
+Configuração
+  Copiar .env.example para .env na raiz e preencher JWT_SECRET.
+  O Compose lê esse ficheiro. Não versionar .env nem
+  frontend/e2e/.credentials.json.
+
+Base de dados e migrações
+  Na raiz:
+
+  docker compose up --build -d
+
+  A API aplica o Alembic no arranque até à cabeça 0004_offers.
+  Confirmar:
+
+  docker compose exec -T api alembic current
+
+Arranque e saúde
+  docker compose ps
+  curl.exe --noproxy "*" http://127.0.0.1:8010/health
+
+  A resposta esperada contém "status":"ok" e "database":"up".
+  A interface publicada responde em http://127.0.0.1:3010/login.
+  No contentor web, API_URL é http://api:8000.
+
+Contas de teste
+  A suite Playwright cria uma conta sintética i51-<instante>@example.com
+  no arranque e contas auxiliares i53-, i54- e i55- quando um teste
+  precisa de outra representação. A palavra-passe fica só em
+  frontend/e2e/.credentials.json, ignorado pelo Git, e não é impressa.
+  No fim, a limpeza apaga essas contas e os actores que só elas
+  representam. Actores partilhados com outra conta não são apagados.
+  O catálogo de papéis não é apagado.
+
+Chromium
+  cd frontend
+  npm install
+  npx playwright install chromium
+
+Testes PostgreSQL
+  cd backend
+  $env:DATABASE_URL = <a URL do .env, com o anfitrião localhost e a porta publicada>
+  $env:RUN_DB_TESTS = "1"
+  .\.venv\Scripts\python.exe -m pytest -q
+
+  O exemplo de URL está no README. Sem RUN_DB_TESTS=1, os testes que
+  exigem PostgreSQL são ignorados.
+
+Testes Playwright
+  Uma execução de cada vez. O cadeado frontend/e2e/.run.lock recusa uma
+  segunda. Na pasta frontend, com o Compose saudável:
+
+  $env:NO_PROXY = "127.0.0.1,localhost"
+  $env:no_proxy = "127.0.0.1,localhost"
+  $env:E2E_NO_SERVER = "1"
+  $env:E2E_BASE_URL = "http://127.0.0.1:3010"
+  npm run test:e2e
+
+  Não definir E2E_EVIDENCE. As capturas desta regressão vão para
+  frontend/test-results/capturas, ignorado pelo Git. Não há retries.
+
+Evidências permanentes
+  Só o incremento indicado, e só de propósito:
+
+  $env:E2E_EVIDENCE = "I5.5"
+  npx playwright test e2e/integracao.spec.ts
+  Remove-Item Env:E2E_EVIDENCE
+
+  As imagens ficam em docs/evidencias/I5.5/capturas.
+  Não usar I5.1, I5.2, I5.3 ou I5.4 neste valor.
+
+Recuperação depois de uma execução interrompida
+  Se o processo for morto, o teardown pode não correr. Na raiz:
+
+  Remove-Item frontend/e2e/.run.lock -ErrorAction SilentlyContinue
+  docker compose start api
+  curl.exe --noproxy "*" http://127.0.0.1:8010/health
+  docker compose restart web
+  curl.exe --noproxy "*" -o NUL http://127.0.0.1:3010/login
+
+  A suite já faz esta recuperação no fim, inclusive quando o teste de
+  indisponibilidade para a API. O contentor web é reiniciado para largar
+  ligações ao contentor antigo da API.
+
+Limitações
+  O cadeado vê o processo local. Não coordena duas máquinas.
+  A limpeza só alcança contas registadas no manifesto desta execução.
+  Uma interrupção abrupta pode deixar essas contas até à recuperação manual
+  e a uma limpeza seguinte, se o manifesto ainda existir.

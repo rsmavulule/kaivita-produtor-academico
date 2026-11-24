@@ -1,0 +1,110 @@
+Matriz consolidada de rastreabilidade — SRS v1.1
+
+Fonte: docs/srs/Kaivita-produtor-SRSv1.1, lida para este incremento e não
+alterada. Os identificadores são os da SRS. Não foram criados outros.
+«Implementado e validado» significa que um teste automatizado exercitou
+o comportamento. Não significa avaliação com utilizadores. A inspecção do
+código, por si, não fecha um requisito. Os requisitos não funcionais
+abaixo só ficam validados na parte que os testes cobrem.
+
+Funcionais
+
+ID     Descrição resumida                         UC     Incremento  Módulo                         Endpoint                                      Interface                         Evidência                         Estado
+-----  ------------------------------------------ ------ ----------- ------------------------------ --------------------------------------------- --------------------------------- --------------------------------- ----------------------------------
+RF-01  Criar, consultar e actualizar o perfil     UC-02  I2, I5.2    backend/app/actors.py          POST/GET/PATCH /actors                        /actores, /actores/[actorId]     pytest de actores; e2e/actors     Implementado parcialmente.
+       de actor produtor, pessoa ou organização,                                                                                                    e e2e/integracao.spec.ts          Falta a área de actuação como
+       com localização geral e área de actuação.                                                                                                                                    campo. Nome, tipo, localização
+                                                                                                                                                                                     e papel produtor estão validados.
+RF-02  Criar, editar, arquivar e consultar        UC-04  I3, I5.3    backend/app/catalog.py         /actors/{id}/products e .../archive           /actores/[id]/produtos            pytest de produtos; e2e/products  Implementado parcialmente.
+       produtos: nome, categoria, descrição                                                                                                         e e2e/integracao.spec.ts          A fotografia é referência de
+       e fotografia opcional.                                                                                                                       backend/app/products.py           texto. Não há ficheiro.
+RF-03  Criar, editar, publicar, suspender e       UC-05  I4, I5.4    backend/app/offer_catalog.py   /actors/{id}/offers e .../publish,            /actores/[id]/ofertas            pytest de ofertas; e2e/offers     Implementado e validado na
+       retirar ofertas. Preço, moeda, quantidade                   backend/app/offers.py          /suspend, /withdraw                                                             e e2e/integracao.spec.ts          gestão privada. A publicação
+       e unidade são obrigatórios para publicar.                                                                                                                                    pública não faz parte deste RF.
+RF-04  Pesquisar ofertas públicas por texto e     UC-06  —           —                              —                                             —                                 —                                 Não implementado.
+       filtrar por categoria e localização.
+RF-05  Apresentar localização geral e só         UC-07  I2, I5.2    actors.py, a localização       PATCH /actors, campo general_location         ficha privada do actor            e2e/actors.spec.ts                Implementado parcialmente.
+       contactos comerciais autorizados.                                                                                                            limpa e grava a localização       Não há página pública nem
+                                                                                                                                                                                     contactos.
+RF-06  Registar e apresentar condições            UC-08  I4, I5.4    offers.py, delivery_terms      PATCH /actors/{id}/offers/{offer_id}          ficha da oferta                   e2e/offers.spec.ts e              Implementado parcialmente.
+       informativas de entrega, sem frete.                                                                                                         e2e/integracao.spec.ts            O texto aparece na ficha privada.
+                                                                                                                                                                                     Não há apresentação pública.
+                                                                                                                                                                                     Não há cálculo de frete.
+RF-07  Consulta pública sem autenticação,         UC-06  —           —                              —                                             —                                 —                                 Não implementado.
+       só de recursos publicados.
+RF-08  Autenticar e impedir alteração sem         UC-01  I1.2, I1.3  backend/app/auth.py            POST /auth/login, GET /auth/me                /login, /inicio, área privada     pytest de auth e autorização;     Implementado e validado.
+       representação autorizada.                  UC-02  I5.1        backend/app/authorization.py   autorização em cada escrita                   cookie HttpOnly                   e2e/auth.spec.ts e integracao
+RF-09  Vários papéis comerciais sem duplicar      UC-03  I2, I5.2    backend/app/actor_roles.py     GET /roles, GET/PUT /actors/{id}/roles        ficha do actor, papéis            pytest de papéis; e2e/actors      Implementado e validado.
+       a identidade do actor.                                                                                       e e2e/integracao.spec.ts
+RF-10  Registar, consultar e revogar a            UC-07  —           —                              —                                             —                                 —                                 Não implementado.
+       autorização de publicação de contactos.
+
+Regras de negócio
+
+ID     Descrição resumida                         Incremento  Módulo                    Endpoint                         Interface                    Evidência                      Estado
+-----  ------------------------------------------ ----------- ------------------------- -------------------------------- ---------------------------- ------------------------------ ---------------------------------
+RB-01  ActorRole único por par actor/papel.       I2          actor_roles.py            PUT /actors/{id}/roles           substituição de papéis       pytest de papéis               Implementado e validado.
+       Papéis comerciais não substituem permissões. I1.3     authorization.py          —                                a gestão exige manage        e2e de leitura e de produtor
+RB-02  Produto e oferta têm dono. Só o produtor   I3, I4      products.py, offers.py    POST de produtos e publish       botões só com producer       pytest; e2e/products e offers  Implementado e validado.
+       publica oferta.
+RB-03  A oferta referencia um produto do mesmo    I4          offers.py                 POST /actors/{id}/offers         o selector só lista produtos pytest de cruzamento;         Implementado e validado.
+       actor. Operações cruzadas são rejeitadas.                                                                    deste actor                      e2e/offers e integracao
+RB-04  Publicar exige preço, quantidade, moeda,   I4          offers.py                 POST .../publish                 a API recusa e a mensagem    pytest; e2e/offers.spec.ts     Implementado e validado.
+       unidade e disponibilidade. Zero é valor.                                                                     fica visível                     Zero é mostrado como valor.
+RB-05  Quantidade zero não pode estar disponível. I4          offers.py                 POST .../publish e PATCH         mensagem da API              pytest; e2e de rascunho        Implementado e validado.
+       O rascunho pode ficar incompleto.
+RB-06  Só ofertas publicadas e recursos elegíveis —           —                         —                                aviso na ficha quando o      inspeção do aviso;             Implementado parcialmente.
+       entram na consulta pública.                                                                                  produto está arquivado           não há teste de visitante      A consulta pública não existe.
+RB-07  O contacto privado não é publicado.        —           —                         —                                —                            —                              Não implementado.
+       A revogação impede a exibição posterior.
+RB-08  Fotografias só com direito de uso.         I3          products.py, image_ref    PATCH do produto                 referência textual opcional  e2e/products.spec.ts           Não implementado como publicação
+       A FACIM não é importada.                                                                                                                      de fotografia. A FACIM não é
+                                                                                                                                                     importada, por ausência de carga.
+RB-09  A entrega é informação comercial, não      I4          offers.py                 campo delivery_terms             texto na ficha               e2e/integracao.spec.ts         Implementado e validado
+       garantia de transporte.                                                                                                                       no âmbito privado.
+RB-10  O representante só altera recursos do      I1.3, I5    authorization.py          todas as escritas privadas       a perda de acesso esconde    pytest; e2e/actors, products,  Implementado e validado.
+       actor com autorização válida.                                                                                a gestão                         offers e integracao            Sem bloqueio da linha durante
+                                                                                                                                                                                        toda a escrita. Ver decisões.
+
+Não funcionais
+
+ID      Critério                                   Incremento  Componente                         Evidência                         Estado
+------  ------------------------------------------ ----------- ---------------------------------- --------------------------------- ---------------------------------
+RNF-01  360 px e 1280 px nos fluxos essenciais     I5.1–I5.5   páginas privadas e entrada         e2e de auth, actores, produtos,   Implementado e validado nos
+                                                                                                   ofertas e a oferta retirada       fluxos privados cobertos.
+RNF-02  Mensagens claras, obrigatórios e teclado   I5.1–I5.4   formulários e errors.ts            e2e de teclado, 422 e confirmações Implementado e validado nos
+                                                                                                                                     formulários existentes.
+                                                                                                                                     Sem auditoria formal de acessibilidade.
+RNF-03  Hash de palavras-passe, sessão protegida,  I1.2, I5.1  Argon2id, cookie HttpOnly,         pytest de auth; e2e/auth.spec.ts  Implementado e validado.
+        autorização no servidor                                sameOrigin e a API                 e expectSessionPrivate            Logout não revoga o JWT.
+                                                                                                                                     Não há refresh token.
+RNF-04  Integridade referencial e isolamento por   I1–I4       migrações 0002 a 0004 e a API      pytest com RUN_DB_TESTS=1         Implementado e validado.
+        actor. Validação no servidor.                                                                                                ON DELETE RESTRICT. A validação
+                                                                                                                                     rejeita o cruzamento de actores.
+RNF-05  Testes de autenticação, papéis,            I1–I5.5     pytest e Playwright                suites deste incremento           Implementado parcialmente.
+        representação, CRUD, publicação, pesquisa                                                                                Não há testes de pesquisa pública.
+        e revogação, com evidências.
+RNF-06  Minimização, consentimento e ocultação     —           —                                  —                                 Não implementado.
+        de contactos públicos.
+RNF-07  Auditoria de autorização e de publicação   —           —                                  —                                 Não implementado.
+        sem dados sensíveis em logs.
+
+Casos de uso
+
+UC-01 Autenticar. Implementado e validado. I1.2 e I5.1. e2e/auth.spec.ts.
+UC-02 Gerir actor representado. Implementado e validado, com a lacuna de área de actuação registada em RF-01. I2 e I5.2.
+UC-03 Associar papéis. Implementado e validado. I2 e I5.2.
+UC-04 Gerir produtos. Implementado parcialmente, pela fotografia. I3 e I5.3.
+UC-05 Publicar oferta. Implementado e validado na gestão privada. I4 e I5.4. e2e/integracao.spec.ts.
+UC-06 Pesquisar e consultar como visitante. Não implementado.
+UC-07 Gerir contacto público. Não implementado.
+UC-08 Informar entrega. Implementado parcialmente: texto na ficha privada. I4 e I5.4.
+
+Critério de passagem da SRS, sem identificador próprio: rever a SRS com o
+orientador e validar ambiguidades com utilizadores quando viável. A revisão
+com utilizadores não foi feita. Não aplicável como função do protótipo, e
+não executada.
+
+Fora do âmbito operacional da SRS: encomendas, pagamentos, negociação,
+logística, transportadoras, crédito, inteligência artificial, delegações,
+matching e processamento industrial. Não aplicável a este incremento.

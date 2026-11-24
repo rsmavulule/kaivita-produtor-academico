@@ -1,0 +1,13 @@
+Resultados PostgreSQL — I5.5
+
+Comando, a partir de backend, com RUN_DB_TESTS=1 e DATABASE_URL a apontar
+para o PostgreSQL publicado pelo Compose:
+
+  .\.venv\Scripts\python.exe -m pytest -q
+
+  162 passed in 24.41s
+  código de saída 0
+
+São os 160 da baseline mais tests/test_commit_order.py, dois testes que
+não precisam de base e verificam que o commit precede a linha de estado.
+A cabeça Alembic continua 0004_offers. Não houve migração nova.

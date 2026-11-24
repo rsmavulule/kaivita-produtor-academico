@@ -1,0 +1,40 @@
+Verificação da limpeza — I5.5
+
+Manifesto
+  frontend/e2e/.run-manifest.json guarda emails. rememberAccount só
+  aceita i5N-...@example.com. manifestEmails ignora o resto. O ficheiro
+  é ignorado pelo Git.
+
+Quem é criado
+  A conta principal i51-<instante>@example.com.
+  Contas auxiliares i53-, i54- e i55- quando um teste pede leitura,
+  estranho ou revogação.
+  Actores, papéis, produtos e ofertas criados por essas contas através
+  da interface ou das fixtures de representação.
+
+Quem é removido
+  Para cada actor cuja representação pertence só a essas contas:
+  ofertas, produtos, papéis, acessos e o actor.
+  Um actor com representação de outra conta não é apagado. Sai só o
+  acesso das contas de teste.
+  Depois saem os acessos restantes e os utilizadores do manifesto.
+  O catálogo global de papéis não é apagado. Não há DELETE sem filtro
+  de email.
+
+Partilhados que ficam
+  Papéis comerciais semeados pela migração.
+  Utilizadores e actores que não estão no manifesto.
+  Actores partilhados com uma conta exterior ao manifesto.
+
+Interrupção
+  Se o teardown não corre, o manifesto conserva os emails. A execução
+  seguinte, depois de adquirir o cadeado, limpa esse manifesto antes de
+  o substituir. O email novo é registado antes de create_user, para uma
+  falha a meio não o perder.
+  Se o processo morrer no intervalo entre o apagar do manifesto antigo
+  e o registo do email novo, essa conta pode ficar. É uma conta
+  i51- ou i5N- de @example.com, não dados de outro utilizador.
+  Não foi feita limpeza indiscriminada.
+
+O teste de visibilidade PostgreSQL apaga, no finally, apenas o
+utilizador e o actor que ele próprio criou.

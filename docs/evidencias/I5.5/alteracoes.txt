@@ -1,0 +1,48 @@
+Alterações — I5.5
+
+Integração
+  frontend/e2e/integracao.spec.ts percorre, pela interface, autenticação,
+  actor produtor, produto, rascunho incompleto, dados comerciais, publicação,
+  suspensão, republicação, retirada, logout, nova autenticação, consulta e
+  a impossibilidade de editar ou reactivar a oferta retirada.
+  O segundo teste separa gestor, leitura, ausência de representação,
+  combinação incorrecta de identificadores, perda do papel producer e
+  revogação. A preparação das contas usa as ferramentas já existentes.
+  As operações de negócio não chamam a API directamente.
+
+Sessão visível antes do commit
+  backend/app/db.py confirma a transacção em CommitBeforeResponse, antes
+  de a linha de estado HTTP ser enviada. backend/app/main.py instala esse
+  middleware. O gerador de get_session só retomava depois de a resposta
+  sair. O registo da API mostrou POST /offers 201 e, de seguida, GET da
+  mesma oferta com 404. A interface ficava em «Oferta não encontrada» e o
+  teste esperava o botão Publicar até esgotar o tempo.
+  O contrato JSON não muda. Não há migração. Os testes que substituem
+  get_session continuam a usar a sessão da fixture.
+
+Recuperação da interface
+  frontend/e2e/recover.ts volta a arrancar a API, espera a saúde e
+  reinicia o contentor web. O teste que pára a API e o teardown usam esta
+  função. O processo Next.js não fica com ligações ao contentor antigo.
+
+Isolamento das suites
+  frontend/e2e/run-lock.ts recusa outro processo Playwright.
+  frontend/e2e/manifest.ts e cleanup.ts limitam a limpeza às contas desta
+  execução. frontend/e2e/global-teardown.ts recupera a API, limpa e só
+  depois liberta o cadeado. A limpeza corre mesmo se a recuperação falhar.
+  frontend/playwright.config.ts passa a ter globalTeardown.
+  workers continua 1. retries continua 0. Os tempos de espera não aumentaram.
+
+Capturas
+  frontend/e2e/support.ts escreve em frontend/test-results/capturas, a menos
+  que E2E_EVIDENCE seja exactamente o incremento pedido. As suites de
+  autenticação, actores, produtos e ofertas deixaram de apontar para as
+  pastas versionadas dos incrementos anteriores.
+
+Documentação
+  README.md descreve a regressão, o cadeado, a recuperação e a geração
+  explícita de evidências do I5.5. O procedimento completo está neste
+  directório.
+
+Não houve reformulação visual, biblioteca de componentes, endpoint novo,
+concessão de representação na interface, nem funcionalidade pública.

@@ -1,0 +1,28 @@
+Matriz de cobertura — I5.5
+
+Condição                                      Onde fica demonstrada
+--------------------------------------------  ------------------------------------------
+Percurso até à oferta retirada e persistência e2e/integracao.spec.ts, primeiro teste
+Cookie HttpOnly e token fora do browser       o mesmo teste, expectSessionPrivate
+Leitura sem gestão                             o segundo teste, conta i55-read
+Sem representação                              o segundo teste, conta i55-estranho
+Oferta de outro actor no caminho errado       o segundo teste, actor Vizinho
+Perda do papel producer preserva a consulta   o segundo teste, papéis passam a buyer
+Revogação retira os dados da interface        o segundo teste, setAccess revoke
+Gestor consulta e gere                         o segundo teste, publicação pela interface
+Actor alheio com produto próprio              e2e/offers.spec.ts e e2e/products.spec.ts
+Produto de outro actor                        e2e/products.spec.ts
+401, origem, cookie e indisponibilidade       e2e/auth.spec.ts
+422 sem eco do valor                          e2e/actors.spec.ts, products.spec.ts, offers.spec.ts
+Rascunho, decimais e transições               e2e/offers.spec.ts
+Arquivo de produto                            e2e/products.spec.ts
+Teclado e 360 px                              e2e/auth.spec.ts, actors.spec.ts, products.spec.ts, offers.spec.ts
+
+A preparação de contas, papéis e representações usa create_user, setAccess
+e setCommercialRoles. Não há ecrã de concessão nem endpoint administrativo.
+
+Reutilização
+  A leitura sem escrita, a gestão sem producer, a revogação e o identificador
+  cruzado já existiam nas suites de actores, produtos e ofertas. O teste
+  integrado volta a juntá-los num só percurso. Não duplica o catálogo de
+  moedas, a paginação nem a pesquisa pública, que continuam fora.

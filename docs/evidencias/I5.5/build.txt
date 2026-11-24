@@ -1,0 +1,15 @@
+Build Next.js — I5.5
+
+Na pasta frontend, npm run build.
+
+  Next.js 15.5.29
+  Compiled successfully
+  código de saída 0
+
+Rotas dinâmicas confirmadas: /login, /inicio, /actores, /actores/[actorId],
+produtos, produtos/novo, produtos/[productId], ofertas, ofertas/nova e
+ofertas/[offerId]. A página pública / é estática.
+
+O código da interface publicado na imagem web não mudou neste incremento.
+A imagem web não foi reconstruída. A imagem da API foi reconstruída porque
+a confirmação da sessão mudou.

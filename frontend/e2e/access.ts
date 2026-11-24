@@ -2,6 +2,8 @@ import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
+import { rememberAccount } from "./manifest";
+
 export function setAccess(input: {
   email: string;
   password: string;
@@ -47,4 +49,5 @@ export function setAccess(input: {
     const detail = `${result.stderr ?? ""}\n${result.stdout ?? ""}`.replaceAll(input.password, "[omisso]");
     throw new Error(`Não foi possível preparar a representação de teste. ${detail.trim()}`);
   }
+  rememberAccount(input.email);
 }

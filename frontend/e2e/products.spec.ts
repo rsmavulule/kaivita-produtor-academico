@@ -1,5 +1,4 @@
 import { randomBytes } from "node:crypto";
-import path from "node:path";
 
 import { expect, test, type Page } from "@playwright/test";
 
@@ -9,10 +8,9 @@ import { parseApiError } from "../lib/errors";
 import { PRODUCT_NOT_FOUND } from "../lib/product-view";
 import { setAccess } from "./access";
 import { setCommercialRoles } from "./roles";
-import { credentials } from "./support";
+import { credentials, evidenceShot } from "./support";
 
-const shot = (name: string) =>
-  path.resolve(process.cwd(), "..", "docs", "evidencias", "I5.3", "capturas", name);
+const shot = (name: string) => evidenceShot("I5.3", name);
 
 test("o 422 de produto não repete o valor rejeitado", () => {
   const parsed = parseApiError(422, {

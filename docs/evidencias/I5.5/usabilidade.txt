@@ -1,0 +1,33 @@
+Revisão de usabilidade — I5.5
+
+Páginas inspeccionadas no código e nas suites já existentes: entrada
+pública, login, início privado, lista e ficha de actores, papéis, lista,
+criação e ficha de produtos, lista, criação e ficha de ofertas.
+
+O que se mantém
+  Os rótulos estão em português: Rascunho, Publicada, Suspensa, Retirada,
+  Disponível, Indisponível, Activo, Arquivado.
+  Cada campo tem label associado ao id.
+  O foco visível está em a, button, input, textarea e select.
+  Os botões de submissão ficam inactivos e mudam o texto enquanto o pedido
+  não responde.
+  A retirada e o arquivo pedem confirmação. Cancelar não chama a API.
+  Há estados vazios, páginas de carregamento e mensagens de validação e de
+  indisponibilidade.
+  A entrada pública diz que não há consulta pública nem registo público.
+  As ligações voltam do produto e da oferta ao actor, e da oferta ao produto.
+  As suites cobrem 360 px e 1280 px, teclado no login, na criação de actor
+  e nos fluxos já testados, e a ausência de overflow horizontal.
+
+Defeito de integração encontrado
+  Depois de um 201, a ficha da oferta podia abrir como «Oferta não encontrada»
+  porque a transacção ainda não estava confirmada. A correcção está em
+  alteracoes.txt. Não foi uma reformulação visual.
+
+Não foi introduzida biblioteca de componentes. Não se apresentam pesquisa
+pública, catálogo público, contactos, encomendas, pagamentos, stock nem
+carregamento de imagens como funções disponíveis.
+
+Limite desta revisão
+  Não houve avaliação com utilizadores. O contraste foi revisto pela folha
+  de estilos existente, sem medição automática de todas as combinações de cor.

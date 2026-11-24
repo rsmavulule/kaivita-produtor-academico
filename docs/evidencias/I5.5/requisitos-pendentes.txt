@@ -1,0 +1,33 @@
+Requisitos pendentes — I5.5
+
+Não implementados
+  RF-04  Pesquisa pública de ofertas por texto, categoria e localização.
+  RF-07  Consulta pública sem autenticação, só de recursos publicados.
+  RF-10  Registar, consultar e revogar autorização de publicação de contactos.
+  RB-07  Contacto privado fora da publicação e efeito imediato da revogação.
+  RNF-06 Minimização, consentimento por finalidade e ocultação de contactos.
+  RNF-07 Auditoria de autorização e de publicação sem dados sensíveis em logs.
+  UC-06  Pesquisar e consultar ofertas como visitante.
+  UC-07  Gerir contacto público.
+  Critério de passagem da SRS, secção 9: validar ambiguidades com utilizadores
+  quando viável. Não é um identificador de requisito. Não foi feito.
+
+Implementados só em parte
+  RF-01  Falta a área de actuação como campo próprio.
+  RF-02  A fotografia é uma referência textual. Não há ficheiro.
+  RF-05  A localização geral existe no perfil privado. Não há apresentação
+         pública nem contactos autorizados.
+  RF-06  As condições de entrega aparecem na ficha privada. Não há página pública.
+  RB-06  A ficha privada não trata uma oferta suspensa como disponível.
+         A consulta pública, onde a regra se aplica ao visitante, não existe.
+  RB-08  As fotografias da FACIM não são importadas. Também não há publicação
+         de fotografia com declaração de direito de uso.
+  RNF-05 Há testes de autenticação, papéis, representação, CRUD, publicação
+         e revogação. Não há testes de pesquisa pública.
+
+Fora do âmbito operacional da SRS, e por isso não aplicáveis a este protótipo
+como funções a construir agora: encomendas, pagamentos, negociação electrónica,
+logística, transportadoras, crédito, inteligência artificial, gestão de
+delegações, matching automático e processamento industrial.
+
+Não foram implementados no I5.5.

@@ -245,6 +245,53 @@ a revisão do catálogo, `0002_identity_access` a de identidade e
 ofertas criam bases à parte, no mesmo servidor, e apagam-nas no fim.
 A conta PostgreSQL do Compose consegue criar essas bases.
 
+## Testes de ponta a ponta
+
+Pré-requisitos: Docker Desktop, Node.js, o ambiente `backend/.venv` e o
+Chromium do Playwright. Na pasta `frontend`, uma vez:
+
+```powershell
+npm install
+npx playwright install chromium
+```
+
+Com o Compose saudável nas portas publicadas (neste ambiente, 3010, 8010 e
+5435), a regressão corre contra o contentor. Não gera nem substitui capturas
+versionadas. Se existir um proxy HTTP, exclua o anfitrião local.
+
+```powershell
+$env:NO_PROXY = "127.0.0.1,localhost"
+$env:no_proxy = "127.0.0.1,localhost"
+$env:E2E_NO_SERVER = "1"
+$env:E2E_BASE_URL = "http://127.0.0.1:3010"
+npm run test:e2e
+```
+
+A conta sintética é criada no arranque e removida no fim, juntamente com os
+actores que só ela representa. Duas execuções ao mesmo tempo são recusadas
+por `frontend/e2e/.run.lock`. Não há retries. A API é recolocada em serviço
+no fim, inclusive depois do teste que a pára.
+
+Se uma execução for interrompida e o cadeado ou a API ficarem presos:
+
+```powershell
+Remove-Item frontend/e2e/.run.lock -ErrorAction SilentlyContinue
+docker compose start api
+curl.exe --noproxy "*" http://127.0.0.1:8010/health
+docker compose restart web
+curl.exe --noproxy "*" -o NUL http://127.0.0.1:3010/login
+```
+
+Para gravar as capturas do I5.5, e só essas, numa execução explícita:
+
+```powershell
+$env:E2E_EVIDENCE = "I5.5"
+npx playwright test e2e/integracao.spec.ts
+Remove-Item Env:E2E_EVIDENCE
+```
+
+O procedimento completo está em `docs/evidencias/I5.5/procedimento.txt`.
+
 ## Interface sem Docker
 
 Na pasta `frontend`, depois de `npm install`:
@@ -506,6 +553,13 @@ O rascunho pode ficar incompleto. Preço e quantidade viajam como texto
 decimal. Publicar, suspender e retirar usam os endpoints do I4.
 Uma oferta retirada fica só em consulta. Um produto arquivado não cria
 oferta nova nem se publica, e a oferta já gravada mantém o estado.
+
+## Incremento I5.5 — integração
+
+O percurso privado, da autenticação à oferta retirada, e a separação entre
+gestor, leitura e ausência de representação ficam num teste de ponta a ponta.
+A regressão não reescreve as capturas dos incrementos anteriores. Duas suites
+Playwright não partilham o mesmo ambiente.
 
 ## Fora deste incremento
 

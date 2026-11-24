@@ -1,0 +1,18 @@
+Diagnóstico inicial — I5.5
+
+HEAD e origin/main estavam em c36fd3ff7ed361a6f5abbf034beb5f9bdafe2b54,
+a publicação do I5.4. A árvore versionada não tinha alterações.
+_srs_extract.txt e docs/srs/ estavam por versionar e foram preservados.
+As seis capturas do I5.3 que tinham sido modificadas localmente numa
+sessão anterior já estavam repostas. Não entraram neste incremento.
+
+O .env e frontend/e2e/.credentials.json continuam ignorados pelo Git.
+O Compose estava operacional. A cabeça Alembic era 0004_offers.
+A baseline publicada era 160 testes PostgreSQL e 40 testes Playwright.
+
+A SRS v1.1 e os diagramas foram lidos e não foram editados.
+O backend de domínio, os contratos e as migrações não tinham defeito
+funcional pendente na leitura inicial. Durante a suite completa apareceu
+um defeito de integração na fronteira da sessão, descrito em alteracoes.txt.
+
+Não foi consultado o projecto comercial.

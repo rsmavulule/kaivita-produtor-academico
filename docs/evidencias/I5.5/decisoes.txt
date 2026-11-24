@@ -1,0 +1,30 @@
+Decisões e limitações — I5.5
+
+Decisões
+  O percurso integrado e a autorização transversal ficam em Playwright, pela
+  interface. A preparação de contas reutiliza create_user, setAccess e
+  setCommercialRoles.
+  Duas suites no mesmo ambiente são recusadas por um ficheiro de cadeado
+  entre processos. A limpeza segue um manifesto de emails desta execução.
+  A regressão não reescreve capturas versionadas. A evidência permanente do
+  I5.5 é uma execução explícita.
+  A transacção passa a ser confirmada antes de a resposta HTTP sair, para
+  o recurso acabado de criar ser visível no pedido seguinte. O contrato da
+  API mantém-se.
+  Depois de a API voltar, o contentor web é reiniciado.
+
+Limitações
+  Logout não revoga o JWT. Não há refresh token.
+  HTTPS de produção depende da configuração do proxy.
+  Não há SELECT FOR UPDATE na representação durante a escrita.
+  Não há pesquisa pública, consulta pública, contactos, avaliação com
+  utilizadores, auditoria de autorização, encomendas, pagamentos, stock
+  nem upload.
+  A área de actuação da SRS não é um campo persistido.
+  A fotografia é uma referência de texto, sem declaração de direito de uso.
+  O cadeado e a limpeza não cobrem uma interrupção que mate o processo
+  antes do teardown. O procedimento de recuperação está à parte.
+  Não houve reformulação visual.
+
+Não foi consultado o projecto comercial. A SRS e os diagramas não foram
+alterados. Não houve commit nem push.

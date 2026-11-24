@@ -1,0 +1,66 @@
+Verificação transaccional — I5.5
+
+Causa
+  get_session faz yield da sessão e só corre session.commit() quando o
+  gerador retoma. No FastAPI 0.162 o AsyncExitStack da rota fecha depois
+  de await response(scope, receive, send). A linha de estado e o corpo
+  saem antes desse commit. O servidor Next.js pede o recurso assim que
+  recebe o 201. O registo da API mostrou POST /offers 201 e, de seguida,
+  GET da mesma oferta com 404.
+
+Ordem, de fora para dentro
+  ServerErrorMiddleware
+  CommitBeforeResponse
+  ExceptionMiddleware
+  router, com o gerador de get_session
+
+Pedido de escrita bem-sucedido
+  A dependência abre a sessão e guarda-a em scope["kaivita_session"].
+  O endpoint faz flush dentro da transacção, incluindo savepoints.
+  Ao primeiro http.response.start, CommitBeforeResponse chama commit()
+  e só depois encaminha a mensagem. O cliente não recebe 201 antes da
+  confirmação.
+  O gerador retoma a seguir. session.in_transaction() é falso, portanto
+  não há segundo commit. O finally retira a sessão do scope e fecha-a.
+
+Pedido que falha antes da resposta
+  HTTPException e erro de validação saem do endpoint, o gerador faz
+  rollback e close, e só então o ExceptionMiddleware envia o erro.
+  A sessão já não está no scope, logo o middleware não confirma nada.
+  O contrato 422 existente mantém-se. IntegrityError de email duplicado
+  continua a ser AccountExists dentro de begin_nested
+  (test_duplicate_email_is_rejected). Uma criação interrompida não deixa
+  actor nem papéis (test_failed_creation_leaves_no_partial_rows).
+
+Falha do próprio commit
+  Se commit() levanta, send da linha de estado não é chamado.
+  A excepção sai de response(), o gerador faz rollback e close, e o
+  ServerErrorMiddleware pode enviar 500. Não sai um 201.
+
+O que não mudou
+  Continua a haver uma transacção por pedido. Não há commit no meio de
+  uma operação de domínio. Não há migração nem contrato de erro novo.
+  Os testes que substituem get_session não passam pelo middleware, porque
+  não põem a sessão no scope.
+
+Diff de backend/app/db.py e backend/app/main.py
+
+  SESSION_SCOPE_KEY e get_session(request) passam a publicar a sessão.
+  O commit do gerador só corre se a transacção ainda estiver aberta.
+  CommitBeforeResponse confirma no http.response.start, antes de send.
+  main.py regista esse middleware com add_middleware.
+
+Testes novos
+  tests/test_commit_order.py
+    commit antes de http.response.start
+    commit que falha não envia a linha de estado
+    o gerador confirma uma vez se o middleware não o fez
+    o gerador não confirma segunda vez
+    falha do pedido faz rollback e close e tira a sessão do scope
+  tests/test_commit_visibility.py
+    PostgreSQL real, sem sleep
+    oferta recusada com quantidade zero disponível responde 422 e o
+    detalhe já existente; outra ligação não vê linha
+    oferta 201 é lida por outra sessão ainda durante o envio do corpo
+    o GET seguinte devolve a mesma oferta, 45.00, rascunho
+    o teste apaga só o utilizador e o actor que criou
