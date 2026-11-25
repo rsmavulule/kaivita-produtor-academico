@@ -1,0 +1,17 @@
+Histórico e auditoria
+
+O histórico privado identifica, para cada linha: contacto, revisão,
+canal, finalidade, aviso, operador e instante da concessão, e, se
+revogada, operador, instante e motivo.
+
+Não guarda o valor que o contacto tinha nessa revisão. Depois de uma
+alteração, esse valor deixa de ser recuperável por esta tabela.
+É uma limitação deliberada: evitar uma segunda cópia do contacto.
+
+Não há subsistema genérico de auditoria. As outras operações da
+plataforma não passaram a ter registo de evento. O access log do
+Uvicorn continua a gravar a linha do pedido.
+
+Por isso RNF-07 não fica integralmente satisfeito. Fica coberto o
+histórico de concessão e revogação dos contactos, sem o valor do
+contacto nesse histórico e sem o valor no log observado.

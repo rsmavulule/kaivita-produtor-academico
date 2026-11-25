@@ -1,0 +1,38 @@
+Contratos privados
+
+GET  /actors/{actor_id}/contacts/{contact_id}/authorizations
+  read ou manage
+  200 {"items":[...]}
+  ordem: granted_at descendente, id ascendente em empate
+  lista vazia se nunca houve autorização
+
+POST /actors/{actor_id}/contacts/{contact_id}/authorizations
+  manage
+  corpo: contact_revision, purpose, notice_version, confirmed
+  extra=forbid; null recusado; confirmed tem de ser o booleano true
+  201 autorização nova
+  200 repetição da mesma revisão, canal, finalidade e aviso
+  409 revisão desactualizada, contacto inactivo ou autorização vigente incoerente
+  422 entrada inválida, sem o valor rejeitado e sem a chave input
+
+POST /actors/{actor_id}/contacts/{contact_id}/authorizations/{authorization_id}/revoke
+  manage
+  200
+  repetir não altera a linha nem uma concessão posterior
+  404 Autorização não encontrada. se o id não pertence a este contacto e actor
+  404 Contacto não encontrado. se o contacto não é deste actor
+  404 Actor não encontrado. sem representação suficiente
+
+Sessão inválida: 401 Token inválido.
+
+Resposta: id, contact_id, contact_revision, channel, purpose,
+notice_version, status derivado granted ou revoked, granted_at,
+granted_by_user_id, revoked_at, revoked_by_user_id, revocation_reason.
+Sem email, sem valor do contacto.
+
+Os UUID dos operadores identificam quem concedeu ou revogou, só neste
+contexto privado. Não há outro atributo da conta.
+
+Cache-Control: private, no-store nestes caminhos, pelo mesmo
+middleware do I7.1. O histórico observado na API em execução trouxe
+esse cabeçalho.

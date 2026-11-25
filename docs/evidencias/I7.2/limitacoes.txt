@@ -1,0 +1,47 @@
+Limitações
+
+A autorização histórica não guarda o valor do contacto. Não é possível
+reconstruir o telefone, o email ou o WhatsApp anteriores a uma alteração.
+
+A sintaxe do telefone e do email continua a ser da aplicação. A base
+não a revalida na autorização; valida canal, finalidade, aviso, revisão
+e coerência da revogação.
+
+Uma autorização vigente cuja revisão ou canal já não coincidem com o
+contacto não é corrigida pela concessão. A resposta é 409. A consulta
+pública não a usa. A recuperação é a revogação explícita e uma concessão
+nova. Repetir a concessão idempotente não altera o operador nem o
+instante e não trata esse caso como a mesma concessão.
+
+A base de desenvolvimento não foi sujeita a downgrade. O downgrade
+apagaria as autorizações e marcaria os contactos como private.
+
+READ COMMITTED: a consulta seguinte ao commit da revogação deixa de
+divulgar. Uma instrução que já estava em execução pode observar o
+snapshot anterior. Esse segundo caso continua por executar; não foi
+aberto um cursor durante o commit de outra sessão. Não se promete
+apagar cópias já entregues a terceiros.
+
+As disputas de concessão, alteração, desactivação e revogação foram
+executadas com as duas transacções abertas e a espera confirmada.
+Não ficou por medir a disputa do bloqueio desses pares.
+
+Se a mesma sessão ler a autorização sem FOR UPDATE e, só depois,
+bloquear à espera dela, o mapa de identidade pode conservar a versão
+antiga. A operação que se segue pode reescrever uma revogação já
+confirmada. Os pedidos actuais não fazem essa leitura. O helper de
+teste que a fazia foi corrigido. Não houve alteração de produção.
+
+A revogação da representação entre a verificação e o commit da escrita
+não é reavaliada.
+
+CommitBeforeResponse continua síncrono.
+
+O access log inclui o caminho e, noutras rotas, a query string.
+Nesta janela não incluiu o valor do contacto.
+
+Não há censura de texto livre. Não há prova de consentimento jurídico
+nem de que o contacto existe ou funciona. Q-06 permanece aberta.
+
+A limpeza Playwright ainda não conhece as tabelas novas. Os testes
+deste incremento que confirmam dados apagam-nos na ordem das FK.

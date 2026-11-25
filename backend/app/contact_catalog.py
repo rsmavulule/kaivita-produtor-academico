@@ -6,8 +6,9 @@ O contacto de outro actor, no caminho de um actor autorizado, responde
 404 sem devolver o valor.
 
 O dono é o actor do caminho. O corpo não escolhe actor, estado,
-visibilidade, revisão nem autorização. Neste incremento a resposta
-permanece privada: não há rota pública de contactos.
+visibilidade, revisão nem autorização. A concessão e a revogação
+estão em ``publication_catalog``. A resposta privada continua sem
+o valor histórico das autorizações.
 """
 
 import re
@@ -241,7 +242,13 @@ def edit_contact(
     except ActorUnavailable:
         raise _missing_actor() from None
     try:
-        contact = update_contact(session, actor, contact_id, _changes(body))
+        contact = update_contact(
+            session,
+            actor,
+            contact_id,
+            _changes(body),
+            operator_id=user.id,
+        )
     except ContactUnavailable:
         raise _missing_contact() from None
     except ContactInactive as exc:
@@ -268,7 +275,12 @@ def deactivate_actor_contact(
     except ActorUnavailable:
         raise _missing_actor() from None
     try:
-        contact = deactivate_contact(session, actor, contact_id)
+        contact = deactivate_contact(
+            session,
+            actor,
+            contact_id,
+            operator_id=user.id,
+        )
     except ContactUnavailable:
         raise _missing_contact() from None
     return _present(contact)

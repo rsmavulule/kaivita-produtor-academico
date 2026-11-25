@@ -1,0 +1,57 @@
+Matriz de cobertura — backend/tests/test_publication.py
+
+21 testes. Vários cenários estão agrupados.
+
+A  Persistência
+  1 e 12-14  test_grant_stores_one_current_authorization_without_the_contact_value
+             test_publication_migration_on_a_throwaway_database
+  2-11       test_postgres_rejects_invalid_authorizations
+             test_authorization_schema_matches_the_model
+
+B  Concessão
+  15-27      test_grant_validation_and_conflicts
+             test_inconsistent_current_authorization_is_not_reused
+
+C  Revogação e histórico
+  28-36      test_history_revoke_and_a_later_grant
+             test_grant_stores_one_current_authorization_without_the_contact_value
+
+D  Alteração e desactivação
+  37-45      test_effective_change_revokes_and_invalid_change_does_not
+             test_deactivation_revokes_once_and_leaves_the_contact_private
+             test_duplicate_update_preserves_the_current_authorization
+             O último confirma também canal, operador, instante,
+             campos de revogação e a consulta pública do contacto.
+
+E  Isolamento
+  46-58      test_readers_and_strangers_cannot_cross_authorizations
+             test_buyer_and_inactive_actor_can_manage_authorizations
+
+F  Divulgação
+  59-84      test_public_disclosure_follows_eligibility_and_authorization
+             test_authorized_contact_of_an_unavailable_offer_is_disclosed
+             test_logs_and_openapi_do_not_expose_contact_values_or_internal_fields
+
+G  Concorrência
+  85         test_concurrent_grants_leave_one_current_authorization
+  86-89      test_publication_concurrency.py, com as duas transacções
+             sobrepostas e pg_blocking_pids
+             A1 test_grant_holds_the_lock_and_the_update_revokes_afterwards
+             A2 test_update_holds_the_lock_and_the_old_revision_is_refused
+             B1 test_grant_holds_the_lock_and_deactivation_revokes_afterwards
+             B2 test_deactivation_holds_the_lock_and_the_grant_is_refused
+             C  test_revoke_holds_the_lock_and_the_update_keeps_that_revocation
+                test_update_holds_the_lock_and_the_later_revoke_does_not_rewrite_it
+             D  test_repeated_grant_holds_the_lock_and_does_not_create_another_row
+                test_revoke_holds_the_lock_and_the_following_grant_is_a_new_row
+                test_revoking_the_old_row_does_not_hide_the_later_grant
+  90         test_duplicate_update_preserves_the_current_authorization
+  91-94 e 96 test_committed_grant_is_visible_before_the_response_finishes
+             test_committed_revoke_hides_the_contact_before_the_response_finishes
+  95         test_public_query_is_one_statement
+
+test_grant_and_change_keep_both_orders e
+test_revoke_then_grant_and_grant_then_revoke continuam a ser ordens
+concluídas uma a uma. Não substituem os testes sobrepostos.
+A consulta com cursor aberto durante o commit de outra sessão não foi
+executada. Ver verificacao-concorrencia.txt.

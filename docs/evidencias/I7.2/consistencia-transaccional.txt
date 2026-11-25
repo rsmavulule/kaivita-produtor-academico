@@ -1,0 +1,37 @@
+Consistência transaccional
+
+A ordem de bloqueio é o contacto com FOR UPDATE e, em seguida, a
+autorização correspondente. Concessão, revogação, alteração e
+desactivação usam essa ordem. Nas disputas sobrepostas não houve
+deadlock.
+
+A concessão e a passagem a public ocorrem no mesmo savepoint. A
+alteração efectiva revoga e muda o contacto no mesmo savepoint: a
+violação de unicidade desfaz as duas. O teste do PATCH duplicado
+confirma também que a consulta pública continua a devolver o contacto
+autorizado.
+
+A desactivação revoga e marca inactive antes do flush único.
+CommitBeforeResponse mantém-se. Durante o corpo da resposta 201 da
+concessão, outra sessão já via a autorização vigente e o contacto
+público. Durante o corpo da revogação, a consulta pública já via a
+lista vazia.
+
+O isolamento global não foi alterado. Continua READ COMMITTED.
+Uma consulta iniciada depois do commit deixa de ver o contacto.
+Uma instrução que já tinha começado pode ainda ver o snapshot
+anterior. Não foi executado um cursor aberto atravessando o commit
+de outra sessão. A instrução única da consulta pública foi observada
+pelo listener de SQL no teste já existente.
+
+A representação continua a ser lida antes do bloqueio do contacto.
+Uma revogação de representação confirmada nesse intervalo não é
+reavaliada.
+
+A leitura de bloqueio que materializa a autorização tem de ser a
+primeira dessa linha na sessão. Uma leitura anterior, sem FOR UPDATE,
+deixa o objecto antigo no mapa de identidade e a operação seguinte
+pode reescrever uma revogação já confirmada por outra transacção.
+Isto foi provocado por um helper de teste e removido. Os pedidos
+actuais não fazem essa leitura prévia. O código de produção não foi
+alterado.

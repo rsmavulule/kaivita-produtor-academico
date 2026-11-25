@@ -1,0 +1,21 @@
+Decisões incorporadas no I7.2
+
+DA-I7-01  GET /public/offers/{offer_id}/contacts, separado da lista e da ficha
+DA-I7-02  finalidade única commercial_discovery
+DA-I7-03  canais phone, email e whatsapp, herdados do I7.1
+DA-I7-04  cada concessão nova cria uma linha nova
+DA-I7-05  alteração efectiva do canal ou do valor revoga a autorização vigente
+DA-I7-06  desactivação sem apagar a linha; também revoga a autorização vigente
+DA-I7-07  granted_by_user_id e revoked_by_user_id
+DA-I7-08  oferta indisponível elegível divulga contactos autorizados
+DA-I7-09  oferta elegível sem contactos divulgáveis devolve {"items":[]}
+DA-I7-10  a acção «Ver contactos» fica na interface do I7.3; a API já é separada
+DA-I7-11  I7.3 não foi implementado
+DA-I7-12  uma autorização cobre um contacto, não vários
+DA-I7-13  a concessão confirma a revisão exacta
+DA-I7-14  GET do histórico, da concessão mais recente para a mais antiga
+DA-I7-15  FK composta (contact_id, actor_id) para public_contacts(id, actor_id)
+
+Não há authorization_id em public_contacts. A tabela de autorizações
+não copia o valor do contacto. Os diagramas UML não foram alterados.
+A cardinalidade mais larga do UML fica restringida de propósito.

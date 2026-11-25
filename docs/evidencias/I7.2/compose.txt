@@ -1,0 +1,16 @@
+Compose — estado observado
+
+Imagem da API reconstruída e contentor recriado.
+Identificador:
+  sha256:97b510f28cbd9af87bcb809ab3eae91d881452c71afed2eb45631a7284ec3dac
+A base e a interface não foram reconstruídas. O teste Playwright que
+desliga a API voltou a arrancá-la e reiniciou também a interface.
+
+Estado depois dessa recuperação:
+  api   Up (healthy)   0.0.0.0:8010->8000
+  db    Up (healthy)   0.0.0.0:5435->5432
+  web   Up (healthy)   0.0.0.0:3010->3000
+
+Alembic na base, lido no percurso: 0006_publication_authorizations.
+O contentor executa alembic upgrade head no arranque. O log desse
+arranque não mostrou erro de migração.

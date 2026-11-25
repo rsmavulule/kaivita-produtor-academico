@@ -1,0 +1,117 @@
+Verificação complementar de concorrência
+
+Mecanismo
+
+Cada cenário usa duas sessões SQLAlchemy, logo duas ligações, e uma
+terceira sessão só no fim. A primeira executa a operação real, que
+faz SELECT FOR UPDATE do contacto, e permanece por confirmar.
+A segunda só então executa a outra operação.
+Quem observa consulta pg_stat_activity e pg_locks até ver a espera,
+ou até 6 segundos. O intervalo de 0,05 segundos entre leituras não é
+a evidência. A evidência é a vista do PostgreSQL.
+Há lock_timeout de 12 segundos na segunda transacção e fecho das
+sessões se o teste falhar. Não disparou.
+
+Espera efectiva, exigida pela execução que passou e já vista na
+execução instrumentada anterior:
+
+  a segunda está active
+  wait_event_type = Lock
+  wait_event = transactionid
+  pg_blocking_pids contém o pid da primeira
+  a segunda tem um ShareLock não concedido sobre transactionid
+  a primeira tem RowShareLock concedido, de relação, sobre
+  public_contacts
+
+Na execução instrumentada, a primeira também tinha RowExclusiveLock
+sobre public_contacts quando a operação alterava a linha. A concessão
+idempotente e a revogação de uma linha já revogada só mostraram
+RowShareLock. O PostgreSQL não apresenta essa espera como um bloqueio
+não concedido com o nome da tabela. Espera pelo transactionid de quem
+já segurou a linha.
+
+Ordens e resultados da execução final, 9 passed in 1.48s.
+A consulta pública é a da terceira sessão, depois de ambas terminarem.
+
+A1  Concessão primeira, alteração à espera.
+    Concessão criada. Revisão 2. Valor novo. Visibilidade private.
+    Uma autorização, motivo contact_changed, operador da alteração,
+    instante igual ao que a alteração registou antes do seu commit.
+    Consulta pública: lista vazia.
+
+A2  Alteração primeira, concessão da revisão anterior à espera.
+    A concessão levanta AuthorizationConflict com a mensagem fixa de
+    revisão desactualizada. Nenhuma autorização. Contacto private,
+    revisão 2. Consulta pública: lista vazia.
+
+B1  Concessão primeira, desactivação à espera.
+    Contacto inactive e private. Revisão 1.
+    Uma autorização, motivo contact_deactivated, operador da
+    desactivação. Consulta pública: lista vazia.
+
+B2  Desactivação primeira, concessão à espera.
+    A concessão levanta AuthorizationConflict com a mensagem de
+    contacto inactivo. Nenhuma autorização. Contacto inactive e
+    private. Consulta pública: lista vazia.
+
+C1  Revogação primeira, alteração à espera.
+    Sem deadlock. Uma autorização. Motivo manual e instante iguais
+    aos da revogação que segurou o bloqueio; a alteração não os
+    reescreveu. Revisão 2. Contacto private.
+    Consulta pública: lista vazia.
+
+C2  Alteração primeira, revogação da mesma autorização à espera.
+    Sem deadlock. Motivo contact_changed e instante iguais aos da
+    alteração. A revogação posterior não os reescreveu.
+    Revisão 2. Contacto private. Consulta pública: lista vazia.
+
+D1  Concessão repetida primeira, revogação dessa autorização à espera.
+    A repetição devolveu a linha existente. Continua uma só linha.
+    O instante de concessão original mantém-se. A revogação que
+    esperava aplica manual. Contacto private.
+    Consulta pública: lista vazia.
+
+D2  Revogação primeira, concessão à espera.
+    A concessão cria outra linha e outro identificador.
+    A original permanece manual, com o instante da revogação que
+    segurou o bloqueio. Fica uma autorização vigente.
+    Contacto public. Consulta pública: o telefone sintético.
+
+D3  Já existia uma autorização posterior vigente.
+    A revogação da linha antiga segurou o bloqueio e não mudou o
+    instante nem o motivo dessa linha. A concessão que esperava foi
+    idempotente e devolveu a autorização posterior.
+    Continua uma vigente. Contacto public.
+    Consulta pública: o telefone sintético.
+
+Em todos os cenários o número de autorizações vigentes no fim foi
+zero ou uma.
+
+Atomicidade do PATCH duplicado
+
+O teste já existente foi alargado e passou dentro das suites de 69
+e de 266. A falha de unicidade não muda valor, canal, revisão,
+visibilidade, operador, instante de concessão nem os campos de
+revogação. A consulta pública continua a devolver o contacto
+autorizado.
+
+Consulta pública
+
+O teste test_public_query_is_one_statement continua a ver uma só
+instrução, com a elegibilidade e os contactos. Não foi executado um
+cursor aberto enquanto outra sessão confirma a revogação. A frase
+sobre o snapshot anterior mantém-se como limite do READ COMMITTED,
+não como resultado medido.
+
+Defeitos
+
+Não foi encontrado defeito no código de produção. Não houve alteração
+de produção, nem migração, nem reconstrução da imagem, nem nova
+execução Playwright.
+
+Houve dois defeitos de teste. O primeiro pedia o nome da tabela no
+bloqueio ainda não concedido. O segundo lia a autorização sem
+FOR UPDATE antes de pedir o bloqueio; o mapa de identidade conservou
+revoked_at nulo e a revogação de teste reescreveu contact_changed
+para manual. A execução seguinte, sem essa leitura, manteve
+contact_changed.

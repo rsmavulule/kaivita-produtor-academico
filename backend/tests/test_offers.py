@@ -352,7 +352,7 @@ def test_offers_migration_preserves_existing_rows_on_a_throwaway_database():
 
         _alembic(environment, "upgrade", "0003_products")
         planted = _plant_product(target)
-        # 0004_offers, e não head: a cabeça passou a 0005_contacts.
+        # 0004_offers, e não head: a cabeça passou a 0006_publication_authorizations.
         _alembic(environment, "upgrade", "0004_offers")
         upgraded = _offer_state(target)
         assert upgraded["version"] == "0004_offers"

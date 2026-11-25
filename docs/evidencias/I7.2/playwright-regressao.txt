@@ -1,0 +1,23 @@
+Playwright — regressão observada
+
+O frontend não foi modificado. O Chromium 1255 já estava disponível
+nesta sessão. Não foi preciso instalá-lo outra vez.
+
+Execução contra http://127.0.0.1:3010, com E2E_NO_SERVER=1 e sem
+E2E_EVIDENCE:
+  52 passed (2.7m)
+
+Inclui actores, autenticação, integração, ofertas, produtos e a
+descoberta pública. O último teste pára e recupera a API; no fim
+api, db e web estavam healthy.
+
+A limpeza E2E ainda não apaga publication_authorizations nem
+public_contacts. Os 52 testes não criam esses registos. Quando o
+I7.3 criar contactos de contas do manifesto, a ordem terá de ser:
+  autorizações dos contactos sintéticos
+  contactos sintéticos
+  ofertas e produtos sintéticos
+  restantes associações e actores de teste
+  contas sintéticas
+As FK são ON DELETE RESTRICT. Actores e contas que não pertençam ao
+teste não devem ser apagados.

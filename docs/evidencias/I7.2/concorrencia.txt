@@ -1,0 +1,39 @@
+Concorrência observada
+
+A verificação complementar está em
+backend/tests/test_publication_concurrency.py.
+As duas transacções ficam abertas ao mesmo tempo. A segunda só continua
+depois de pg_blocking_pids a mostrar bloqueada pela primeira.
+O pormenor está em verificacao-concorrencia.txt.
+
+Execução final desse ficheiro: 9 passed in 1.48s.
+
+A1  A concessão segura o bloqueio. A alteração espera. Depois do commit,
+    a revisão passa a 2, a autorização fica revogada com contact_changed,
+    o contacto fica private e a consulta pública devolve lista vazia.
+A2  A alteração segura o bloqueio. A concessão da revisão anterior espera
+    e, depois do commit, responde com a mensagem fixa de revisão
+    desactualizada. Não nasce autorização. O contacto fica private.
+B1  A concessão segura o bloqueio. A desactivação espera e revoga com
+    contact_deactivated. O contacto fica inactive e private. A consulta
+    pública devolve lista vazia.
+B2  A desactivação segura o bloqueio. A concessão espera e é recusada
+    com a mensagem de contacto inactivo. Não nasce autorização.
+C   Nas duas ordens não houve deadlock. A autorização original é revogada
+    uma vez. O motivo e o instante da primeira revogação efectiva
+    mantêm-se. A revisão fica 2. O contacto fica private. A consulta
+    pública devolve lista vazia.
+D   A concessão repetida, enquanto segura o bloqueio, não cria segunda
+    linha; a revogação que esperava deixa o contacto private.
+    A revogação que segura o bloqueio, seguida da concessão que esperava,
+    cria uma linha nova e o contacto volta a public.
+    Revogar de novo a linha antiga, com a concessão posterior à espera,
+    não altera essa concessão nem esconde o contacto.
+
+Continua a existir, noutro módulo, a corrida das duas concessões com
+Barrier e as ordens concluídas uma a uma. Essas últimas não são a
+evidência de disputa do bloqueio.
+
+A falha de unicidade de um PATCH duplicado, já confirmada, foi alargada:
+valor, canal, revisão, visibilidade, operador, instante e campos de
+revogação mantêm-se, e a consulta pública continua a devolver o contacto.

@@ -3,9 +3,10 @@
 Expõe o estado do serviço, a autenticação, a representação de actores,
 a criação do actor, o catálogo de papéis comerciais, o catálogo de
 produtos, a gestão privada de ofertas, a gestão privada de contactos
-comerciais e a descoberta pública de ofertas.
-A documentação está em /docs. Não há registo público nem divulgação
-de contactos.
+comerciais, a autorização de divulgação e a descoberta pública de
+ofertas e dos contactos autorizados.
+A documentação está em /docs. Não há registo público. Publicar uma
+oferta não divulga contactos.
 """
 
 from typing import Literal
@@ -25,6 +26,7 @@ from app.config import settings
 from app.db import CommitBeforeResponse, check_database
 from app.public_catalog import PublicNoStore
 from app.public_catalog import router as public_offer_router
+from app.publication_catalog import router as publication_router
 from app.roles import router as roles_router
 
 app = FastAPI(title=settings.app_name)
@@ -36,6 +38,7 @@ app.include_router(actors_router)
 app.include_router(catalog_router)
 app.include_router(offer_router)
 app.include_router(contact_router)
+app.include_router(publication_router)
 app.include_router(public_offer_router)
 app.include_router(roles_router)
 

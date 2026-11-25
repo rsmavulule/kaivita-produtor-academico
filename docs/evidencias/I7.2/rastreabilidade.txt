@@ -1,0 +1,94 @@
+Rastreabilidade — I7.2
+
+Fonte: SRS v1.1, redacção lida para este incremento.
+
+RF-05  «Apresentar localização geral e apenas contactos comerciais
+       autorizados pelo actor.»
+       A localização geral continua na ficha desde o I6. Os contactos
+       autorizados passam a sair no endpoint separado. A ficha e a
+       lista não os incluem. A interface ainda não os mostra.
+       Validado no backend; a apresentação ao visitante depende do I7.3.
+
+RF-08  «Autenticar utilizadores e impedir alteração de dados de actores
+       sem representação autorizada.»
+       As rotas de autorização reutilizam a sessão e a representação.
+       Validado para conceder, revogar e consultar o histórico.
+
+RF-10  «Permitir registar, consultar e revogar autorização para
+       publicação de contactos; ocultar contacto após revogação.»
+       Registo, consulta do histórico, revogação e ocultação na
+       consulta pública seguinte estão validados na API. A interface
+       que o representante e o visitante usam depende do I7.3.
+       Não se declara o percurso completo de contacto entre actores
+       validado pela interface.
+
+RB-06  «Apenas ofertas publicadas e actores/produtos elegíveis aparecem
+       em consulta pública; oferta suspensa/indisponível não pode ser
+       anunciada como disponível.»
+       O endpoint de contactos reutiliza o predicado do I6.1.
+       Suspensa, retirada e rascunho respondem 404. Indisponível
+       elegível divulga o contacto e a ficha mantém unavailable.
+       Validado no backend.
+
+RB-07  «Contacto privado não é publicado; revogação de autorização
+       impede exibição pública posterior.»
+       Validado na consulta pública estruturada: sem autorização não
+       sai; depois do commit da revogação, a consulta seguinte não o
+       devolve. Uma instrução já iniciada pode ver o snapshot anterior.
+       A interface ainda não consulta o endpoint.
+
+RB-10  «Representante só altera recursos de actor para o qual mantém
+       autorização válida.»
+       Validado para concessão e revogação, incluindo o cruzamento de
+       identificadores.
+
+RNF-03 «Hash seguro de palavras-passe, sessões protegidas, autorização
+       verificada no servidor.»
+       Continua válido. Estas rotas verificam a autorização no servidor.
+       O hash e o cookie não foram alterados.
+
+RNF-04 «Integridade referencial e isolamento de dados por actor;
+       validação de entradas no servidor.»
+       Alargado à FK composta, aos CHECK e ao índice único parcial.
+       Validado no PostgreSQL.
+
+RNF-05 «Testes automatizados de autenticação, papéis, representação,
+       CRUD, publicação, pesquisa e revogação; guardar evidências de
+       execução.»
+       A suite ficou em 257 testes de backend e os 52 de Playwright
+       passaram. Há testes de revogação da divulgação. A interface
+       dessa revogação ainda não tem teste E2E.
+
+RNF-06 «Minimização de dados pessoais, consentimento por finalidade e
+       possibilidade de ocultar contactos públicos.»
+       A resposta pública estruturada tem só canal e valor. A finalidade
+       é explícita e a revogação oculta a consulta seguinte. O aviso v1
+       existe no backend e ainda não é mostrado na interface. O texto
+       livre de actores, produtos e ofertas não é censurado. Continua
+       parcial. Não é conformidade jurídica.
+
+RNF-07 «Registar eventos relevantes de autorização e alterações de
+       publicação sem expor dados sensíveis em logs.»
+       O histórico cobre concessão e revogação dos contactos, sem o
+       valor. Não há auditoria das restantes alterações de publicação.
+       O access log observado não continha o telefone nem o email do
+       percurso e continha UUID no caminho. Não fica integralmente
+       satisfeito.
+
+UC-07  «Gerir contacto público. Sem autorização, contacto oculto; após
+       revogação, oculto imediatamente.»
+       O critério está validado na API para a consulta seguinte ao
+       commit. A acção do visitante e o ecrã do representante dependem
+       do I7.3. Não se declara o caso de uso fechado na interface.
+
+Dependem do I7.3: ecrã privado de contactos e autorizações, acção
+«Ver contactos», apresentação do aviso v1, RNF-01 e RNF-02 nesses
+ecrãs, e a limpeza E2E descrita em playwright-regressao.txt.
+
+Residuais do I8: RF-01 área de actuação, RF-02 fotografia como
+ficheiro, RB-08, catálogos públicos independentes, encomendas,
+pagamentos, reservas e chat.
+
+Dependem do I9: a revisão da SRS com o orientador e a validação das
+ambiguidades, incluindo Q-06 sobre retenção e enquadramento legal.
+Este incremento não declara conformidade jurídica.

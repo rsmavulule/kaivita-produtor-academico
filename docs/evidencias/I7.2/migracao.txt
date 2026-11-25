@@ -1,0 +1,29 @@
+Migração 0006_publication_authorizations
+
+down_revision = 0005_contacts
+
+Upgrade, por esta ordem:
+  1. contactos com visibility public passam a private e updated_at muda
+  2. cria publication_authorizations, FKs, CHECKs e os dois índices
+  3. actualiza o comentário da tabela e da coluna visibility
+Não insere autorizações.
+
+Downgrade:
+  1. contactos public passam a private
+  2. remove os índices e a tabela de autorizações
+  3. repõe os comentários do 0005
+
+Teste observado numa base descartável kaivita_i72_*, sem downgrade
+da base de desenvolvimento:
+  upgrade até 0005
+  dois contactos plantados, um private e um public, mais actor,
+  produto e oferta em rascunho
+  upgrade para 0006: 2 contactos, 0 public, 0 autorizações, oferta intacta
+  inserção sintética de uma autorização
+  downgrade para 0005: tabela de autorizações ausente, 0 public,
+  2 contactos, oferta intacta
+  novo upgrade: 0 autorizações, 2 contactos, oferta intacta
+
+A suite com RUN_DB_TESTS=1 aplicou upgrade head na base de
+desenvolvimento. Depois do arranque da API, version_num é
+0006_publication_authorizations.

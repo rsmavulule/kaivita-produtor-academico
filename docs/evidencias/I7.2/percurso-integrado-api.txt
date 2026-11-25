@@ -1,0 +1,29 @@
+Percurso integrado na API em execução
+
+Conta sintética criada na base e sessão obtida por POST /auth/login.
+O token não foi registado.
+
+Resultado observado, em JSON resumido:
+  alembic 0006_publication_authorizations
+  login 200
+  actor 201
+  contacto nasce private
+  depois de publicar e antes de conceder: 200 no-store {"items":[]}
+  concessão 201 granted revisão 1
+  consulta pública seguinte: o item canónico presente; no-store
+  esse valor ausente de GET /public/offers?limit=1 e da ficha
+  alteração: revisão 2, visibility private, consulta pública {"items":[]}
+  concessão com a revisão 1: 409 e a mensagem fixa de revisão desactualizada
+  concessão com a revisão 2: granted e a consulta devolve o valor novo
+  oferta suspensa: 404 Oferta não encontrada.
+  republicação: o contacto autorizado volta
+  revogação manual: consulta pública {"items":[]}
+  histórico 200, Cache-Control private, no-store
+  estados revoked, revoked e motivos manual, contact_changed
+  a chave value não aparece no histórico
+
+Limpeza só destas linhas, por esta ordem: autorizações, contactos,
+ofertas, produtos, papéis, representação, actor e conta.
+cleaned true. Não houve downgrade.
+
+O access log correspondente está descrito em seguranca-privacidade.txt.

@@ -21,14 +21,17 @@ from sqlalchemy.orm import Session
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from app.contacts import ContactChannel
 from app.db import get_session
 from app.identity import ActorKind
 from app.offers import AvailabilityStatus
 from app.public_offers import (
+    PublicContactData,
     PublicOfferData,
     PublicSearch,
     normalize_search_text,
     public_offer,
+    public_offer_contacts,
     public_offer_page,
 )
 
@@ -107,6 +110,23 @@ class PublicOfferPage(BaseModel):
     limit: int
     offset: int
     total: int
+
+
+class PublicDisclosedContact(BaseModel):
+    """Contacto autorizado. Não transporta identificadores nem histórico."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    channel: ContactChannel
+    value: str
+
+
+class PublicContactList(BaseModel):
+    """Lista da oferta elegível. Vazia quando nada é divulgável."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    items: list[PublicDisclosedContact]
 
 
 class PublicNoStore:
@@ -313,3 +333,47 @@ def read_public_offer(
     if found is None:
         raise _missing()
     return _view(found)
+
+
+def _disclosed(contact: PublicContactData) -> PublicDisclosedContact:
+    return PublicDisclosedContact(
+        channel=ContactChannel(contact.channel),
+        value=contact.value,
+    )
+
+
+@router.get(
+    "/{offer_id}/contacts",
+    response_model=PublicContactList,
+    summary="Consultar contactos autorizados de uma oferta",
+    description=(
+        "Devolve só o canal e o valor dos contactos com autorização vigente "
+        "coerente com a revisão e o canal actuais. A oferta usa o mesmo "
+        "predicado de elegibilidade da ficha. Oferta inexistente ou "
+        "inelegível responde 404. Oferta elegível sem contactos divulgáveis "
+        "responde uma lista vazia. Não exige autenticação."
+    ),
+    responses={
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Oferta inexistente ou inelegível.",
+            "content": {
+                "application/json": {
+                    "example": {"detail": NOT_FOUND},
+                }
+            },
+        }
+    },
+    dependencies=[Depends(reject_detail_query)],
+)
+def read_public_offer_contacts(
+    offer_id: Annotated[
+        OfferPath,
+        Path(description="Identificador UUID da oferta."),
+    ],
+    session: Session = Depends(get_session),
+) -> PublicContactList:
+    parsed = offer_id if isinstance(offer_id, uuid.UUID) else uuid.UUID(str(offer_id))
+    found = public_offer_contacts(session, parsed)
+    if found is None:
+        raise _missing()
+    return PublicContactList(items=[_disclosed(item) for item in found])

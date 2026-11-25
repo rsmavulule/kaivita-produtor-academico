@@ -1,0 +1,55 @@
+Pytest — resultados observados
+
+Ambiente: backend/.venv, RUN_DB_TESTS=1, PostgreSQL do Compose em 5435.
+A base de desenvolvimento foi actualizada com upgrade head para
+0006_publication_authorizations. O downgrade só correu numa base
+descartável.
+
+tests/test_publication.py, depois da correcção da ordem das asserções
+do teste de alteração:
+  21 passed in 7.42s
+
+A primeira execução desse ficheiro teve 16 passed e 5 failed.
+Quatro falhas eram NameError: o helper de concessão não importava a
+função. A outra lia o objecto de autorização depois de uma alteração
+posterior já o ter revogado; o SQL anterior a essa alteração mostrava
+revoked_at nulo. Não foi um 422 a deixar a autorização revogada.
+
+Suite completa, em seguida:
+  257 passed in 42.13s
+  São os 236 testes anteriores mais os 21 deste incremento.
+  test_foundation, test_identity e o teste de migração das ofertas
+  foram ajustados porque a cabeça passou a 0006. O teste das ofertas
+  continua fixo em 0004_offers. O teste OpenAPI dos contactos passou
+  a esperar o endpoint público separado, sem alargar o schema da oferta.
+
+Não foram introduzidos retries nem aumento de timeout para esconder
+falhas.
+
+Verificação complementar de concorrência, na mesma base e com o mesmo
+ambiente. Não houve alteração de código de produção.
+
+tests/test_publication_concurrency.py, execução final:
+  9 passed in 1.48s
+
+Antes disso, o mesmo ficheiro teve duas execuções que falharam por
+causa do teste, não da aplicação. A primeira exigia um bloqueio não
+concedido com o nome da tabela; o PostgreSQL mostra a espera no
+transactionid de quem já segura a linha. 9 failed in 56.55s, porque
+cada cenário esgotou a sondagem. A segunda já reconhecia essa espera:
+8 passed e 1 failed in 1.60s. A falha vinha de uma leitura da
+autorização, sem FOR UPDATE, antes de a segunda transacção pedir o
+bloqueio. O objecto antigo foi reutilizado e reescreveu o motivo.
+Essa leitura foi retirada do helper.
+
+tests/test_contacts.py e tests/test_publication.py, em seguida:
+  69 passed in 15.69s
+
+Suite completa, em seguida:
+  266 passed in 42.93s
+  São os 257 anteriores mais os 9 testes sobrepostos.
+
+git diff --check terminou sem apontar erros.
+Não foi reconstruída a imagem nem repetida a suite Playwright,
+porque o código de produção não mudou. Os 52 testes Playwright
+continuam a ser o resultado já aceite da validação anterior.

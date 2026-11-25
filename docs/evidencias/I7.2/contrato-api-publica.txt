@@ -1,0 +1,23 @@
+Contrato público
+
+GET /public/offers/{offer_id}/contacts
+
+Sem autenticação. Um Authorization inválido não muda o resultado.
+A query string é recusada, como na ficha, para o valor não entrar no erro.
+Cache-Control: no-store, incluindo 404 e 422. Não usa o prefixo private.
+
+Oferta elegível com contactos que cumprem o predicado:
+  {"items":[{"channel":"phone","value":"..."}]}
+Oferta elegível sem contactos divulgáveis:
+  {"items":[]}
+Oferta inexistente ou inelegível:
+  404 {"detail":"Oferta não encontrada."}
+UUID inválido:
+  422 sem o texto recebido.
+
+Cada item tem só channel e value. Não há contact_id, actor_id,
+authorization_id, user_id, revisão, timestamps, finalidade nem aviso.
+
+GET /public/offers e GET /public/offers/{offer_id} mantêm o schema
+anterior. No percurso em execução, o telefone sintético não apareceu
+nesses dois corpos enquanto aparecia no endpoint de contactos.

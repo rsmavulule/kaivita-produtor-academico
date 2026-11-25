@@ -1,17 +1,18 @@
-"""Contactos comerciais privados de um actor (incremento I7.1).
+"""Contactos comerciais de um actor (incrementos I7.1 e I7.2).
 
 A SRS v1.1 §3 e o diagrama de classes prevêem ``PublicContact``.
 O contacto pertence ao actor, não à conta. O email de login não é copiado
 para aqui. Nasce ``private`` e ``active``, com revisão 1.
 
 A cardinalidade do UML admite uma autorização a cobrir vários contactos.
-DA-I7-12 restringe o protótipo: a autorização futura é individual por
-contacto, canal e finalidade. Este incremento não cria essa tabela nem
-``authorization_id``. A unicidade ``(id, actor_id)`` fica para a chave
-estrangeira composta da migração seguinte.
+DA-I7-12 restringe o protótipo: a autorização é individual por contacto,
+canal e finalidade. Não há ``authorization_id`` nesta tabela. A unicidade
+``(id, actor_id)`` é o alvo da chave estrangeira composta.
 
-O papel ``producer`` não é exigido. A representação é que autoriza a
-leitura ou a escrita. A divulgação pública não é decidida aqui.
+O papel ``producer`` não é exigido para gerir o contacto. A visibilidade
+``public`` só é gravada pela concessão. Uma alteração efectiva do canal
+ou do valor, e a desactivação, revogam a autorização vigente na mesma
+transacção e voltam a gravar ``private``.
 """
 
 import re
@@ -56,7 +57,7 @@ class ContactChannel(StrEnum):
 
 
 class ContactVisibility(StrEnum):
-    """Intenção de divulgação. Neste incremento a API só grava ``private``."""
+    """``private`` por omissão. ``public`` só com autorização coerente."""
 
     PRIVATE = "private"
     PUBLIC = "public"
@@ -148,9 +149,10 @@ class PublicContact(Base):
         ),
         {
             "comment": (
-                "Contacto comercial privado de um actor. "
-                "A autorização individual de divulgação fica para o incremento seguinte. "
-                "A unicidade (id, actor_id) prepara a chave estrangeira composta."
+                "Contacto comercial de um actor. Nasce privado. "
+                "A divulgação depende de publication_authorizations. "
+                "Não há authorization_id. "
+                "A unicidade (id, actor_id) suporta a chave estrangeira composta."
             )
         },
     )
@@ -182,7 +184,7 @@ class PublicContact(Base):
     )
     visibility: Mapped[ContactVisibility] = closed_text(
         ContactVisibility,
-        "private por omissão. Este incremento não grava public.",
+        "private por omissão. A API só grava public ao conceder uma autorização coerente.",
     )
     status: Mapped[ContactStatus] = closed_text(
         ContactStatus,
@@ -355,14 +357,18 @@ def update_contact(
     actor: Actor,
     contact_id: uuid.UUID,
     changes: dict[str, ContactChannel | str],
+    *,
+    operator_id: uuid.UUID | None = None,
 ) -> PublicContact:
     """Corrige canal ou valor. A revisão só avança quando o canónico muda.
 
-    A linha fica bloqueada até ao fim da transacção. A concessão futura
-    há-de usar o mesmo bloqueio e comparar a revisão confirmada.
-    Uma revogação de representação confirmada depois desta leitura e
-    antes do commit continua a ser a limitação já existente do pedido.
+    A linha fica bloqueada até ao fim da transacção. Uma alteração
+    efectiva revoga a autorização vigente com o motivo ``contact_changed``,
+    no mesmo savepoint: uma violação de unicidade desfaz as duas.
+    Uma alteração equivalente não revoga nem mexe na visibilidade.
     """
+
+    from app.publication import RevocationReason, revoke_current_authorization
 
     contact = contact_for_actor(session, actor, contact_id, lock=True)
     if contact.status is not ContactStatus.ACTIVE:
@@ -387,6 +393,13 @@ def update_contact(
     now = datetime.now(timezone.utc)
     try:
         with session.begin_nested():
+            revoke_current_authorization(
+                session,
+                contact,
+                operator_id,
+                RevocationReason.CONTACT_CHANGED,
+                now,
+            )
             contact.channel = channel
             contact.value = normalized
             contact.visibility = ContactVisibility.PRIVATE
@@ -394,7 +407,7 @@ def update_contact(
             contact.updated_at = now
             session.flush()
     except IntegrityError as exc:
-        session.expire(contact)
+        session.expire_all()
         if _is_duplicate(exc):
             raise ContactDuplicate from exc
         raise
@@ -405,15 +418,31 @@ def deactivate_contact(
     session: Session,
     actor: Actor,
     contact_id: uuid.UUID,
+    *,
+    operator_id: uuid.UUID | None = None,
 ) -> PublicContact:
-    """Marca o contacto como inactivo. Repetir a operação não altera a linha."""
+    """Marca o contacto como inactivo. Repetir a operação não altera a linha.
+
+    A primeira desactivação revoga a autorização vigente, se existir,
+    com o motivo ``contact_deactivated``. A revisão não muda.
+    """
+
+    from app.publication import RevocationReason, revoke_current_authorization
 
     contact = contact_for_actor(session, actor, contact_id, lock=True)
     if contact.status is ContactStatus.INACTIVE:
         return contact
+    now = datetime.now(timezone.utc)
+    revoke_current_authorization(
+        session,
+        contact,
+        operator_id,
+        RevocationReason.CONTACT_DEACTIVATED,
+        now,
+    )
     contact.status = ContactStatus.INACTIVE
     contact.visibility = ContactVisibility.PRIVATE
-    contact.updated_at = datetime.now(timezone.utc)
+    contact.updated_at = now
     session.flush()
     return contact
 

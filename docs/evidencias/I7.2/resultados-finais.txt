@@ -1,0 +1,29 @@
+Resultados finais I7.2
+
+Baseline inicial: main, ae9912b, Alembic 0005_contacts, 236 testes de
+backend e 52 de Playwright.
+Baseline de código, ainda sem commit: Alembic 0006_publication_authorizations.
+
+Autorização individual, concessão, revogação, histórico e consulta
+pública implementados. Contactos nascem privados. A divulgação exige
+autorização vigente e coerente, além da elegibilidade do I6.1.
+Restrições observadas no PostgreSQL. Migração descartável com upgrade,
+downgrade e novo upgrade. Concessão idempotente, revisão, revogação
+explícita e automática, e desactivação idempotente observadas.
+Concorrência das duas concessões observada. A verificação complementar
+observou as duas ordens de concessão/alteração, concessão/desactivação,
+revogação/alteração e revogação/concessão com as transacções sobrepostas
+e espera confirmada por pg_blocking_pids. Consulta pública posterior
+à revogação não devolveu o contacto.
+Listagem e ficha públicas permaneceram sem o contacto.
+Suite de backend depois da verificação complementar: 266 passed.
+Os 52 testes Playwright não foram repetidos nesta verificação, porque
+o código de produção não mudou. O resultado aceite continua a ser o
+da validação anterior.
+Serviços api, db e web healthy na validação anterior. Portas 8010, 5435
+e 3010. Esta verificação não voltou a inspeccionar o Compose.
+
+Não foi implementado o I7.3.
+Não houve alteração de frontend, SRS, diagramas ou evidências anteriores.
+Não houve commit nem push.
+_srs_extract.txt e docs/srs/ continuam por versionar e fora de staging.

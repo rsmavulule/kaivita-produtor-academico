@@ -8,11 +8,13 @@ from logging.config import fileConfig
 
 from alembic import context
 
-# O import regista a identidade, os produtos, as ofertas e os contactos.
+# O import regista a identidade, os produtos, as ofertas, os contactos
+# e as autorizações de divulgação.
 import app.contacts  # noqa: F401
 import app.identity  # noqa: F401
 import app.offers  # noqa: F401
 import app.products  # noqa: F401
+import app.publication  # noqa: F401
 from app.config import settings
 from app.db import Base, engine
 

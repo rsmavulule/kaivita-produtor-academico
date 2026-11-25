@@ -1,0 +1,18 @@
+Autorização e isolamento observados
+
+manage concede e revoga. read lê o histórico e recebe 404 Actor não
+encontrado. ao conceder ou revogar.
+Sem representação, representação revogada: o mesmo 404.
+Conta desactivada e visitante: 401.
+Contacto inexistente neste actor: 404 Contacto não encontrado.
+Autorização de outro contacto do mesmo actor, ou de outro actor:
+404 Autorização não encontrada. A linha original continua vigente.
+O identificador do contacto no caminho do outro actor não atravessa.
+
+Actor só com papel buyer concede. Actor inactive continua a poder
+repetir a concessão privada. Essas situações não tornam a oferta
+elegível: a divulgação pública continua a exigir o predicado do I6.1.
+
+Suspender a oferta, retirar, arquivar o produto, tirar o papel
+producer ou inactivar o actor não revogam a autorização. Quando a
+elegibilidade regressa, o contacto ainda autorizado volta a sair.

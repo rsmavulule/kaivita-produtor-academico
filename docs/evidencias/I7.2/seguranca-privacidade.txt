@@ -1,0 +1,28 @@
+Segurança e privacidade observadas
+
+Contacto criado pela API nasce private. A concessão explícita é que
+grava public. Nenhuma listagem nem ficha de oferta passou a incluir
+o contacto.
+
+Visibilidade public sem autorização não divulga. Autorização vigente
+com visibilidade private não divulga. Autorização de outra revisão ou
+de outro canal não divulga. A concessão não reutiliza essa linha
+incoerente: 409, sem a corrigir.
+
+Os schemas de concessão recusam campos extra, incluindo value e
+channel. O 422 não traz input nem o valor rejeitado. O teste com
+caplog em DEBUG não encontrou o valor rejeitado nem o telefone do
+contacto criado.
+
+No contentor, o access log do percurso mostra os caminhos, os UUID e
+os códigos HTTP. Não mostra +258840000711, +258840000722 nem o email
+i72-percurso. O UUID do actor e o do contacto aparecem no caminho.
+Isto observa esta janela de log. Não prova todos os destinos possíveis.
+A query string vista foi limit e offset de outras rotas.
+
+As rotas privadas de autorização ficam em /actors/{id}/contacts/...
+e recebem private, no-store. A rota pública recebe no-store.
+
+A autorização operacional não prova titularidade, existência ou
+funcionamento do contacto. Não houve chamada, email ou mensagem.
+Os campos de texto livre de actor, produto e oferta não são censurados.

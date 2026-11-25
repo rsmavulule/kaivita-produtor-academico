@@ -1,0 +1,37 @@
+Predicado de divulgação
+
+Reutiliza _eligible() de public_offers.py: oferta published, produto
+active, actor active, papel producer, disponibilidade available ou
+unavailable.
+
+Além disso, na mesma instrução:
+  contacto do actor da oferta
+  contacto active
+  visibility public
+  autorização com revoked_at nulo
+  mesmo actor e mesmo contacto
+  contact_revision igual à revisão actual
+  channel igual ao canal actual
+  purpose commercial_discovery
+
+A instrução tem os subselects eligible_offer e disclosed_contacts e
+um LEFT JOIN. Sem linhas: 404. Com oferta e canal nulo: lista vazia.
+Com pares canal/valor: esses itens, ordenados por canal, valor e id.
+
+Observado:
+  sem autorização, lista vazia, mesmo com visibility public forçada
+  autorização com visibility private, lista vazia
+  revisão ou canal diferentes, lista vazia
+  autorização revogada, lista vazia
+  contacto inactive, lista vazia
+  contacto de outro actor, ausente
+  rascunho, suspensa e retirada: 404
+  produto arquivado: 404, autorização continua vigente
+  actor inactive ou sem producer: 404
+  restaurar o papel, reactivar o actor ou republicar: o contacto volta
+  se a autorização continuar vigente e coerente
+  oferta unavailable com quantidade zero: o contacto autorizado sai,
+  a ficha continua a dizer unavailable e não inclui o telefone
+
+A visibilidade public sozinha não divulga. Uma autorização revogada
+não divulga.

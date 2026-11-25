@@ -48,9 +48,11 @@ from sqlalchemy import (
 from sqlalchemy.engine import Row
 from sqlalchemy.orm import Session
 
+from app.contacts import ContactStatus, ContactVisibility, PublicContact
 from app.identity import Actor, ActorRole, ActorStatus, Role, RoleCode
 from app.offers import AvailabilityStatus, Offer, OfferStatus
 from app.products import Product, ProductStatus
+from app.publication import DisclosurePurpose, PublicationAuthorization
 
 _ACCENTED = (
     ("áàâãÁÀÂÃ", "a"),
@@ -79,6 +81,14 @@ class PublicSearch:
     location: str | None
     limit: int
     offset: int
+
+
+@dataclass(frozen=True)
+class PublicContactData:
+    """Contacto divulgável. Só o canal e o valor canónico actual."""
+
+    channel: str
+    value: str
 
 
 @dataclass(frozen=True)
@@ -137,6 +147,31 @@ def public_offer(session: Session, offer_id: uuid.UUID) -> PublicOfferData | Non
     if row is None:
         return None
     return _present(row)
+
+
+def public_offer_contacts(
+    session: Session,
+    offer_id: uuid.UUID,
+) -> list[PublicContactData] | None:
+    """Contactos divulgáveis da oferta, na mesma instrução da elegibilidade.
+
+    None significa oferta inexistente ou inelegível. A lista vazia
+    significa oferta elegível sem contacto que cumpra o predicado.
+    A sessão está em READ COMMITTED: a instrução vê um snapshot.
+    Outra instrução posterior pode ver uma revogação entretanto confirmada.
+    """
+
+    rows = session.execute(_contact_statement(offer_id)).all()
+    if not rows:
+        return None
+    disclosed: list[PublicContactData] = []
+    for row in rows:
+        channel = _code(row.channel) if row.channel is not None else None
+        value = row.value if isinstance(row.value, str) else None
+        if channel is None or value is None:
+            continue
+        disclosed.append(PublicContactData(channel=channel, value=value))
+    return disclosed
 
 
 def _folded(column: ColumnElement[str]) -> ColumnElement[str]:
@@ -259,6 +294,64 @@ def _page_statement(search: PublicSearch) -> Select[tuple]:
 
 def _detail_statement(offer_id: uuid.UUID) -> Select[tuple]:
     return _catalog(None, offer_id)
+
+
+def _contact_statement(offer_id: uuid.UUID) -> Select[tuple]:
+    """Uma instrução distingue oferta inelegível de oferta sem contactos.
+
+    A oferta elegível fica num subselect. Os contactos divulgáveis ficam
+    noutro, já filtrados pela autorização vigente. O LEFT JOIN entre os
+    dois preserva a oferta quando não há contacto que cumpra o predicado.
+    """
+
+    eligible = (
+        _joined(
+            select(
+                Offer.id.label("offer_id"),
+                Offer.owner_actor_id.label("owner_actor_id"),
+            )
+        )
+        .where(_eligible(), Offer.id == offer_id)
+        .subquery("eligible_offer")
+    )
+    disclosed = (
+        select(
+            PublicContact.actor_id.label("actor_id"),
+            PublicContact.id.label("contact_id"),
+            PublicContact.channel.label("channel"),
+            PublicContact.value.label("value"),
+        )
+        .join(
+            PublicationAuthorization,
+            and_(
+                PublicationAuthorization.contact_id == PublicContact.id,
+                PublicationAuthorization.actor_id == PublicContact.actor_id,
+                PublicationAuthorization.revoked_at.is_(None),
+                PublicationAuthorization.contact_revision == PublicContact.revision,
+                PublicationAuthorization.channel == PublicContact.channel,
+                PublicationAuthorization.purpose == DisclosurePurpose.COMMERCIAL_DISCOVERY,
+            ),
+        )
+        .where(
+            PublicContact.status == ContactStatus.ACTIVE,
+            PublicContact.visibility == ContactVisibility.PUBLIC,
+        )
+        .subquery("disclosed_contacts")
+    )
+    return (
+        select(
+            eligible.c.offer_id,
+            disclosed.c.channel.label("channel"),
+            disclosed.c.value.label("value"),
+        )
+        .select_from(eligible)
+        .outerjoin(disclosed, disclosed.c.actor_id == eligible.c.owner_actor_id)
+        .order_by(
+            disclosed.c.channel.asc().nulls_last(),
+            disclosed.c.value.asc(),
+            disclosed.c.contact_id.asc(),
+        )
+    )
 
 
 def _text(value: object) -> str:

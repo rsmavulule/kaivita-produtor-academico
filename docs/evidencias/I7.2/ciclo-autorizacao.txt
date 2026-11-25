@@ -1,0 +1,31 @@
+Ciclo da autorização observado
+
+Criação: revisão 1, canal copiado do contacto pelo servidor, finalidade
+commercial_discovery, aviso v1, operador autenticado, revoked_at nulo,
+visibility do contacto passa a public. A revisão do contacto não muda.
+
+Repetição da mesma concessão: 200, o mesmo id, o mesmo granted_at e o
+mesmo operador. Não cria segunda linha.
+
+Depois de revogar, uma nova concessão cria outro id. Revogar de novo
+a linha antiga não altera o seu revoked_at, não revoga a linha nova e
+não torna o contacto private.
+
+Alteração efectiva do valor ou do canal: motivo contact_changed,
+operador de quem alterou, revisão do contacto incrementada, visibility
+private. A autorização guarda a revisão e o canal anteriores, não o
+valor antigo.
+
+Alteração equivalente após normalização: revisão, visibilidade,
+autorização e granted_at mantêm-se.
+
+PATCH inválido ou que violaria a unicidade dos activos: 422, valor e
+autorização vigente mantêm-se. Observado por SQL: revoked_at continuou
+nulo e o valor do contacto não mudou.
+
+Desactivação: motivo contact_deactivated, status inactive, visibility
+private, revisão inalterada. A segunda desactivação não muda
+revoked_at nem updated_at.
+
+Contacto inactivo: concessão 409. Não há reactivação da autorização
+nem DELETE do contacto.

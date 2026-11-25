@@ -1,0 +1,15 @@
+Diagnóstico I7.2
+
+Baseline confirmada antes das alterações:
+  branch main
+  commit ae9912b
+  mensagem feat(i7.1): implement private commercial contact management
+  Alembic no código 0005_contacts
+  árvore versionada limpa; por versionar apenas _srs_extract.txt e docs/srs/
+
+O I7.1 já guardava public_contacts, com unicidade (id, actor_id),
+revisão e visibilidade private por omissão. Não existia
+publication_authorizations nem rota pública de contactos.
+
+Este incremento acrescenta a autorização individual, a revogação,
+o histórico e a consulta pública estruturada. A interface fica no I7.3.

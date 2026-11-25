@@ -1,0 +1,21 @@
+Aviso de divulgação v1
+
+Identificador suportado: v1
+Constante: NOTICE_V1_TEXT em backend/app/publication.py
+
+Texto:
+
+O representante confirma a divulgação do contacto comercial agora
+apresentado, no canal indicado. A finalidade é a descoberta comercial
+de ofertas. Qualquer visitante poderá consultar esse contacto.
+Terceiros poderão copiá-lo. A revogação impede consultas posteriores
+nesta plataforma, mas não apaga cópias já feitas por terceiros.
+O representante declara ter autorização adequada para divulgar o
+contacto. Esta confirmação operacional não prova, por si, o
+consentimento pessoal do titular nem a conformidade jurídica integral.
+
+A confirmação no pedido é o booleano true. False, "true", 1 e omissão
+são 422. Não há valor por omissão verdadeiro.
+
+O I7.3 deve mostrar este texto antes de enviar confirmed true.
+A interface ainda não o faz.

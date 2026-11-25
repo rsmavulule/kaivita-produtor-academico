@@ -1,0 +1,37 @@
+Modelo relacional efectivo — publication_authorizations
+
+Colunas:
+  id                   UUID, PK
+  actor_id             UUID, NOT NULL, parte da FK composta
+  contact_id           UUID, NOT NULL, parte da FK composta
+  contact_revision     inteiro >= 1
+  channel              phone | email | whatsapp
+  purpose              commercial_discovery
+  notice_version       texto, 1 a 32 caracteres, sem espaços exteriores
+  granted_by_user_id   UUID, FK users.id ON DELETE RESTRICT
+  granted_at           timestamptz
+  revoked_by_user_id   UUID nullable, FK users.id ON DELETE RESTRICT
+  revoked_at           timestamptz nullable
+  revocation_reason    manual | contact_changed | contact_deactivated, nullable
+
+Não há coluna de estado. Vigente significa revoked_at nulo.
+Não há coluna value.
+
+FK fk_publication_authorizations_contact_actor
+  (contact_id, actor_id) -> public_contacts(id, actor_id)
+  ON DELETE RESTRICT
+Não há FK separada para actors: o actor já está no par do contacto.
+
+CHECK de revogação: ou os três campos são nulos, ou os três existem
+e revoked_at >= granted_at. Motivos fechados.
+
+Índices:
+  uq_publication_authorizations_current
+    UNIQUE (contact_id) WHERE revoked_at IS NULL
+  ix_publication_authorizations_contact_history
+    (contact_id, granted_at, id)
+    O índice único parcial não cobre o histórico revogado.
+
+A migração também passa a private os contactos que estivessem public
+e actualiza o comentário de public_contacts. A API só grava public
+ao criar uma autorização coerente.

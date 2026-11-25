@@ -1024,7 +1024,9 @@ def test_openapi_documents_the_private_contact_contract(client):
     assert set(paths[collection]) & methods == {"get", "post"}
     assert set(paths[single]) & methods == {"get", "patch"}
     assert set(paths[deactivate]) & methods == {"post"}
-    assert "/public/offers/{offer_id}/contacts" not in paths
+    public_contacts = "/public/offers/{offer_id}/contacts"
+    assert set(paths[public_contacts]) & methods == {"get"}
+    assert "security" not in paths[public_contacts]["get"]
     for path in (collection, single, deactivate):
         for operation in paths[path].values():
             if isinstance(operation, dict) and "responses" in operation:
@@ -1331,9 +1333,16 @@ def _observe_write(method: str, path: str, token: str, payload: dict) -> dict:
 
 
 def _erase(user_id: uuid.UUID | None, actor_id: uuid.UUID | str | None) -> None:
+    from app.publication import PublicationAuthorization
+
     with Session(engine) as session:
         if actor_id is not None:
             owner = actor_id if isinstance(actor_id, uuid.UUID) else uuid.UUID(actor_id)
+            session.execute(
+                delete(PublicationAuthorization).where(
+                    PublicationAuthorization.actor_id == owner
+                )
+            )
             session.execute(delete(PublicContact).where(PublicContact.actor_id == owner))
             session.execute(delete(Offer).where(Offer.owner_actor_id == owner))
             session.execute(delete(Product).where(Product.owner_actor_id == owner))
@@ -1345,6 +1354,16 @@ def _erase(user_id: uuid.UUID | None, actor_id: uuid.UUID | str | None) -> None:
             if actor is not None:
                 session.delete(actor)
         if user_id is not None:
+            session.execute(
+                delete(PublicationAuthorization).where(
+                    PublicationAuthorization.granted_by_user_id == user_id
+                )
+            )
+            session.execute(
+                delete(PublicationAuthorization).where(
+                    PublicationAuthorization.revoked_by_user_id == user_id
+                )
+            )
             session.execute(
                 delete(UserActorAccess).where(UserActorAccess.user_id == user_id)
             )
