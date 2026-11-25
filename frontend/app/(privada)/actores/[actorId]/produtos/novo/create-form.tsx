@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 
+import { PublicFieldNotice } from "../../../../../../components/public-disclosure";
 import { createProductAction } from "../actions";
 import type { ProductFormState } from "../form-state";
 
@@ -45,12 +46,14 @@ export function ProductFields({
 }) {
   return (
     <>
+      <PublicFieldNotice id="product-public-notice" />
       <Field
         id={`${idPrefix}-name`}
         name="name"
         label="Nome"
         defaultValue={state.name}
         error={state.nameError}
+        hintId="product-public-notice"
         required
       />
       <Field
@@ -59,6 +62,7 @@ export function ProductFields({
         label="Descrição"
         defaultValue={state.description}
         error={state.descriptionError}
+        hintId="product-public-notice"
         required
         multiline
       />
@@ -68,6 +72,7 @@ export function ProductFields({
         label="Categoria"
         defaultValue={state.category}
         error={state.categoryError}
+        hintId="product-public-notice"
         required
       />
       <Field
@@ -94,9 +99,10 @@ function Field(input: {
   error?: string;
   required?: boolean;
   multiline?: boolean;
+  hintId?: string;
 }) {
   const errorId = `${input.id}-error`;
-  const described = input.error ? errorId : undefined;
+  const described = [input.hintId, input.error ? errorId : undefined].filter(Boolean).join(" ") || undefined;
   return (
     <div className="field">
       <label htmlFor={input.id}>{input.label}</label>

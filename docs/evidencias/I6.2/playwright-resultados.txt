@@ -1,0 +1,36 @@
+Playwright — I6.2
+
+Chromium exigido por @playwright/test 1.65.1.
+npx playwright install chromium terminou com código 0, sem transferência
+nova: o browser já estava instalado. A suite só arrancou depois disso.
+
+Ambiente das três execuções:
+
+  E2E_NO_SERVER=1
+  E2E_BASE_URL=http://127.0.0.1:3010
+  NO_PROXY=127.0.0.1,localhost
+  um worker, sem retries adicionais
+  serviços já publicados, sem build durante a suite
+
+Primeira suite completa, sem E2E_EVIDENCE:
+
+  52 passed (2.7m)
+  42 testes da baseline e 10 novos
+  código de saída 0
+
+Geração explícita das capturas, E2E_EVIDENCE=I6.2, só
+e2e/public-offers.spec.ts:
+
+  10 passed (57.6s)
+  capturas em docs/evidencias/I6.2/capturas/
+  as capturas históricas de I5.1 a I5.5 não foram reescritas
+
+Segunda suite completa, outra vez sem E2E_EVIDENCE:
+
+  52 passed (2.7m)
+  código de saída 0
+
+Depois da segunda suite não ficou cadeado em frontend/e2e/.run.lock.
+
+Nenhum teste anterior foi modificado. As contas i562- entram no manifesto
+já existente e a limpeza selectiva do teardown remove-as.

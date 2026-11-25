@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
   // o Next.js sobe até lá e deixa de tratar frontend/ como o projecto.
   outputFileTracingRoot: path.resolve(process.cwd()),
   devIndicators: false,
+  experimental: {
+    staleTimes: {
+      dynamic: 0,
+    },
+  },
   async headers() {
     return [
       {
@@ -27,6 +32,18 @@ const nextConfig: NextConfig = {
       {
         source: "/actores/:path*",
         headers: [{ key: "Cache-Control", value: "private, no-store" }],
+      },
+      {
+        source: "/",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
+      },
+      {
+        source: "/ofertas",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
+      },
+      {
+        source: "/ofertas/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store" }],
       },
     ];
   },

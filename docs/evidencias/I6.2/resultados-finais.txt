@@ -1,0 +1,30 @@
+Resultados finais — I6.2
+
+Data da validação final: 24 de Novembro de 2026.
+
+A interface pública de descoberta está implementada.
+Não houve commit nem push.
+HEAD permanece 3e8316fe9a138174fc5f7862ee1a0f70e39936d0, branch main.
+
+Resultados da sequência final:
+
+  pytest RUN_DB_TESTS=1: 188 passed in 25.09s
+  npm run build: concluído, rotas públicas dinâmicas
+  imagem web reconstruída; contentor api não recriado
+  health 200, base up, Alembic 0004_offers (head)
+  API_URL=http://api:8000 no contentor web
+  JWT_SECRET ausente desse contentor
+  Chromium já instalado
+  Playwright completo: 52 passed (2.7m)
+  capturas I6.2: 10 passed (57.6s)
+  segunda suite Playwright, sem E2E_EVIDENCE: 52 passed (2.7m)
+  git diff --check limpo
+  cadeado ausente
+
+Os 42 testes da baseline passaram nas duas suites. Os 10 novos também.
+Nenhum teste antigo foi editado. O backend não mudou.
+
+Defeitos corrigidos antes da sequência final, todos na interface ou nos
+testes novos: ver o relatório. Não foi encontrado defeito de backend.
+
+A implementação fica à espera de revisão e de autorização de versionamento.

@@ -1,0 +1,41 @@
+Percurso integrado — I6.2
+
+Teste: o visitante acompanha a publicação, a alteração e a retirada.
+Dois contextos de browser. Conta i562-ciclo-{tempo}@example.com, criada
+para a limpeza do manifesto. Operações comerciais pela interface.
+
+  1. O produtor autenticou-se.
+  2. Criou um actor pessoa com papel Produtor e localização Moamba {token}.
+  3. Registou Açúcar {token}, descrição com miombo {token}, categoria
+     Horticolas {token} e referência de imagem que não pode sair.
+  4. Criou a oferta em rascunho.
+  5. O visitante pesquisou o token e não encontrou o produto.
+  6. O produtor gravou 45.00 MZN, 120.00 kg, disponível e o texto de entrega.
+  7. Publicou. O aviso de publicação estava visível.
+  8. O visitante encontrou a oferta por acucar, por miombo e pela
+     combinação de texto, categoria e localização.
+  9. Abriu a ficha.
+  10. Viu preço, quantidade, Disponível, o texto de entrega, o produtor,
+      Pessoa e a localização. Não viu email, palavra-passe, actor,
+      referência de imagem nem owner_actor_id.
+  11. O produtor gravou 46.50 e quantidade 0 indisponível.
+  12. Nova consulta do visitante mostrou 46.50 MZN, 0 kg e Indisponível.
+  13. O produtor suspendeu.
+  14. A pesquisa do visitante deixou de encontrar a oferta.
+  15. A ficha directa e um UUID inexistente mostraram o mesmo
+      «Oferta não encontrada.»
+  16. O produtor republicou.
+  17. A pesquisa voltou a mostrar a oferta.
+  18. O produtor retirou a oferta.
+  19. A pesquisa e a ficha directa deixaram de a mostrar.
+
+Antes da actualização, a ficha já aberta ainda mostrava o produto.
+Isto confirma que não há actualização espontânea.
+
+Testes seguintes, também pela interface, com contas próprias:
+
+  arquivar o produto fez a pesquisa deixar de o mostrar
+  retirar e repor o papel Produtor fez o mesmo ciclo de ausência e regresso
+
+A paginação de 21 ofertas foi preparada pela API e percorrida na
+interface. Não faz parte dos dezanove passos comerciais.

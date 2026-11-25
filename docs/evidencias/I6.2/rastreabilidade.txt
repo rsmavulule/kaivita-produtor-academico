@@ -1,0 +1,42 @@
+Rastreabilidade — I6.2
+
+Fonte dos identificadores: SRS v1.1, pela matriz do I5.5 e pelo diagrama
+de casos de uso, que nomeia «UC-06 Pesquisar e consultar ofertas».
+A SRS e os diagramas não foram alterados.
+«Validado na interface» significa teste Playwright contra o serviço
+publicado. Não significa avaliação com utilizadores.
+
+ID      Funcionalidade                         Endpoint                         Página                         Teste                         Estado
+------  -------------------------------------- -------------------------------- ------------------------------ ----------------------------- ---------------------------------
+RF-04   Pesquisar por texto, categoria e       GET /public/offers               / e /ofertas                   percurso e paginação          Validado na interface e no
+        localização                                                                                                                           backend do I6.1. Sem avaliação
+                                                                                                                                              com utilizadores.
+RF-05   Localização geral na consulta          producer.general_location        ficha e cartão                 percurso                      A localização é mostrada.
+        Contactos autorizados                  —                                —                              —                             Não implementado. I7.
+RF-06   Condições de entrega                   delivery_terms                   ficha                          percurso                      Texto informativo visível.
+                                                                                                                                              Sem frete e sem página de
+                                                                                                                                              contacto.
+RF-07   Consulta sem autenticação, só de       GET /public/offers e             /, /ofertas,                   percurso, arquivo e papel     Validado na interface para
+        recursos elegíveis                     GET /public/offers/{offer_id}    /ofertas/[offerId]                                           ofertas elegíveis.
+UC-06   Pesquisar e consultar como visitante   os dois GET públicos             as três páginas públicas       percurso integrado            Validado na interface.
+                                                                                                                                              Sem avaliação académica com
+                                                                                                                                              utilizadores.
+RB-06   Só recursos elegíveis na consulta      predicado do I6.1                as páginas públicas            percurso, arquivo e papel     A interface não cria outro
+                                                                                                                                              predicado. O backend continua
+                                                                                                                                              a ser a autoridade.
+RF-03   Gestão privada de ofertas              rotas privadas do I4             /actores/.../ofertas           42 testes anteriores          Preservado. As duas suites
+                                                                                                                                              completas passaram.
+RNF-01  360 e 1280                             —                                entrada, pesquisa e ficha      capturas e overflow           Validado nestes ecrãs.
+                                                                                                                                              Sem auditoria formal de
+                                                                                                                                              acessibilidade.
+RNF-05  Testes de pesquisa                     —                                Playwright                     52 testes                     A pesquisa pública passou a
+                                                                                                                                              ter testes de interface.
+RNF-06  Minimização e consentimento            —                                avisos nos formulários         percurso e captura            Aviso presente. Sem
+                                                                                                                                              consentimento e sem ocultação
+                                                                                                                                              automática de contactos
+                                                                                                                                              escritos em texto livre.
+RF-10   Autorização de contactos               —                                —                              —                             Não implementado.
+RB-07   Contacto privado e revogação           —                                —                              —                             Não implementado.
+UC-07   Gerir contacto público                 —                                —                              —                             Não implementado.
+
+Desempenho: não medido. Não está declarado como satisfeito.

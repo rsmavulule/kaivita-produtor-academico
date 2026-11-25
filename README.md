@@ -5,13 +5,14 @@ independente, construído de raiz para a monografia. O repositório contém a
 fundação técnica (I0), o modelo de identidade (I1.1), a autenticação (I1.2),
 a autorização de representação (I1.3), a gestão de actores e papéis
 comerciais (I2), o catálogo de produtos (I3), a gestão de ofertas
-comerciais (I4), a sessão da interface (I5) e a descoberta pública de
-ofertas na API (I6.1).
+comerciais (I4), a sessão da interface (I5), a descoberta pública de
+ofertas na API (I6.1) e a interface pública dessa descoberta (I6.2).
 
 Não há registo público, recuperação de palavra-passe, refresh tokens,
 concessão de acessos a outros utilizadores, contactos públicos, filas,
 Redis, inteligência artificial nem sincronização offline. A descoberta
-pública existe na API. A interface ainda não a apresenta.
+pública existe na API e na interface, em `/`, `/ofertas` e
+`/ofertas/[offerId]`.
 
 ## Arquitectura
 
@@ -19,13 +20,14 @@ Três processos, um repositório:
 
 | Serviço | Tecnologia | Função neste incremento |
 | --- | --- | --- |
-| `web` | Next.js e TypeScript | Entrada, login e sessão HttpOnly |
+| `web` | Next.js e TypeScript | Entrada pública, descoberta de ofertas, login e sessão HttpOnly |
 | `api` | FastAPI e Python | Saúde, autenticação, actores, papéis, produtos, ofertas privadas e descoberta pública |
 | `db` | PostgreSQL 16 | Identidade, acesso, produtos e ofertas, versão Alembic `0004_offers` |
 
 Os pedidos autenticados ficam no servidor Next.js. O browser não recebe o
-JWT e não chama a API para login ou sessão. As ligações de `/health` e
-`/docs` continuam a ser navegações directas, por isso a API não tem CORS.
+JWT e não chama a API. A descoberta pública também é lida no servidor,
+com `API_URL` e `cache: no-store`, sem cabeçalho de credenciais. A entrada
+não liga a `/health` nem a `/docs`.
 
 ```text
 browser ──► Next.js :3000
@@ -606,12 +608,35 @@ decompostas. O SQL normaliza espaços POSIX; um espaço Unicode gravado na
 coluna pode não coincidir com o termo. Não há índice novo nem meta de
 desempenho medida.
 
+## Incremento I6.2 — descoberta pública na interface
+
+A entrada `/` apresenta a identidade, uma pesquisa e até seis ofertas
+devolvidas por `GET /public/offers?limit=6`, na ordem da API. A listagem
+está em `/ofertas` e a ficha em `/ofertas/[offerId]`. Os filtros `q`,
+`category` e `location` ficam no URL. A página pede sempre `limit=20`.
+O `offset` vai de 0 a 1000. Um parâmetro desconhecido, repetido ou fora
+da gama não é enviado à API: a página pede para corrigir ou limpar, sem
+repetir o valor. A ficha reconstrói o regresso só com esses filtros. Um
+destino livre não é aceite.
+
+Preço e quantidade aparecem como texto decimal. `available` lê-se
+Disponível e `unavailable` lê-se Indisponível, mesmo com quantidade zero.
+A interface não volta a filtrar a elegibilidade. Os formulários privados
+de nome, localização, produto, condições de entrega e publicação avisam
+que o texto pode ficar público. Não há caixa de consentimento nem
+contacto do produtor.
+
+As páginas públicas usam `fetch` com `cache: no-store` e
+`dynamic = force-dynamic`. O Router Cache dinâmico fica com `staleTimes`
+0. As ligações são âncoras, sem prefetch. Uma página já aberta não muda
+sozinha: a actualização aparece na consulta seguinte. Não há meta de
+desempenho medida.
+
 ## Fora deste incremento
 
 Registo público, recuperação de palavra-passe, refresh tokens, concessão
 e revogação de acessos a outros representantes, alteração do catálogo
 global de papéis, contactos públicos, autorização de publicação de
 contactos, catálogos públicos independentes de produtos e actores,
-páginas de descoberta na interface, carregamento de ficheiros, área de
-actuação, filas e qualquer sincronização entre clientes. A interface da
-descoberta fica para o I6.2.
+carregamento de ficheiros, área de actuação, encomendas, pagamentos,
+reservas, filas e qualquer sincronização entre clientes.

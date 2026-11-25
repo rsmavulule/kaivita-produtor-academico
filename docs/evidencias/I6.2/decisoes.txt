@@ -1,0 +1,44 @@
+Decisões — I6.2
+
+A descoberta pública vive em /, /ofertas e /ofertas/[offerId].
+Não há páginas públicas de produto ou de produtor.
+
+O consumo da API está em frontend/lib/public-offers.ts, separado de
+frontend/lib/api.ts. Esse módulo não recebe token, não lê a sessão e
+envia só o cabeçalho accept. API_URL é lida no servidor. O fetch usa
+cache: no-store.
+
+A página pede sempre limit=20. A entrada pede limit=6, sem filtros, e
+apresenta o resultado como ofertas publicadas, na ordem da API.
+Não há rótulos de popular, recomendado, recente ou patrocinado.
+Não há ofertas fictícias quando a lista vem vazia.
+
+O endereço da interface aceita só q, category e location, até 100
+caracteres, e offset de 0 a 1000. Parâmetro desconhecido, escalar
+repetido, texto acima do máximo ou offset fora da gama não seguem para
+a API. A mensagem é fixa e não inclui o valor rejeitado. limit no URL
+é desconhecido: o tamanho da página não é escolhido pelo visitante.
+
+A ficha reconstrói o regresso com listingHref, só a partir desses
+filtros. Um parâmetro return ou next não se torna destino. Se a query
+da ficha é inválida, o regresso é /ofertas e a oferta, se elegível,
+continua a ser lida.
+
+Preço e quantidade são mostrados como o texto recebido, mais a moeda ou
+a unidade também recebidas. Não há Number nem parseFloat. Disponível e
+Indisponível são texto. Quantidade zero permanece visível.
+A interface não aplica outro predicado de elegibilidade.
+
+Campos opcionais vazios ou só com espaços lêem-se «Localização não
+indicada» e «Condições de entrega não indicadas».
+
+Os avisos privados usam o texto de referência e, na publicação, explicam
+a visibilidade ao visitante e o efeito de alterações posteriores.
+Não há caixa de consentimento nem censura. Publicar não é apresentado
+como autorização de contactos.
+
+As páginas públicas são force-dynamic. O Router Cache dinâmico fica com
+staleTimes 0. As ligações são âncoras, sem prefetch. Não há polling.
+
+Contas de teste da descoberta usam o prefixo i562-, aceite pelo manifesto
+existente /^i5\d+-/. O manifesto não foi alargado.

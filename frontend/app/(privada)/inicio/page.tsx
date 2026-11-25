@@ -23,7 +23,9 @@ export default async function InicioPage() {
           Actores
         </a>
       </p>
-      <p className="note">Os produtos e as ofertas ficam na ficha de cada actor. Não há consulta pública.</p>
+      <p className="note">
+        As ofertas elegíveis ficam visíveis em <a href="/ofertas">Ofertas públicas</a>.
+      </p>
     </main>
   );
 }

@@ -1,0 +1,29 @@
+Usabilidade — I6.2
+
+A entrada identifica Kaivita Produtor, descreve a consulta de preço,
+quantidade, disponibilidade e localização, e oferece pesquisa, listagem
+e entrada para quem publica.
+
+Cartões textuais, sem imagens genéricas nem image_ref.
+Disponibilidade é a palavra Disponível ou Indisponível, não só uma cor.
+Títulos: um h1 por página. Campos com label e for.
+Foco visível: depois de activar o campo de pesquisa, Tab chega à
+categoria com outline diferente de none, e segue para localização e
+Pesquisar.
+
+Viewports exercitados na interface publicada:
+
+  entrada a 1280 e a 360, sem overflow horizontal
+  resultados a 1280 e a 360, sem overflow horizontal
+  ficha a 1280 e a 360, sem overflow horizontal
+  o teste antigo da entrada e do login a 360 e 1280 continuou a passar
+
+Mensagens em português. Botões e campos com a altura já usada na
+interface. Não houve biblioteca de componentes nem reformulação das
+páginas privadas, além dos avisos e da frase de /inicio.
+
+Capturas em docs/evidencias/I6.2/capturas/, geradas com E2E_EVIDENCE=I6.2
+e dados sintéticos do teste. A entrada pode mostrar também ofertas já
+publicadas na base de desenvolvimento, de execuções anteriores, com
+nomes sintéticos. As capturas de pesquisa e de ficha usam o token da
+execução.

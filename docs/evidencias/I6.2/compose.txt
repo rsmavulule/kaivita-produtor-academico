@@ -1,0 +1,27 @@
+Docker Compose — I6.2
+
+Depois do rebuild da interface e antes da primeira suite Playwright:
+
+  api   Up (healthy)   0.0.0.0:8010->8000/tcp
+  db    postgres:16-alpine   Up (healthy)   0.0.0.0:5435->5432/tcp
+  web   Up (healthy)   0.0.0.0:3010->3000/tcp
+
+GET http://127.0.0.1:3010/login  HTTP 200
+GET http://127.0.0.1:8010/health HTTP 200
+  {"status":"ok","database":"up"}
+
+Alembic no contentor api: 0004_offers (head)
+
+API_URL no contentor web: http://api:8000
+
+Nomes de ambiente no contentor web, sem valores:
+  API_URL, NEXT_PUBLIC_API_URL e as variáveis de base do Node.
+  Sem JWT_SECRET e sem DATABASE_URL.
+
+NEXT_PUBLIC_API_URL permanece porque o Dockerfile já a define no build.
+O código novo da descoberta não a lê.
+
+git diff --check: sem saída, código 0.
+Cadeado de execução: ausente no fim.
+Evidências I5.1 a I5.5: sem diferenças no Git.
+Backend: sem diferenças no Git.

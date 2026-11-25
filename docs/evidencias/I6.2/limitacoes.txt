@@ -1,0 +1,42 @@
+Limitações — I6.2
+
+Avaliadas por teste na interface publicada:
+
+  percurso produtor–visitante, incluindo rascunho, publicação, alteração,
+  suspensão, republicação e retirada
+  arquivo do produto e perda do papel producer
+  pesquisa, filtros, paginação real de 21 ofertas e página vazia
+  360 px e 1280 px sem overflow horizontal
+  falha de ligação distinta de lista vazia, com sessão privada conservada
+  texto com marca de HTML mostrado como texto
+
+Avaliadas por teste de módulo, sem mil ofertas na base:
+
+  offset seguinte a 1000 não é gerado
+  aviso quando o total excede 1020
+  classificação de HTTP 503 como indisponibilidade
+  rejeição de parâmetros desconhecidos, repetidos e demasiado longos
+
+Ainda não avaliadas:
+
+  tempo de resposta e desempenho
+  avaliação com utilizadores reais
+  um corpo HTTP 500 fabricado, distinto de a API estar parada
+  corrida entre dois pedidos públicos durante uma escrita
+  actualização de uma página que o visitante deixa aberta sem nova consulta,
+  para além do caso observado: a ficha aberta só mudou depois de reload
+
+Limitações de produto, por decisão deste incremento:
+
+  não há contactos, consentimento, fotografias, área de actuação,
+  catálogos independentes, encomendas, pagamentos, reservas nem registo
+  público
+  o texto livre pode conter dados pessoais; o aviso pede para não os
+  escrever e a interface não os apaga
+  a paginação não passa de offset 1000
+  a entrada mostra no máximo seis ofertas, na ordem da API
+  a base de desenvolvimento já tinha ofertas confirmadas; a entrada pode
+  mostrá-las. Os testes de pesquisa usam token próprio
+
+O documento HTML de «Oferta não encontrada» é a página da interface.
+Quem precisa do código HTTP 404 usa a API, não o documento do Next.js.

@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 
+import { PublicFieldNotice } from "../../../../components/public-disclosure";
 import { replaceRolesAction, updateProfileAction } from "../actions";
 import type { ProfileFormState, RolesFormState } from "../form-state";
 import { RoleChoices, TextField } from "../create-form";
@@ -32,12 +33,14 @@ export function ProfileForm(input: {
           {state.formError}
         </p>
       ) : null}
+      <PublicFieldNotice id="actor-public-notice" />
       <TextField
         id="profile-name"
         name="display_name"
         label="Nome"
         defaultValue={state.displayName}
         error={state.nameError}
+        hintId="actor-public-notice"
         required
       />
       <TextField
@@ -46,6 +49,7 @@ export function ProfileForm(input: {
         label="Localização geral"
         defaultValue={state.location}
         error={state.locationError}
+        hintId="actor-public-notice"
       />
       <p className="note">Deixe a localização vazia para a retirar.</p>
       <button className="primary" type="submit" disabled={pending}>

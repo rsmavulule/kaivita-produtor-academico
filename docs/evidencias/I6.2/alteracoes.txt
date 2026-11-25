@@ -1,0 +1,45 @@
+Alterações — I6.2
+
+Novos
+
+  frontend/lib/public-offers.ts
+  frontend/lib/public-offer-view.ts
+  frontend/components/public-shell.tsx
+  frontend/components/public-disclosure.tsx
+  frontend/components/offer-public.tsx
+  frontend/components/offer-search.tsx
+  frontend/app/(descoberta)/page.tsx
+  frontend/app/(descoberta)/loading.tsx
+  frontend/app/(descoberta)/ofertas/page.tsx
+  frontend/app/(descoberta)/ofertas/loading.tsx
+  frontend/app/(descoberta)/ofertas/[offerId]/page.tsx
+  frontend/app/(descoberta)/ofertas/[offerId]/loading.tsx
+  frontend/e2e/public-offers.spec.ts
+  docs/evidencias/I6.2/
+
+Removido
+
+  frontend/app/page.tsx
+  A entrada passou para o grupo (descoberta), no mesmo URL /.
+  Deixou de publicar NEXT_PUBLIC_API_URL e as ligações a /health e /docs.
+
+Alterados, sem mudar contratos
+
+  frontend/next.config.ts
+    Cache-Control: no-store em /, /ofertas e /ofertas/:path*.
+    staleTimes.dynamic = 0.
+  frontend/app/globals.css
+    Cartões, ficha e paginação, com quebra de texto.
+  frontend/app/login/page.tsx
+    Ligação Ver ofertas, depois do formulário.
+  frontend/app/(privada)/inicio/page.tsx
+    A frase que negava a consulta pública passou a ligar a /ofertas.
+  Formulários de actor, produto, oferta e publicação
+    Aviso de divulgação junto dos campos públicos e da acção de publicar.
+  README.md
+    Secção I6.2.
+
+Não alterados
+
+  backend, modelos, migrações, contratos da API, SRS, diagramas UML,
+  evidências de I5.1 a I5.5, package.json e requirements.

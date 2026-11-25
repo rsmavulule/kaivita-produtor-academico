@@ -37,6 +37,9 @@ export default async function LoginPage({
       <LoginForm />
       <p className="note">Não há registo nem recuperação de palavra-passe.</p>
       <p className="note">
+        <a href="/ofertas">Ver ofertas</a>
+      </p>
+      <p className="note">
         <a href="/">Voltar à entrada</a>
       </p>
     </main>

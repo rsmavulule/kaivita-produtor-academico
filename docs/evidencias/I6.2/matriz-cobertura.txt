@@ -1,0 +1,53 @@
+Matriz de cobertura — I6.2
+
+Validação automatizada na interface publicada, salvo a linha marcada
+como módulo.
+
+A. Navegação
+  entrada sem sessão, pesquisa a partir da entrada, listagem, ficha,
+  cookie inválido, ida e volta com o login
+  testes da entrada, do cookie e do percurso
+
+B. Pesquisa
+  nome, descrição, categoria, localização, combinação, acentos e
+  maiúsculas, sem resultados, limpar, URL, actualização da página,
+  regresso da ficha
+  percurso integrado e teste de parâmetros
+
+C. Paginação
+  primeira página, seguinte, anterior, total, filtros, reposição do
+  offset e página vazia: teste com 21 ofertas reais
+  tecto de offset e aviso de conjunto limitado: teste de módulo, sem
+  mil linhas na base
+
+D. Visibilidade
+  rascunho, publicada, indisponível, quantidade zero, suspensão,
+  republicação e retirada: percurso pela interface
+  produto arquivado e perda do papel: teste pela interface
+  o predicado completo continua coberto pelos 21 testes de backend do I6.1
+
+E. Segurança
+  HTML sem dados privados estruturados, cliente sem JWT, UUID inválido,
+  parâmetros inválidos, ficha inelegível, texto sem execução, sem
+  redireccionamento aberto
+  percurso, parâmetros e teste do módulo
+
+F. Resiliência
+  API parada, mensagem diferente de lista vazia, sessão conservada e
+  /inicio recuperado depois de a API voltar
+  ausência de conteúdo obsoleto depois de nova consulta: percurso
+  estado 5xx: classificação no módulo (503). O E2E cobre a ligação
+  recusada, não um corpo 500 fabricado
+
+G. Usabilidade
+  360 e 1280 na entrada, nos resultados e na ficha
+  teclado e foco na pesquisa
+  avisos de divulgação no percurso e na captura aviso-publicacao.png
+  preços, quantidades e disponibilidade lidos na ficha, incluindo 0 kg
+  e 12.00 USD
+
+Regressão
+  42 testes da baseline passaram nas duas suites completas
+  nenhum teste antigo foi alterado
+
+Não avaliado com utilizadores reais. Sem medição de desempenho.

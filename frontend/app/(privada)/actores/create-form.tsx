@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 
+import { PublicFieldNotice } from "../../../components/public-disclosure";
 import { KIND_LABELS, ROLE_CODES, ROLE_LABELS } from "../../../lib/actor-view";
 import { createActorAction } from "./actions";
 import { emptyCreateState, type CreateFormState } from "./form-state";
@@ -33,12 +34,14 @@ export function CreateActorForm() {
         ))}
         {state.kindError ? <p className="field-error">{state.kindError}</p> : null}
       </fieldset>
+      <PublicFieldNotice id="actor-public-notice" />
       <TextField
         id="create-name"
         name="display_name"
         label="Nome"
         defaultValue={state.displayName}
         error={state.nameError}
+        hintId="actor-public-notice"
         required
       />
       <TextField
@@ -47,6 +50,7 @@ export function CreateActorForm() {
         label="Localização geral"
         defaultValue={state.location}
         error={state.locationError}
+        hintId="actor-public-notice"
       />
       <RoleChoices selected={state.roles} error={state.rolesError} />
       <button className="primary" type="submit" disabled={pending}>
@@ -63,8 +67,10 @@ export function TextField(input: {
   defaultValue: string;
   error?: string;
   required?: boolean;
+  hintId?: string;
 }) {
   const errorId = `${input.id}-error`;
+  const describedBy = [input.hintId, input.error ? errorId : undefined].filter(Boolean).join(" ");
   return (
     <div className="field">
       <label htmlFor={input.id}>{input.label}</label>
@@ -75,7 +81,7 @@ export function TextField(input: {
         defaultValue={input.defaultValue}
         required={input.required}
         aria-invalid={input.error ? true : undefined}
-        aria-describedby={input.error ? errorId : undefined}
+        aria-describedby={describedBy === "" ? undefined : describedBy}
       />
       {input.error ? (
         <p id={errorId} className="field-error">

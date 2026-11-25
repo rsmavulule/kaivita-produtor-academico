@@ -1,0 +1,23 @@
+Diagnóstico inicial — I6.2
+
+Baseline confirmada antes da implementação:
+
+  branch main
+  commit 3e8316fe9a138174fc5f7862ee1a0f70e39936d0
+  working tree só com _srs_extract.txt e docs/srs/, ambos por versionar
+  Alembic 0004_offers
+  API 8010, interface 3010, PostgreSQL 5435
+
+O I6.1 já expunha GET /public/offers e GET /public/offers/{offer_id}.
+A entrada ainda descrevia a fundação técnica, ligava a /health e a /docs
+com o endereço da API, e dizia que não havia consulta pública.
+A área privada dizia o mesmo. Não havia rotas /ofertas públicas.
+
+A interface já usava Next.js 15.5.29, TypeScript strict, fetch no servidor
+e Playwright 1.65.1. Os mecanismos de cadeado, manifesto, limpeza e
+recuperação do I5.5 estavam intactos.
+
+Não foi repetida a fase de análise. O contrato lido foi o do I6.1 e o
+OpenAPI já validado: preço e quantidade são strings, delivery_terms e
+general_location admitem null, availability é available ou unavailable,
+kind é person ou organization. Não foram assumidos outros atributos.

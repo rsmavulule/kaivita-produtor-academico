@@ -1,0 +1,35 @@
+Pesquisa e paginação — I6.2
+
+O formulário tem nome ou descrição, categoria e localização, todas com
+máximo de 100 caracteres. Categoria e localização são texto livre.
+Pesquisar submete o GET. Limpar filtros remove a query.
+
+O backend normaliza maiúsculas, acentos e espaços. A interface envia o
+texto tal como está no URL. O teste de percurso pesquisou «acucar» sobre
+um produto «Açúcar» e a descrição «miombo», e combinou categoria e
+localização em minúsculas. O resultado apareceu. O URL conservou os
+filtros depois de actualizar a página.
+
+Paginação: 20 por página. O total é o da resposta, sem segunda contagem.
+A primeira página não tem Anterior. A última não tem Seguinte.
+O intervalo usa singular «1 oferta» ou plural «N ofertas».
+
+O teste de paginação preparou 21 ofertas pela API, com nomes sintéticos
+Pag {token} 00 a 20, e percorreu a interface:
+
+  1–20 de 21 ofertas, sem Anterior, com 12.00 USD na primeira
+  Seguinte levou a offset=20 e «21–21 de 21 ofertas», sem Seguinte
+  Anterior voltou à primeira
+  Nova pesquisa a partir de offset=20 saiu sem offset
+  offset=40 com 21 resultados mostrou a página vazia e o total 21
+
+O tecto de offset não foi percorrido com mil linhas reais.
+O teste do módulo confirma nextOffset(1000, 20, 5000) = null e que o
+aviso de conjunto limitado aparece quando total > 1020.
+A interface mostra: «A pesquisa apresenta um conjunto limitado de
+resultados. Refine os filtros para chegar ao que procura.»
+Não há página seguinte que a API recusaria.
+
+Política de parâmetros desconhecidos: a listagem inteira fica inválida
+e não há chamada à API. A ficha ignora esses parâmetros no regresso e
+não os usa como URL de destino.

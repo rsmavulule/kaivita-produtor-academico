@@ -1,0 +1,15 @@
+Build — I6.2
+
+npm run build, na validação final, a partir de frontend:
+
+  Next.js 15.5.29
+  compilação concluída
+  rotas /, /ofertas e /ofertas/[offerId] dinâmicas (ƒ)
+  código de saída 0
+
+A imagem web foi reconstruída com docker compose up -d --build web.
+A camada da API estava em cache. O contentor api não foi recriado.
+O contentor web foi o da imagem já construída com as páginas públicas.
+
+Não foram acrescentadas dependências. package.json mantém next, react e
+react-dom. Não há Axios, React Query nem Tailwind.

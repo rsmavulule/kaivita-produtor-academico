@@ -1,0 +1,32 @@
+Rotas e navegação — I6.2
+
+Públicas, sem validação de sessão:
+
+  /                     entrada, pesquisa e até seis ofertas
+  /ofertas              pesquisa, filtros, total e páginas
+  /ofertas/[offerId]    ficha
+
+Preservadas:
+
+  /login
+  /inicio
+  /actores e as rotas privadas já existentes
+
+O middleware continua a proteger só /inicio e /actores. Um cookie inválido
+não desvia /ofertas para /login. Teste:
+um cookie inválido não bloqueia as ofertas públicas. Passou.
+
+A entrada liga a Entrar. O login liga a Ver ofertas e a Voltar à entrada.
+O cabeçalho público liga a Início, Ofertas e Entrar.
+A ficha liga a Voltar aos resultados quando o URL tem filtros válidos,
+ou a Voltar às ofertas quando a consulta é directa.
+
+Exemplo de pesquisa partilhável:
+
+  /ofertas?q=tomate&category=horticolas&location=moamba
+
+Submeter o formulário é GET. Não há pedido por carácter.
+Mudar os filtros não inclui offset, por isso a nova pesquisa começa na
+primeira página. Limpar filtros vai para /ofertas.
+
+Build do Next, rotas públicas marcadas como dinâmicas (ƒ), não estáticas.

@@ -1,0 +1,10 @@
+Pytest — I6.2
+
+Execução final, sequencial, antes do build da interface.
+Directório backend. RUN_DB_TESTS=1.
+
+  188 passed in 25.09s
+  código de saída 0
+
+O backend não foi alterado. Os 188 testes do baseline, incluindo os 21
+de descoberta pública do I6.1, continuam a passar.

@@ -1,0 +1,24 @@
+Cache — I6.2
+
+As leituras usam fetch com cache: no-store.
+As páginas públicas exportam dynamic = force-dynamic e
+fetchCache = force-no-store.
+next.config.ts acrescenta Cache-Control: no-store a /, /ofertas e
+/ofertas/:path*, e experimental.staleTimes.dynamic = 0.
+As ligações públicas são <a>, sem o prefetch de next/link.
+Não há polling nem WebSocket.
+
+O build lista /, /ofertas e /ofertas/[offerId] como rotas dinâmicas.
+
+Teste de actualização, no percurso com dois browsers:
+
+  o visitante tinha a ficha aberta
+  o produtor suspendeu
+  a ficha já aberta continuou a mostrar o produto
+  a actualização da página passou a «Oferta não encontrada»
+  uma nova pesquisa deixou de mostrar a oferta
+  republicar restabeleceu a pesquisa
+  retirar voltou a excluí-la
+
+Uma página já aberta não recebe sozinha as alterações confirmadas.
+A consulta seguinte, por actualização ou navegação, vê o estado novo.

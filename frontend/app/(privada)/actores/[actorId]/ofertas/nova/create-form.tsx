@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect } from "react";
 
+import { PublicFieldNotice } from "../../../../../../components/public-disclosure";
 import { createOfferAction } from "../actions";
 import type { OfferFormState } from "../form-state";
 
@@ -134,12 +135,14 @@ export function OfferFields({
           </p>
         ) : null}
       </div>
+      <PublicFieldNotice id="offer-public-notice" />
       <TextField
         id={`${idPrefix}-delivery`}
         name="delivery_terms"
         label="Condições de entrega"
         defaultValue={state.deliveryTerms}
         error={state.deliveryError}
+        hintId="offer-public-notice"
         multiline
       />
       <p className="note">
@@ -159,9 +162,10 @@ function TextField(input: {
   defaultValue: string;
   error?: string;
   multiline?: boolean;
+  hintId?: string;
 }) {
   const errorId = `${input.id}-error`;
-  const described = input.error ? errorId : undefined;
+  const described = [input.hintId, input.error ? errorId : undefined].filter(Boolean).join(" ") || undefined;
   return (
     <div className="field">
       <label htmlFor={input.id}>{input.label}</label>

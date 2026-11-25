@@ -1,0 +1,51 @@
+Segurança e privacidade — I6.2
+
+O cliente público não envia Authorization. O teste lê publicHeaders e o
+fonte de public-offers.ts. Não há readSessionToken nem apiRequest.
+
+No HTML da ficha visitada, o teste confirmou a ausência do email, da
+palavra-passe, do identificador do actor, de foto-secreta-{token},
+de password_hash e de owner_actor_id. O UUID da oferta não aparece no
+texto do cartão. Está no href, porque é o endereço da ficha.
+
+Condições de entrega com o texto
+«Entrega <img src=x onerror=alert(1)> {token}» apareceram como texto.
+Não houve diálogo e não foi criado um img.
+
+UUID inválido mostra «O endereço da oferta não é válido.» sem o texto
+do endereço. Oferta suspensa e UUID válido inexistente mostram ambos
+«Oferta não encontrada.»
+
+Parâmetros extra, repetidos, com mais de 100 caracteres e offset=1001
+mostram a mensagem fixa. O valor SEGREDO-I62 não entra nessa mensagem.
+Limpar filtros volta a /ofertas.
+
+/ofertas/{id}?return=https://evil.example&next=https://evil.example
+não produz nenhuma ligação para evil.example. O regresso é /ofertas.
+
+Não há Contactar, WhatsApp, telefone, email, compra, reserva ou encomenda.
+
+Avisos nos formulários privados, sem checkbox:
+
+  nome e localização do actor
+  nome, descrição e categoria do produto
+  condições de entrega
+  publicação e oferta já publicada
+
+O texto diz que a informação pode ser apresentada quando existir uma
+oferta publicada e elegível, e pede para não introduzir telefone, email
+ou outros dados pessoais. A publicação explica que qualquer visitante
+pode consultar a oferta e que alterações posteriores podem reflectir-se
+nas ofertas elegíveis. Publicar não é uma autorização de contactos.
+
+Uma falha da API pública, com o contentor parado, mostrou a mensagem de
+ligação e não a de catálogo vazio. O cookie permaneceu. Depois da
+recuperação, /inicio mostrou o email da sessão. A sessão não foi
+terminada pela falha pública.
+
+O contentor web, por printenv só dos nomes, tem API_URL e
+NEXT_PUBLIC_API_URL, além das variáveis do Node. Não tem JWT_SECRET nem
+DATABASE_URL. API_URL=http://api:8000. NEXT_PUBLIC_API_URL vem do
+Dockerfile já existente. As páginas novas não o lêem.
+Uma verificação anterior que dizia JWT presente foi expansão da variável
+no anfitrião, não o ambiente do contentor.

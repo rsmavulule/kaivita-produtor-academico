@@ -1,0 +1,41 @@
+Contrato de integração — I6.2
+
+Consumo exclusivo:
+
+  GET /public/offers
+  GET /public/offers/{offer_id}
+
+Parâmetros enviados pela listagem: q, category, location, limit e offset.
+limit é 20 na listagem e 6 na entrada. offset segue o URL válido.
+URLSearchParams codifica os valores. Não há proxy genérico.
+
+Campos lidos, e só estes:
+
+  id, price, currency, quantity, unit, availability, delivery_terms
+  product.name, product.description, product.category
+  producer.display_name, producer.kind, producer.general_location
+  e, na página, items, limit, offset, total
+
+price e quantity têm de ser strings decimais. Um número JSON não é
+mostrado. availability é available ou unavailable. kind é person ou
+organization. delivery_terms e general_location são string ou null.
+
+Não são pedidos endpoints privados para completar o cartão ou a ficha.
+O módulo público não importa apiRequest nem readSessionToken.
+Inspecção do ficheiro e teste: publicHeaders não tem authorization.
+O código-fonte do módulo não contém a palavra authorization.
+
+Um visitante autenticado continua a poder abrir /ofertas. O pedido do
+servidor à API não leva o JWT. O cookie de sessão fica no browser e a
+área privada continua disponível depois de uma falha pública.
+
+404 da API: «Oferta não encontrada.»
+UUID que não tem a forma 8-4-4-4-12: a interface não chama a API e mostra
+«O endereço da oferta não é válido.»
+Rede ou estado 5xx: «Não foi possível contactar o serviço. Tente novamente.»
+Isto distingue-se de «Nenhuma oferta corresponde à pesquisa.» e de
+«Ainda não há ofertas publicadas.»
+
+O documento HTML destes estados é uma página da interface. O 404 e o 422
+são os da API, tratados no servidor Next.js. A página não mostra o corpo
+técnico.

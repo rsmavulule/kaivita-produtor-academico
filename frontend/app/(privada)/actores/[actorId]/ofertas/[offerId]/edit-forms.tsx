@@ -8,6 +8,7 @@ import {
   updateOfferAction,
   withdrawOfferAction,
 } from "../actions";
+import { PublicPublishNotice } from "../../../../../../components/public-disclosure";
 import type { OfferFormState, TransitionFormState } from "../form-state";
 import { OfferFields, useReloadAfterChange } from "../nova/create-form";
 
@@ -54,7 +55,10 @@ export function OfferEditor(input: {
     <form action={action} className="form" aria-busy={pending} key={formKey}>
       <h2>Condições comerciais</h2>
       {input.published ? (
-        <p className="note">Uma oferta publicada tem de continuar válida depois de gravar.</p>
+        <>
+          <p className="note">Uma oferta publicada tem de continuar válida depois de gravar.</p>
+          <PublicPublishNotice />
+        </>
       ) : null}
       {state.formError ? (
         <p className="alert" role="alert">
@@ -106,6 +110,7 @@ export function OfferTransitions(input: {
       ) : null}
       {input.status === "draft" || input.status === "suspended" ? (
         <form action={publishAction} aria-busy={publishPending}>
+          <PublicPublishNotice />
           <button className="primary" type="submit" disabled={pending}>
             {publishPending ? "A publicar…" : publishLabel}
           </button>
