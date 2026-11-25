@@ -1,0 +1,31 @@
+Consistência transaccional
+
+A criação e a alteração que podem violar a unicidade fazem flush
+dentro de um savepoint. A alteração escreve os novos atributos dentro
+desse savepoint: um flush automático anterior abortaria a transacção
+inteira. Foi o defeito encontrado no primeiro teste e corrigido.
+Depois da correcção, o 422 de duplicado deixa a linha anterior intacta
+e a sessão do pedido continua utilizável.
+
+A alteração e a desactivação bloqueiam a linha com FOR UPDATE.
+Duas criações concorrentes do mesmo valor activo, em sessões
+independentes: uma confirma e a outra recebe a violação de unicidade.
+Duas alterações de contactos diferentes para o mesmo valor: uma
+confirma e a outra é duplicado; fica um único activo com esse valor.
+Duas alterações concorrentes do mesmo contacto para valores diferentes:
+ambas confirmam e a revisão final é 3, não 2. O bloqueio faz cada
+uma ler a revisão já gravada pela outra.
+
+A revisão só aumenta quando o canal ou o valor canónico mudam.
+Repetir a desactivação não muda revisão nem updated_at.
+A desactivação não aumenta a revisão.
+
+CommitBeforeResponse mantém-se. Num pedido ASGI, a outra sessão já vê
+o contacto no corpo da resposta 201 e a revisão 2 no corpo do PATCH.
+O isolamento global da base não foi alterado.
+
+Limitação já existente, não introduzida por este incremento: a
+representação é lida antes da escrita. Uma revogação confirmada por
+outra transacção depois dessa leitura e antes do commit deste pedido
+não é reavaliada. A concessão futura deve reutilizar o bloqueio da
+linha do contacto e comparar a revisão apresentada.

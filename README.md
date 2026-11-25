@@ -6,13 +6,15 @@ fundação técnica (I0), o modelo de identidade (I1.1), a autenticação (I1.2)
 a autorização de representação (I1.3), a gestão de actores e papéis
 comerciais (I2), o catálogo de produtos (I3), a gestão de ofertas
 comerciais (I4), a sessão da interface (I5), a descoberta pública de
-ofertas na API (I6.1) e a interface pública dessa descoberta (I6.2).
+ofertas na API (I6.1), a interface pública dessa descoberta (I6.2) e a
+gestão privada de contactos comerciais (I7.1).
 
 Não há registo público, recuperação de palavra-passe, refresh tokens,
-concessão de acessos a outros utilizadores, contactos públicos, filas,
-Redis, inteligência artificial nem sincronização offline. A descoberta
-pública existe na API e na interface, em `/`, `/ofertas` e
-`/ofertas/[offerId]`.
+concessão de acessos a outros utilizadores, divulgação pública de
+contactos, filas, Redis, inteligência artificial nem sincronização
+offline. A descoberta pública existe na API e na interface, em `/`,
+`/ofertas` e `/ofertas/[offerId]`. Os contactos comerciais existem só
+na área autenticada e nascem privados.
 
 ## Arquitectura
 
@@ -21,8 +23,8 @@ Três processos, um repositório:
 | Serviço | Tecnologia | Função neste incremento |
 | --- | --- | --- |
 | `web` | Next.js e TypeScript | Entrada pública, descoberta de ofertas, login e sessão HttpOnly |
-| `api` | FastAPI e Python | Saúde, autenticação, actores, papéis, produtos, ofertas privadas e descoberta pública |
-| `db` | PostgreSQL 16 | Identidade, acesso, produtos e ofertas, versão Alembic `0004_offers` |
+| `api` | FastAPI e Python | Saúde, autenticação, actores, papéis, produtos, ofertas privadas, contactos privados e descoberta pública |
+| `db` | PostgreSQL 16 | Identidade, acesso, produtos, ofertas e contactos, versão Alembic `0005_contacts` |
 
 Os pedidos autenticados ficam no servidor Next.js. O browser não recebe o
 JWT e não chama a API. A descoberta pública também é lida no servidor,
@@ -89,7 +91,8 @@ usa `fetch`. Cada dependência corresponde a uma peça pedida.
 │   │       ├── 0001_initial.py
 │   │       ├── 0002_identity_access.py
 │   │       ├── 0003_products.py
-│   │       └── 0004_offers.py
+│   │       ├── 0004_offers.py
+│   │       └── 0005_contacts.py
 │   ├── app/
 │   │   ├── __init__.py
 │   │   ├── config.py
@@ -106,6 +109,8 @@ usa `fetch`. Cada dependência corresponde a uma peça pedida.
 │   │   ├── catalog.py
 │   │   ├── offers.py
 │   │   ├── offer_catalog.py
+│   │   ├── contacts.py
+│   │   ├── contact_catalog.py
 │   │   ├── public_offers.py
 │   │   ├── public_catalog.py
 │   │   ├── roles.py
@@ -121,6 +126,7 @@ usa `fetch`. Cada dependência corresponde a uma peça pedida.
 │       ├── test_identity.py
 │       ├── test_products.py
 │       ├── test_offers.py
+│       ├── test_contacts.py
 │       └── test_public_offers.py
 └── frontend/
     ├── Dockerfile
@@ -204,9 +210,9 @@ Para inspeccionar a base:
 docker compose exec db psql -U kaivita -d kaivita -c "\dt"
 ```
 
-Depois do I4, `\dt` mostra `alembic_version`, `users`, `actors`, `roles`,
-`actor_roles`, `user_actor_access`, `products` e `offers`. A revisão Alembic
-corrente é `0004_offers`.
+Depois do I7.1, `\dt` mostra `alembic_version`, `users`, `actors`, `roles`,
+`actor_roles`, `user_actor_access`, `products`, `offers` e
+`public_contacts`. A revisão Alembic corrente é `0005_contacts`.
 
 Para parar e remover os contentores, mantendo os dados:
 
@@ -245,11 +251,11 @@ python -m pytest -v
 
 Sem essa variável, o teste de ligação real e os testes de integridade do
 modelo são ignorados. Os restantes não precisam de base de dados.
-A cabeça do Alembic esperada é `0004_offers`. `0003_products` continua a ser
-a revisão do catálogo, `0002_identity_access` a de identidade e
-`0001_initial` a revisão vazia. Os testes de migração de produtos e de
-ofertas criam bases à parte, no mesmo servidor, e apagam-nas no fim.
-A conta PostgreSQL do Compose consegue criar essas bases.
+A cabeça do Alembic esperada é `0005_contacts`. `0004_offers` continua a ser
+a revisão das ofertas, `0003_products` a do catálogo, `0002_identity_access`
+a de identidade e `0001_initial` a revisão vazia. Os testes de migração de
+produtos, de ofertas e de contactos criam bases à parte, no mesmo servidor,
+e apagam-nas no fim. A conta PostgreSQL do Compose consegue criar essas bases.
 
 ## Testes de ponta a ponta
 
@@ -632,11 +638,32 @@ As páginas públicas usam `fetch` com `cache: no-store` e
 sozinha: a actualização aparece na consulta seguinte. Não há meta de
 desempenho medida.
 
+## Incremento I7.1 — contactos comerciais privados
+
+O representante com acesso `manage` cria, corrige e desactiva contactos do
+actor em `/actors/{actor_id}/contacts`. O acesso `read` só consulta. O
+contacto nasce `private` e `active`, com revisão 1. Os canais são `phone`,
+`email` e `whatsapp`. O telefone e o WhatsApp guardam-se com `+` e 8 a 15
+algarismos, sem inferir o indicativo do país. O email conserva a parte
+local e põe o domínio em minúsculas. Não é o email de login.
+
+A alteração efectiva do canal ou do valor incrementa a revisão. Uma
+alteração que, depois da normalização, não muda o par não incrementa.
+Desactivar conserva a linha, não incrementa a revisão e pode repetir-se.
+Não há eliminação nem reactivação. O papel `producer` não é exigido.
+
+A resposta privada traz `Cache-Control: private, no-store`. As rotas
+públicas de ofertas não mudam e não devolvem contactos. A autorização de
+divulgação fica para o I7.2. O diagrama UML admite uma autorização a cobrir
+vários contactos; o protótipo restringe essa autorização, quando existir,
+a um contacto de cada vez. Os diagramas não foram alterados.
+
 ## Fora deste incremento
 
 Registo público, recuperação de palavra-passe, refresh tokens, concessão
 e revogação de acessos a outros representantes, alteração do catálogo
-global de papéis, contactos públicos, autorização de publicação de
-contactos, catálogos públicos independentes de produtos e actores,
-carregamento de ficheiros, área de actuação, encomendas, pagamentos,
-reservas, filas e qualquer sincronização entre clientes.
+global de papéis, autorização e revogação da divulgação de contactos,
+consulta pública de contactos, catálogos públicos independentes de
+produtos e actores, carregamento de ficheiros, área de actuação,
+encomendas, pagamentos, reservas, filas e qualquer sincronização entre
+clientes.

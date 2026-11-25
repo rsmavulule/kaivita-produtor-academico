@@ -1,0 +1,16 @@
+Compose — estado observado
+
+Imagem da API reconstruída e contentor recriado.
+Identificador da imagem:
+  sha256:1ee829fc333ce6d6c5cf626ea548248fb86b3998502dabb491083e649efe45fe
+A base e a interface não foram reconstruídas por este incremento.
+O teste Playwright que desliga a API voltou a arrancá-la e reiniciou
+também a interface.
+
+Estado final:
+  api   Up (healthy)   0.0.0.0:8010->8000
+  db    Up (healthy)   0.0.0.0:5435->5432
+  web   Up (healthy)   0.0.0.0:3010->3000
+
+Alembic na base, lido por SELECT version_num: 0005_contacts.
+O contentor da API executa alembic upgrade head no arranque.

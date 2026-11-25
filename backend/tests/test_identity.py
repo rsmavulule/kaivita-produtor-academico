@@ -152,8 +152,8 @@ def test_role_catalog_remains_after_the_products_revision(db_session):
     ).scalar_one()
     roles = db_session.execute(select(Role).order_by(Role.code)).scalars().all()
 
-    # A cabeça corrente é a das ofertas. Os papéis semeados no 0002 mantêm-se.
-    assert version == "0004_offers"
+    # A cabeça corrente é a dos contactos. Os papéis semeados no 0002 mantêm-se.
+    assert version == "0005_contacts"
     assert [role.code for role in roles] == [
         RoleCode.BUYER,
         RoleCode.PARTNER,

@@ -1,0 +1,55 @@
+Rastreabilidade — I7.1
+
+Fonte dos identificadores: a matriz do I5.5, actualizada pelo I6.1 e pelo I6.2.
+A SRS e os diagramas não foram alterados. O estado abaixo refere-se só ao
+que o I7.1 implementou. A autorização de divulgação e a interface ficam
+por fazer.
+
+ID      Estado depois do I7.1
+------  --------------------------------------------------------------------
+RF-05   A localização geral continua pública desde o I6. Os contactos
+        comerciais autorizados não são apresentados. O requisito continua
+        parcial.
+RF-08   A autenticação existente passa a proteger também a gestão de
+        contactos. Sem sessão válida a resposta é 401. A escrita sem
+        representação manage é recusada. Validado para estes endpoints.
+RF-10   Continua por implementar. Depende do I7.2. A criação privada de
+        um contacto não regista nem revoga autorização de publicação.
+RB-07   O contacto não sai nas respostas públicas de ofertas. Não há
+        ainda revogação de autorização, por isso o requisito continua
+        por cumprir.
+RB-10   O representante só altera contactos do actor cuja representação
+        manage está activa. Contacto de outro actor responde 404.
+        Validado, incluindo o utilizador que representa os dois actores.
+RNF-03  Continua válido. As rotas de contactos reutilizam a sessão e a
+        autorização no servidor. O hash e o cookie não foram alterados.
+RNF-04  Alargado a public_contacts: FK ON DELETE RESTRICT, CHECK, unicidade
+        (id, actor_id) e índice único parcial dos activos. A validação
+        recusa o cruzamento de actores. Validado no PostgreSQL.
+RNF-05  Continuam a existir as suites anteriores, agora 236 testes de
+        backend e 52 de Playwright. Há testes novos de contactos privados,
+        representação e revogação de acesso. Não há testes de revogação
+        de divulgação, porque essa operação não existe.
+RNF-06  O contacto nasce privado e a oferta pública continua a omiti-lo.
+        Não há consentimento por finalidade nem ocultação por revogação.
+        O requisito continua parcial.
+RNF-07  Continua por implementar. Não há registo dos operadores de
+        concessão ou revogação. O access log observado do smoke não
+        continha o valor do contacto; continha o UUID do actor no caminho.
+UC-07   Continua por implementar. O cenário exige autorização e o efeito
+        da revogação. O I7.1 só guarda e gere o contacto em privado.
+
+Dependem do I7.2: RF-10, a parte de revogação de RB-07, RNF-07, UC-07,
+e as decisões DA-I7-01, 02, 04, 05, 07, 08, 09, 10, 12 e 14.
+
+Dependem do I7.3: a interface privada de contactos, a acção pública
+"Ver contactos", RNF-01 e RNF-02 nesses ecrãs, e a limpeza E2E de
+contactos sintéticos.
+
+Residuais do I8, já fora deste incremento: RF-01 área de actuação,
+RF-02 fotografia como ficheiro, RB-08, catálogos públicos independentes
+de actores e produtos, encomendas, pagamentos, reservas e chat.
+
+Não se declara RF-10, RB-07, RNF-06, RNF-07 nem UC-07 cumpridos.
+A questão Q-06 da SRS continua parcialmente aberta quanto a retenção
+e enquadramento legal. Este mecanismo não afirma conformidade jurídica.

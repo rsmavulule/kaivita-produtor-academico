@@ -1,0 +1,22 @@
+Migração 0005_contacts
+
+Ficheiro: backend/alembic/versions/0005_contacts.py
+down_revision = 0004_offers
+Cria apenas public_contacts, a FK, os CHECK, a unicidade (id, actor_id)
+e os dois índices. Não cria publication_authorizations.
+
+Teste observado, numa base descartável criada e apagada no mesmo
+servidor PostgreSQL, sem downgrade da base de desenvolvimento:
+  upgrade até 0004_offers
+  inserção de utilizador, actor, produto e oferta em rascunho
+  upgrade para 0005_contacts
+  versão 0005_contacts, public_contacts vazia, oferta e produto intactos,
+  restrições e índice único parcial presentes
+  downgrade para 0004_offers
+  public_contacts ausente, oferta e produto intactos
+  novo upgrade para 0005_contacts
+  tabela recriada vazia e oferta preservada
+
+A suite com RUN_DB_TESTS=1 aplicou upgrade head na base de desenvolvimento.
+Isso acrescenta a tabela. Não houve downgrade dessa base.
+Depois da recriação da API, SELECT version_num devolveu 0005_contacts.

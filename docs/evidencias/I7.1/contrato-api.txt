@@ -1,0 +1,34 @@
+Contratos privados implementados
+
+GET    /actors/{actor_id}/contacts
+GET    /actors/{actor_id}/contacts/{contact_id}
+POST   /actors/{actor_id}/contacts
+PATCH  /actors/{actor_id}/contacts/{contact_id}
+POST   /actors/{actor_id}/contacts/{contact_id}/deactivate
+
+Autenticação obrigatória. Leitura: representação read ou manage.
+Escrita: manage. Actor inacessível ou representação insuficiente:
+404 {"detail":"Actor não encontrado."}
+Contacto inexistente ou de outro actor:
+404 {"detail":"Contacto não encontrado."}
+Sessão ausente, inválida ou conta desactivada:
+401 {"detail":"Token inválido."}
+Duplicado activo: 422 com a frase fixa, sem o valor.
+Contacto inactivo no PATCH: 409 com a frase fixa, sem o valor.
+DELETE no contacto existente: 405. Não há rota de reactivação:
+POST .../activate responde 404.
+
+Entrada de criação: channel e value, extra=forbid.
+Entrada de alteração: channel e value opcionais; null é 422;
+campo omitido não altera esse lado.
+Resposta: id, channel, value, visibility, status, revision,
+created_at, updated_at. Sem actor_id, sem email de login,
+sem authorization_id.
+Lista: {"items":[...]}, ordenada por channel, value e id.
+Actor sem contactos: {"items":[]}.
+
+OpenAPI confirma os métodos, HTTPBearer, additionalProperties false
+e a ausência de /public/offers/{offer_id}/contacts.
+Os schemas públicos de oferta não foram alterados.
+Cache das rotas de contactos, incluindo 401, 404 e 422:
+private, no-store. /public/ continua no-store, sem o prefixo private.

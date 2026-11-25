@@ -1,0 +1,27 @@
+Pytest — resultados observados
+
+Ambiente: backend/.venv, RUN_DB_TESTS=1, PostgreSQL do Compose em 5435.
+A base de desenvolvimento foi actualizada com upgrade head para
+0005_contacts. O downgrade só correu numa base descartável.
+
+Primeira execução de tests/test_contacts.py:
+  44 passed, 4 failed.
+  Falhas corrigidas antes da suite completa:
+    actor_id duplicado no helper de INSERT inválido;
+    savepoint da alteração não continha o UPDATE e a sessão ficava
+    por desfazer;
+    POST .../activate é 404 porque a rota não existe;
+    o observador ASGI lia a chave id no envelope errado.
+
+Segunda execução de tests/test_contacts.py:
+  48 passed in 11.96s
+
+Suite completa, depois dessas correcções:
+  236 passed in 37.36s
+  São os 188 testes anteriores mais os 48 deste incremento.
+  test_foundation, test_identity e test_offers foram ajustados só
+  porque a cabeça Alembic passou a 0005_contacts. O teste das ofertas
+  ficou fixo em 0004_offers, que é a revisão que ele prova.
+
+Não foram introduzidos retries nem aumento de timeout para esconder
+falhas.

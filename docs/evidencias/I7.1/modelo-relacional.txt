@@ -1,0 +1,34 @@
+Modelo relacional efectivo — public_contacts
+
+Colunas, por esta ordem:
+  id            UUID, PK pk_public_contacts, omissão gen_random_uuid()
+  actor_id      UUID, NOT NULL, FK fk_public_contacts_actor_id
+                para actors.id, ON DELETE RESTRICT
+  channel       phone | email | whatsapp
+  value         texto canónico, 1 a 320 caracteres, sem espaços exteriores
+  visibility    private | public, gravado private pela API deste incremento
+  status        active | inactive
+  revision      inteiro >= 1, omissão 1
+  created_at    timestamptz, omissão CURRENT_TIMESTAMP
+  updated_at    timestamptz, omissão CURRENT_TIMESTAMP
+
+Restrições:
+  ck_public_contacts_channel
+  ck_public_contacts_visibility
+  ck_public_contacts_status
+  ck_public_contacts_revision
+  ck_public_contacts_value
+  ck_public_contacts_inactive_private
+    status <> 'inactive' OR visibility <> 'public'
+  uq_public_contacts_id_actor em (id, actor_id)
+
+Índices:
+  ix_public_contacts_actor_id
+    consulta por actor; o único (id, actor_id) não serve esta leitura
+  uq_public_contacts_active_channel_value
+    UNIQUE (actor_id, channel, value) WHERE status = 'active'
+
+Não há authorization_id. Contactos inactivos podem repetir o valor de
+um contacto activo. A sintaxe do telefone e do email é imposta pela
+aplicação; a base impõe o comprimento, o valor não vazio e os conjuntos
+fechados. A correspondência modelo/schema foi verificada no PostgreSQL.

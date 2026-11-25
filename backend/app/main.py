@@ -2,8 +2,10 @@
 
 Expõe o estado do serviço, a autenticação, a representação de actores,
 a criação do actor, o catálogo de papéis comerciais, o catálogo de
-produtos, a gestão privada de ofertas e a descoberta pública.
-A documentação está em /docs. Não há registo público nem contactos.
+produtos, a gestão privada de ofertas, a gestão privada de contactos
+comerciais e a descoberta pública de ofertas.
+A documentação está em /docs. Não há registo público nem divulgação
+de contactos.
 """
 
 from typing import Literal
@@ -16,6 +18,8 @@ from pydantic import BaseModel
 from app.actors import router as actors_router
 from app.auth import router as auth_router
 from app.catalog import router as catalog_router
+from app.contact_catalog import PrivateContactNoStore
+from app.contact_catalog import router as contact_router
 from app.offer_catalog import router as offer_router
 from app.config import settings
 from app.db import CommitBeforeResponse, check_database
@@ -26,10 +30,12 @@ from app.roles import router as roles_router
 app = FastAPI(title=settings.app_name)
 app.add_middleware(CommitBeforeResponse)
 app.add_middleware(PublicNoStore)
+app.add_middleware(PrivateContactNoStore)
 app.include_router(auth_router)
 app.include_router(actors_router)
 app.include_router(catalog_router)
 app.include_router(offer_router)
+app.include_router(contact_router)
 app.include_router(public_offer_router)
 app.include_router(roles_router)
 

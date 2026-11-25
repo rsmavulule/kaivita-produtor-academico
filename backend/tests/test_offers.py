@@ -352,7 +352,8 @@ def test_offers_migration_preserves_existing_rows_on_a_throwaway_database():
 
         _alembic(environment, "upgrade", "0003_products")
         planted = _plant_product(target)
-        _alembic(environment, "upgrade", "head")
+        # 0004_offers, e não head: a cabeça passou a 0005_contacts.
+        _alembic(environment, "upgrade", "0004_offers")
         upgraded = _offer_state(target)
         assert upgraded["version"] == "0004_offers"
         assert upgraded["offers"] is not None
@@ -377,7 +378,7 @@ def test_offers_migration_preserves_existing_rows_on_a_throwaway_database():
         assert identity["offers"] is None
         assert identity["roles"] == 3
 
-        _alembic(environment, "upgrade", "head")
+        _alembic(environment, "upgrade", "0004_offers")
         again = _offer_state(target)
         assert again["version"] == "0004_offers"
         assert again["offers"] is not None

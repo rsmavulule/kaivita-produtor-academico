@@ -1,0 +1,36 @@
+Limitações
+
+A base não revalida a sintaxe do telefone ou do email. Impõe o
+comprimento, o valor aparado e os conjuntos fechados. Um INSERT
+directo pode gravar um texto que a API recusaria, desde que caiba
+nessas restrições.
+
+A marcação visibility public é permitida pela base para um contacto
+activo, para o I7.2 poder gravá-la sem outra migração de CHECK.
+A API deste incremento não a grava. Mesmo uma linha public não sai
+nas respostas públicas actuais, porque essas rotas não lêem a tabela.
+
+Não há eliminação física nem reactivação. Não há auditoria das
+edições do valor, só a revisão corrente. O histórico de autorização
+não existe ainda.
+
+A revogação de representação confirmada depois da leitura e antes do
+commit do mesmo pedido não é reavaliada. É a limitação já presente
+nas outras escritas.
+
+CommitBeforeResponse continua a confirmar a transacção de forma
+síncrona dentro do middleware.
+
+O registo de acesso do Uvicorn inclui o caminho. Nestes pedidos o
+valor do contacto vai no corpo e não apareceu no excerto observado.
+O UUID do actor aparece no caminho.
+
+A limpeza Playwright ainda não apaga public_contacts. Não foi
+necessário para os 52 testes, que não criam contactos. O I7.3 tem de
+a actualizar antes de criar contactos de contas do manifesto.
+
+Os números usados nos testes são sintéticos. Não foi confirmado que
+pertençam a uma gama oficialmente reservada e não foram contactados.
+
+Q-06 permanece parcialmente aberta. Este incremento não fixa prazo
+de retenção nem conformidade legal.

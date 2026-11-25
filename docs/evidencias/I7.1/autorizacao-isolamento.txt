@@ -1,0 +1,16 @@
+Autorização e isolamento observados
+
+manage cria. read lista e consulta um contacto; criar, alterar e
+desactivar respondem 404 "Actor não encontrado." e a linha não muda.
+Sem representação, representação revogada e actor desconhecido:
+o mesmo 404, sem o valor do contacto.
+Conta desactivada e visitante sem token: 401.
+Contacto de outro actor, mesmo quando o utilizador representa os dois:
+404 "Contacto não encontrado.", lista do segundo actor vazia,
+actor_id da linha inalterado.
+Actor só com papel buyer e actor inactive continuam a poder criar
+contactos privados. O papel producer não é consultado nestas rotas.
+
+A recusa não distingue contacto alheio de contacto inexistente.
+O identificador do contacto no caminho do actor errado não altera
+o recurso.

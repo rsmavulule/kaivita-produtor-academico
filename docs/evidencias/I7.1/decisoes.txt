@@ -1,0 +1,25 @@
+Decisões incorporadas no I7.1
+
+Aplicadas agora:
+  DA-I7-03  canais phone, email e whatsapp
+  DA-I7-06  desactivação sem eliminação física e sem reactivação
+  DA-I7-11  só o incremento I7.1; I7.2 e I7.3 não foram implementados
+  DA-I7-13  revisão do par canal/valor, omissão 1
+  DA-I7-15  UNIQUE (id, actor_id), preparando a FK composta
+
+Registadas para o I7.2, sem tabela nem endpoint:
+  DA-I7-01  endpoint público separado
+  DA-I7-02  finalidade commercial_discovery
+  DA-I7-04  cada concessão cria um registo novo
+  DA-I7-05  mudança efectiva de canal ou valor exige nova autorização
+  DA-I7-07  operadores da concessão e da revogação
+  DA-I7-08  oferta indisponível elegível pode divulgar contactos autorizados
+  DA-I7-09  oferta elegível sem contactos autorizados devolve lista vazia
+  DA-I7-10  consulta pública por acção explícita
+  DA-I7-12  autorização individual por contacto
+  DA-I7-14  histórico de autorizações consultável
+
+DA-I7-12 restringe de propósito a cardinalidade mais larga do UML,
+em que uma autorização pode cobrir vários contactos. Os diagramas
+não foram alterados. Não foi criada a tabela publication_authorizations
+nem a coluna authorization_id.

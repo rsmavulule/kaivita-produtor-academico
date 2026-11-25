@@ -1,0 +1,26 @@
+Validação e normalização observadas
+
+Telefone e WhatsApp, forma guardada:
+  + obrigatório, 8 a 15 algarismos ASCII, primeiro algarismo diferente de zero.
+  Espaço, hífen, ponto e parêntesis ASCII são removidos.
+  Exemplo aceite: "+258 84-000.0111" e "+(258) 84 000 0111"
+  ficam "+258840000111".
+  Recusados, sem repetir o valor na resposta: número sem +,
+  demasiado curto ou longo, algarismos não ASCII, extensão,
+  URL e HTML.
+
+Email:
+  espaços exteriores removidos; domínio em minúsculas;
+  parte local conservada.
+  "  Produtor.Sintetico@Example.COM " fica
+  "Produtor.Sintetico@example.com".
+  Não se usa a normalização da conta, que também põe a parte local
+  em minúsculas. A forma estrutural continua a ser a de um único @,
+  sem espaços, entre 3 e 320 caracteres.
+  Recusados: vários endereços, nome de apresentação, quebra de linha,
+  carácter de controlo, parâmetro de URL e HTML.
+
+A duplicação usa o valor canónico. "+258840000111" e
+"+258 84-000.0111" no mesmo actor e canal activo devolvem 422.
+Campo omitido, null ou extra, incluindo visibility e actor_id, é 422
+e não cria linha. O corpo 422 não traz a chave input.

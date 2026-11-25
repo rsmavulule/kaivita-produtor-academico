@@ -1,0 +1,23 @@
+Playwright — regressão observada
+
+O frontend não foi modificado. A suite correu contra
+http://127.0.0.1:3010, com E2E_NO_SERVER=1 e sem E2E_EVIDENCE.
+
+Primeira execução nesta sessão:
+  8 passed, 44 failed.
+  Causa: o executável do Chromium headless 1255 não estava no cache
+  desta sessão. Não foi uma falha de aplicação.
+  Em seguida: npx playwright install chromium, versão 1255.
+
+Segunda execução:
+  52 passed (2.8m)
+  Inclui actores, autenticação, integração, ofertas, produtos e a
+  descoberta pública. O último teste pára e recupera a API; no fim
+  api e web voltaram a ficar healthy.
+
+O manifesto de limpeza dos E2E continua a reconhecer só contas i5...
+As contas deste incremento usam i71- e não entram nessa limpeza.
+Ainda não há contactos criados pela interface. Quando o I7.3 os criar
+nos E2E, a limpeza tem de apagar public_contacts antes do actor,
+porque a FK é ON DELETE RESTRICT. Essa alteração ao frontend não foi
+feita agora.

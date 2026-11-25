@@ -1,0 +1,16 @@
+Diagnóstico I7.1
+
+Baseline confirmada antes das alterações:
+  branch main
+  commit 02e4ff4
+  mensagem feat(i6.2): implement public offer discovery interface
+  Alembic no código 0004_offers
+  árvore versionada limpa; por versionar apenas _srs_extract.txt e docs/srs/
+
+Não existia tabela, modelo, rota nem teste de contacto comercial.
+A descoberta pública de ofertas já omitia contactos. O email de login
+permanece na conta. A representação read/manage já recusa de forma opaca
+actor inexistente, acesso em falta, acesso revogado e nível insuficiente.
+
+Este incremento acrescenta só a persistência e a gestão privada.
+A divulgação pública, a concessão e a revogação ficam no I7.2.

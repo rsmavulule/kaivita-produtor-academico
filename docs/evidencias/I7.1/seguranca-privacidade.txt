@@ -1,0 +1,27 @@
+Segurança e privacidade observadas
+
+Todo o contacto criado pela API nasce visibility private, status active,
+revision 1. Nenhuma rota deste incremento grava public.
+Um contacto marcado public directamente na base, para o teste, continua
+ausente da listagem e da ficha públicas. O telefone sintético não
+apareceu em GET /public/offers nem no detalhe. O email de login não foi
+copiado e não apareceu na lista vazia de contactos.
+
+Schemas de entrada recusam campos extra. A resposta privada não tem
+actor_id nem authorization_id. Os erros 422 observados não repetem o
+valor rejeitado nem a chave input.
+
+O teste com caplog em DEBUG não encontrou o valor rejeitado
+"+25884SEGREDO71". No contentor, depois do smoke, o registo de acesso
+mostra a linha do pedido, por exemplo
+POST /actors/<uuid>/contacts 201, e não mostra o telefone
++258840009001 nem o email i71-smoke@example.com. O UUID do actor vai
+no caminho. Não se afirma que um futuro parâmetro de query ficaria
+fora desse registo: estes endpoints não recebem o valor na query.
+
+As rotas de contactos respondem Cache-Control: private, no-store,
+incluindo 401, 404 e 422. A listagem pública observada respondeu
+no-store, sem o prefixo private.
+
+O smoke criou dados sintéticos e apagou-os em seguida: contacto,
+papéis, representação, actor e utilizador i71-smoke@example.com.

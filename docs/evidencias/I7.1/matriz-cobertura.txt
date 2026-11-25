@@ -1,0 +1,43 @@
+Matriz de cobertura — testes em backend/tests/test_contacts.py
+
+A a E foram cobertos por 48 testes recolhidos, vários parametrizados.
+Não há 65 funções separadas.
+
+A  Persistência
+  1  test_creation_stores_private_active_revision_one
+  2-8  test_postgres_rejects_invalid_contact_rows
+  9-12 test_uniqueness_allows_the_documented_repetitions
+  13 test_migrated_contact_schema_matches_the_model
+       e test_contacts_migration_preserves_existing_rows_on_a_throwaway_database
+
+B  Validação
+  14-17 test_phone_and_whatsapp_accept_unambiguous_forms
+  18-19 test_rejected_contact_values_are_not_echoed
+  20-24 test_email_preserves_the_local_part_and_lowercases_the_domain
+        e test_rejected_contact_values_are_not_echoed
+  25 test_duplicate_after_normalization_is_rejected_without_the_value
+  26-28 test_omitted_null_and_extra_fields_are_rejected
+        e test_rejected_contact_values_are_not_echoed
+
+C  Autorização
+  29-33 test_manage_creates_and_read_only_consults
+  34-37 e 39-40 test_inaccessible_actors_and_accounts_stay_opaque
+  38 e 41 test_a_user_who_represents_both_actors_cannot_cross_contacts
+  42-43 test_buyer_and_inactive_actor_can_keep_private_contacts
+
+D  Ciclo de vida
+  44-46 test_revision_tracks_only_effective_channel_or_value_changes
+  47-48 test_invalid_or_duplicate_updates_do_not_change_the_row
+  49-52 test_deactivation_is_idempotent_and_blocks_later_edits
+  53-54 test_listing_is_deterministic_and_empty_when_there_are_no_contacts
+
+E  Consistência e privacidade
+  55-57 test_concurrent_creates_and_updates_keep_one_active_value
+  58-59 test_committed_contact_is_visible_before_the_response_finishes
+  60-63 test_login_email_is_not_copied_and_public_offers_omit_contacts
+  64-65 test_private_contact_errors_are_not_cached_and_logs_omit_the_value
+        e test_openapi_documents_the_private_contact_contract
+
+O contrato OpenAPI e a ausência da rota pública de contactos estão
+no último teste. A suite completa confirma que os testes anteriores
+continuam a passar.

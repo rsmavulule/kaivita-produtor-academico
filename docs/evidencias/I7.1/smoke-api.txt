@@ -1,0 +1,44 @@
+Smoke da API em execução — dados sintéticos
+
+GET /health
+  200 {"status":"ok","database":"up"}
+
+POST /auth/login com i71-smoke@example.com
+  200. O token não foi registado nesta evidência.
+
+POST /actors com papel buyer, sem producer
+  201
+
+POST /actors/{id}/contacts com "+258 84 000 9001"
+  201
+  Cache-Control: private, no-store
+  valor canónico presente na resposta privada
+  visibility private
+  revision 1
+
+GET /actors/{id}/contacts
+  200
+  Cache-Control: private, no-store
+
+GET /public/offers?limit=1
+  200
+  Cache-Control: no-store
+  o telefone e o email de login não aparecem no corpo
+
+OpenAPI:
+  /actors/{actor_id}/contacts presente
+  /public/offers/{offer_id}/contacts ausente
+
+Alembic: 0005_contacts
+
+Limpeza do smoke, só destas linhas: contacto, actor_roles,
+user_actor_access, actor e utilizador. Não houve downgrade.
+
+Registo de acesso do contentor, janela do smoke:
+  POST /auth/login 200
+  POST /actors 201
+  POST /actors/<uuid>/contacts 201
+  GET  /actors/<uuid>/contacts 200
+  GET  /public/offers?limit=1 200
+  Não aparece +258840009001 nem i71-smoke@example.com.
+  O UUID do actor aparece no caminho.

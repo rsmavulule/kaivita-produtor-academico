@@ -1,0 +1,23 @@
+Resultados finais I7.1
+
+Baseline inicial: main, 02e4ff4, Alembic 0004_offers.
+Baseline final de código, ainda sem commit: Alembic 0005_contacts.
+
+Persistência e gestão privada implementadas.
+Contactos criados pela API nascem privados.
+Representante manage gere. Representante read consulta.
+Isolamento entre actores observado, incluindo quem representa os dois.
+Restrições verificadas no PostgreSQL, numa base de desenvolvimento
+actualizada e numa base descartável com upgrade, downgrade e novo upgrade.
+Normalização, unicidade, revisão e desactivação idempotente observadas.
+Concorrência com sessões independentes observada.
+Nenhuma resposta pública de ofertas devolveu o contacto de teste.
+188 testes anteriores incluídos na suite de 236 passed.
+52 testes Playwright passed depois de instalar o Chromium 1255
+em falta nesta sessão.
+Serviços api, db e web healthy. Portas 8010, 5435 e 3010.
+
+Não foram implementados I7.2 nem I7.3.
+Não houve alteração de frontend, SRS, diagramas ou evidências anteriores.
+Não houve commit nem push.
+_srs_extract.txt e docs/srs/ continuam por versionar e fora de staging.
