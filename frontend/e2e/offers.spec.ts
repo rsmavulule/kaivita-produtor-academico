@@ -325,8 +325,16 @@ test("uma oferta ou um produto de outro actor não são mostrados", async ({ pag
     select.append(option);
     (select as HTMLSelectElement).value = String(productId);
   }, foreignProduct);
+  const finished = page.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      response.url().includes("/ofertas/") &&
+      response.status() < 500,
+  );
   await page.getByRole("button", { name: "Registar oferta" }).click();
+  await finished;
   await expect(page).toHaveURL(/\/ofertas\/nova/);
+  await expect(page.getByText("A carregar as ofertas.")).toHaveCount(0);
   await expect(page.locator("p.alert")).toHaveText(PRODUCT_NOT_FOUND);
   await expect(page.getByText(own)).toHaveCount(0);
 });
@@ -345,6 +353,62 @@ test("um preço inválido conserva a oferta gravada", async ({ page }) => {
   await expect(page.getByText("Preço: 150.00 MZN.")).toBeVisible();
   await expect(page.locator("#edit-price")).toHaveValue("abc");
   await expect(page.getByText("Publicada", { exact: true })).toBeVisible();
+});
+
+test("o teclado percorre a oferta e a validação", async ({ page }) => {
+  await login(page, credentials());
+  const product = `Teclado oferta ${Date.now()}`;
+  await createActor(page, `Teclado ${Date.now()}`, ["Produtor"]);
+  await registerProduct(page, product);
+  await page.getByRole("link", { name: "Voltar ao actor" }).click();
+  await page.getByRole("link", { name: "Ofertas" }).click();
+  await page.getByRole("link", { name: "Registar oferta" }).click();
+
+  await expect(page.getByLabel("Produto")).toHaveAttribute("id", "create-product");
+  await expect(page.getByLabel("Preço")).toHaveAttribute("id", "create-price");
+  await expect(page.getByLabel("Moeda")).toHaveAttribute("id", "create-currency");
+  await expect(page.getByLabel("Quantidade")).toHaveAttribute("id", "create-quantity");
+  await expect(page.getByLabel("Unidade")).toHaveAttribute("id", "create-unit");
+  await expect(page.getByLabel("Disponibilidade")).toHaveAttribute("id", "create-availability");
+  await expect(page.getByLabel("Condições de entrega")).toHaveAttribute("id", "create-delivery");
+
+  await page.getByRole("button", { name: "Registar oferta" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#create-product")).toBeFocused();
+  expect(await validationMessage(page, "#create-product")).not.toBe("");
+
+  await page.locator("#create-product").focus();
+  await page.keyboard.press("ArrowDown");
+  await expect(page.locator("#create-product")).not.toHaveValue("");
+  await page.locator("#create-product").press("Tab");
+  await expect(page.locator("#create-price")).toBeFocused();
+  await expectVisibleFocus(page);
+  await page.keyboard.press("Shift+Tab");
+  await expect(page.locator("#create-product")).toBeFocused();
+
+  await page.locator("#create-price").focus();
+  await page.keyboard.type("80.00");
+  await page.keyboard.press("Tab");
+  await page.keyboard.type("MZN");
+  await page.keyboard.press("Tab");
+  await page.keyboard.type("3");
+  await page.keyboard.press("Tab");
+  await page.keyboard.type("kg");
+  await page.keyboard.press("Tab");
+  await expect(page.locator("#create-availability")).toBeFocused();
+  await page.keyboard.press("ArrowDown");
+  await page.locator("#create-availability").press("Tab");
+  await expect(page.locator("#create-delivery")).toBeFocused();
+  await page.keyboard.type("Recolha na banca");
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Registar oferta" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("button", { name: "Registar oferta" })).not.toBeFocused();
+  await page.getByRole("button", { name: "Registar oferta" }).focus();
+  await page.keyboard.press("Enter");
+  await page.waitForURL(/\/ofertas\/[0-9a-f-]{36}$/i);
+  await expect(page.getByRole("heading", { name: product })).toBeVisible();
+  await expect(page.getByText("Rascunho", { exact: true })).toBeVisible();
 });
 
 async function login(page: Page, account: { email: string; password: string }) {
@@ -408,6 +472,20 @@ function actorIdFrom(url: string, fromEnd: number): string {
   const id = fromEnd === 0 ? parts[1] : parts[parts.length - 1 - fromEnd];
   if (!id || !isActorId(id)) throw new Error("A rota não tem o actor esperado.");
   return id;
+}
+
+async function validationMessage(page: Page, selector: string) {
+  return page.locator(selector).evaluate((element) => {
+    if (!(element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement)) {
+      return "";
+    }
+    return element.validationMessage.trim();
+  });
+}
+
+async function expectVisibleFocus(page: Page) {
+  const outline = await page.evaluate(() => getComputedStyle(document.activeElement as Element).outlineStyle);
+  expect(outline).not.toBe("none");
 }
 
 async function expectNoHorizontalOverflow(page: Page) {

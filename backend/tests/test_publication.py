@@ -361,15 +361,35 @@ def test_postgres_rejects_invalid_authorizations(api, db_session):
     db_session.execute(text(insert), base)
     db_session.flush()
     _reject(db_session, insert, base)
+    # O mesmo CURRENT_TIMESTAMP serve de concessão e de revogação.
+    # Não há data fixa, por isso o teste não depende do ano.
     historical = {
         **base,
-        "revoked_at": "2099-01-01T00:00:00Z",
         "revoked_by_user_id": owner.id,
         "revocation_reason": "manual",
     }
-    db_session.execute(text(insert), historical)
+    db_session.execute(
+        text(
+            """
+            INSERT INTO publication_authorizations (
+                actor_id, contact_id, contact_revision, channel, purpose,
+                notice_version, granted_by_user_id, revoked_by_user_id,
+                granted_at, revoked_at, revocation_reason
+            ) VALUES (
+                :actor_id, :contact_id, :contact_revision, :channel, :purpose,
+                :notice_version, :granted_by_user_id, :revoked_by_user_id,
+                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :revocation_reason
+            )
+            """
+        ),
+        historical,
+    )
     db_session.flush()
-    assert len(_rows(db_session, contact["id"])) == 2
+    stored = _rows(db_session, contact["id"])
+    assert len(stored) == 2
+    revoked = [row for row in stored if row.revoked_at is not None]
+    assert len(revoked) == 1
+    assert revoked[0].revoked_at >= revoked[0].granted_at
     assert len(_rows(db_session, foreign["id"])) == 0
     assert PHONE not in " ".join(
         " ".join("" if value is None else str(value) for value in row)

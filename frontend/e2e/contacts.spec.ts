@@ -87,6 +87,8 @@ test("a desactivação pede confirmação e o contacto permanece depois de nova 
   await expect(page.getByRole("button", { name: "Guardar contacto" })).toHaveCount(0);
 
   await page.getByRole("button", { name: "Terminar sessão" }).click();
+  await expect(page).toHaveURL(/\/login\?motivo=terminada$/);
+  await expect(page.getByRole("status")).toHaveText("Sessão terminada neste browser.");
   await login(page, account);
   await page.goto(contactUrl);
   await expect(page.locator(".contact-value")).toHaveText("+258840000731");
@@ -239,8 +241,9 @@ test("o visitante só vê o contacto depois da acção e deixa de o ver depois d
   await visitor.setViewportSize({ width: 1280, height: 800 });
 
   await page.locator("#edit-value").fill("comercial@example.com");
-  await page.getByRole("button", { name: "Guardar contacto" }).click();
+  await confirmedClick(page, "Guardar contacto");
   await expect(page.getByText("Se existia uma autorização vigente, foi revogada.")).toBeVisible();
+  await expect(page.locator(".contact-value")).toHaveText("comercial@example.com");
   await visitor.getByRole("button", { name: "Ver contactos" }).click();
   await expect(visitor.getByText("Não existem contactos comerciais disponíveis para esta oferta.")).toBeVisible();
   await expect(visitor.getByText("produtor@example.com")).toHaveCount(0);
@@ -252,7 +255,8 @@ test("o visitante só vê o contacto depois da acção e deixa de o ver depois d
   await expect(visitor.getByText("produtor@example.com")).toHaveCount(0);
 
   await page.getByRole("checkbox", { name: "Confirmo a revogação desta autorização." }).check();
-  await page.getByRole("button", { name: "Revogar autorização" }).click();
+  await confirmedClick(page, "Revogar autorização");
+  await expect(page.getByText("Sem autorização vigente")).toBeVisible();
   await visitor.getByRole("button", { name: "Ver contactos" }).click();
   await expect(visitor.getByText("Não existem contactos comerciais disponíveis para esta oferta.")).toBeVisible();
   await expect(visitor.getByText("comercial@example.com")).toHaveCount(0);
@@ -274,6 +278,7 @@ test("a elegibilidade pública esconde e restaura só o que o ciclo permite", as
   await page.goto(actorUrl);
   await createOffer(page, product, "45.00", "120.00", "available");
   await page.getByRole("button", { name: "Publicar" }).click();
+  await expect(page.locator("main p.eyebrow")).toHaveText("Publicada");
   const offerUrl = `/ofertas/${offerIdFrom(page.url())}`;
   await page.goto(actorUrl);
   await registerContact(page, "email", "elegivel.contacto@example.com");
@@ -288,28 +293,34 @@ test("a elegibilidade pública esconde e restaura só o que o ciclo permite", as
   await page.getByRole("link", { name: "Ofertas" }).click();
   await page.getByRole("link", { name: new RegExp(product) }).click();
   await page.getByRole("button", { name: "Suspender" }).click();
+  await expect(page.locator("main p.eyebrow")).toHaveText("Suspensa");
   await visitor.getByRole("button", { name: "Ver contactos" }).click();
   await expect(visitor.getByText("Oferta não encontrada ou indisponível.")).toBeVisible();
   await expect(visitor.getByText("elegivel.contacto@example.com")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Republicar" }).click();
+  await expect(page.locator("main p.eyebrow")).toHaveText("Publicada");
   await visitor.getByRole("button", { name: "Ver contactos" }).click();
   await expect(visitor.getByText("elegivel.contacto@example.com")).toBeVisible();
 
   await page.goto(actorUrl);
   await page.getByRole("checkbox", { name: "Produtor" }).uncheck();
   await page.getByRole("checkbox", { name: "Comprador" }).check();
-  await page.getByRole("button", { name: "Substituir papéis" }).click();
+  await confirmedClick(page, "Substituir papéis");
+  await expect(page.getByRole("checkbox", { name: "Produtor" })).not.toBeChecked();
+  await expect(page.getByRole("checkbox", { name: "Comprador" })).toBeChecked();
   await visitor.getByRole("button", { name: "Ver contactos" }).click();
   await expect(visitor.getByText("Oferta não encontrada ou indisponível.")).toBeVisible();
   await page.getByRole("checkbox", { name: "Produtor" }).check();
-  await page.getByRole("button", { name: "Substituir papéis" }).click();
+  await confirmedClick(page, "Substituir papéis");
+  await expect(page.getByRole("checkbox", { name: "Produtor" })).toBeChecked();
   await visitor.getByRole("button", { name: "Ver contactos" }).click();
   await expect(visitor.getByText("elegivel.contacto@example.com")).toBeVisible();
 
   await page.goto(productUrl);
   await page.getByRole("button", { name: "Arquivar produto" }).click();
-  await page.getByRole("button", { name: "Confirmar arquivo" }).click();
+  await confirmedClick(page, "Confirmar arquivo");
+  await expect(page.getByText("Arquivado", { exact: true })).toBeVisible();
   await visitor.getByRole("button", { name: "Ver contactos" }).click();
   await expect(visitor.getByText("Oferta não encontrada ou indisponível.")).toBeVisible();
 
@@ -427,6 +438,76 @@ test("um cookie inválido não impede a consulta pública", async ({ page }) => 
   expect(page.url()).not.toContain("publico.cookie@example.com");
 });
 
+test("o teclado percorre o contacto, a confirmação e a validação", async ({ page }) => {
+  await login(page, credentials());
+  await createActor(page, `Teclado contacto ${Date.now()}`, ["Produtor"]);
+  await page.getByRole("link", { name: "Contactos comerciais" }).click();
+  await page.getByRole("link", { name: "Registar contacto" }).click();
+  await page.waitForURL(/\/contactos\/novo$/);
+  await expect(page.getByRole("button", { name: "Registar contacto" })).toBeVisible();
+  await expect(page.getByText("A carregar os contactos.")).toHaveCount(0);
+
+  await expect(page.getByLabel("Canal")).toHaveAttribute("id", "create-channel");
+  await expect(page.getByLabel("Valor")).toHaveAttribute("id", "create-value");
+
+  await page.locator("#create-channel").focus();
+  await page.locator("#create-channel").press("Tab");
+  await expect(page.locator("#create-value")).toBeFocused();
+  await expectVisibleFocus(page);
+  await page.locator("#create-value").press("Shift+Tab");
+  await expect(page.locator("#create-channel")).toBeFocused();
+
+  await page.getByRole("button", { name: "Registar contacto" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#create-value")).toBeFocused();
+  expect(await validationMessage(page, "#create-value")).not.toBe("");
+
+  await page.locator("#create-channel").focus();
+  await page.locator("#create-channel").press("e");
+  await expect(page.locator("#create-channel")).toHaveValue("email");
+  await page.locator("#create-channel").press("ArrowDown");
+  await expect(page.locator("#create-channel")).toHaveValue("whatsapp");
+  await page.locator("#create-channel").press("ArrowUp");
+  await expect(page.locator("#create-channel")).toHaveValue("email");
+  await page.locator("#create-value").focus();
+  await page.keyboard.type("teclado.contacto@example.com");
+  await page.locator("#create-value").press("Tab");
+  await expect(page.getByRole("button", { name: "Registar contacto" })).toBeFocused();
+  await page.getByRole("button", { name: "Registar contacto" }).press("Tab");
+  await expect(page.getByRole("button", { name: "Registar contacto" })).not.toBeFocused();
+  await page.getByRole("button", { name: "Registar contacto" }).focus();
+  await page.keyboard.press("Enter");
+  await page.waitForURL(/\/contactos\/[0-9a-f-]{36}$/i);
+
+  const confirm = page.getByRole("checkbox", { name: /Confirmo a divulgação/ });
+  await confirm.focus();
+  await confirm.press("Tab");
+  await expect(page.getByRole("button", { name: "Autorizar divulgação" })).toBeFocused();
+  await page.getByRole("button", { name: "Autorizar divulgação" }).press("Shift+Tab");
+  await expect(confirm).toBeFocused();
+  await confirm.press("Tab");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("alert").filter({ hasText: "A confirmação explícita é obrigatória." })).toBeVisible();
+
+  await confirm.focus();
+  await page.keyboard.press("Space");
+  await expect(confirm).toBeChecked();
+  await confirm.press("Tab");
+  await page.keyboard.press("Enter");
+  await expect(page.getByText("Divulgação autorizada")).toBeVisible();
+});
+
+async function confirmedClick(page: Page, name: string) {
+  const finished = page.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      response.url().includes("/actores/") &&
+      response.status() < 500,
+  );
+  await page.getByRole("button", { name }).click();
+  await finished;
+}
+
 async function login(page: Page, account: { email: string; password: string }) {
   await page.goto("/login");
   await page.locator("#email").fill(account.email);
@@ -519,6 +600,20 @@ function offerIdFrom(url: string): string {
   const id = parts[parts.length - 1];
   if (!id || !isActorId(id)) throw new Error("A rota não tem a oferta esperada.");
   return id;
+}
+
+async function validationMessage(page: Page, selector: string) {
+  return page.locator(selector).evaluate((element) => {
+    if (!(element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement)) {
+      return "";
+    }
+    return element.validationMessage.trim();
+  });
+}
+
+async function expectVisibleFocus(page: Page) {
+  const outline = await page.evaluate(() => getComputedStyle(document.activeElement as Element).outlineStyle);
+  expect(outline).not.toBe("none");
 }
 
 async function expectNoHorizontalOverflow(page: Page) {

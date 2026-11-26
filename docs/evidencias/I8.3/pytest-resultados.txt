@@ -1,0 +1,14 @@
+Backend, RUN_DB_TESTS=1, pytest -q --tb=line.
+A árvore já tinha a correcção temporal. Não se acrescentou teste: continuam 280.
+
+2026-11-26T15:11:09Z a 15:12:34Z
+280 passed in 73.42s
+exit 0
+
+2026-11-26T15:12:40Z a 15:14:02Z
+280 passed in 71.49s
+exit 0
+
+Resultado oficial da regressão: a segunda execução, 280 passed in 71.49s.
+O teste isolado test_postgres_rejects_invalid_authorizations tinha passado
+em 0,45 s antes da suite.

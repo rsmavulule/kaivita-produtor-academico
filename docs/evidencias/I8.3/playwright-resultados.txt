@@ -1,0 +1,49 @@
+Playwright 1.65.1, um worker, zero retries, timeout 90 s, expectativa 20 s.
+NO_PROXY=127.0.0.1,localhost,::1. Sem HTTP_PROXY, HTTPS_PROXY, ALL_PROXY
+nem E2E_EVIDENCE. Chromium revisão 1255. Servidor: next dev em 127.0.0.1:3100.
+
+Ambiente, antes do browser instalado
+A primeira tentativa dos testes afectados falhou de imediato: faltava
+chrome-headless-shell.exe da revisão 1255. npx playwright install chromium
+concluiu com exit 0. Não é defeito da aplicação.
+
+Testes afectados, depois do browser
+6 passed, 2 failed, 2.2 min.
+Falhas: elegibilidade (p.eyebrow em modo estrito, dois elementos, botão
+ainda «A publicar…») e teclado do contacto (Tab não deixou o valor focado).
+Corrigidos no teste. Não se aumentou timeout.
+
+Teclado do contacto, oferta e produto, isolados
+2026-11-26T15:11:16Z a 15:12:31Z
+3 passed (1.0m), exit 0
+
+Estabilidade do quarteto, três vezes seguidas
+1. Contaminada. O next dev da porta 3100 foi terminado durante a execução.
+   4 failed: timeout em #create-channel e ERR_CONNECTION_REFUSED em /login.
+   EXIT 1. Não é resultado funcional.
+2. 4 passed (1.9m). EXIT 0.
+3. 3 passed, 1 failed (2.2m). EXIT 1.
+   offers.spec.ts:292, «uma oferta ou um produto de outro actor não são mostrados».
+   O URL /ofertas/nova já tinha passado. p.alert «Produto não encontrado.»
+   não apareceu em 20 s. A página estava no fallback «A carregar as ofertas.»
+   Depois desta repetição, o teste passou a esperar o POST e o fim desse
+   fallback antes da mesma asserção. Não se aumentou timeout.
+
+Suite completa sobreposta a next build
+Iniciada 2026-11-26T15:14:08Z. .next foi reescrito pela build.
+MODULE_NOT_FOUND e routes-manifest.json em falta.
+11 ok e 3 falhas observadas, depois interrompida. Não é resultado funcional.
+
+Regressão oficial, sequencial, sem build em paralelo
+
+SUITE 1  2026-11-26T17:18:17+02 a 17:25:45+02
+68 passed (7.4m)
+SUITE 1 EXIT 0
+
+SUITE 2  2026-11-26T17:25:45+02 a 17:33:24+02
+68 passed (7.6m)
+SUITE 2 EXIT 0
+
+Houve ECONNRESET abortado no servidor durante a autenticação, nas duas
+suites. Os 68 testes passaram na mesma. Não se repetiu a falha 292.
+Critério de duas suites completas consecutivas sem falhas: cumprido.

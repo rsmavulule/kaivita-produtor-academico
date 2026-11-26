@@ -192,6 +192,61 @@ test("um campo inválido conserva a ficha gravada", async ({ page }) => {
   await expect(page.locator("#edit-name-error")).toHaveText("Nome inválido.");
 });
 
+test("o teclado percorre o produto, a declaração e a validação", async ({ page }) => {
+  await login(page, credentials());
+  await createActor(page, `Teclado produto ${Date.now()}`, ["Produtor"]);
+  await page.getByRole("link", { name: "Produtos" }).click();
+  await page.getByRole("link", { name: "Registar produto" }).click();
+
+  await expect(page.getByLabel("Nome")).toHaveAttribute("id", "create-name");
+  await expect(page.getByLabel("Descrição")).toHaveAttribute("id", "create-description");
+  await expect(page.getByLabel("Categoria")).toHaveAttribute("id", "create-category");
+  await expect(page.getByLabel("Fotografia (HTTPS)")).toHaveAttribute("id", "create-image");
+
+  await page.getByRole("button", { name: "Registar produto" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#create-name")).toBeFocused();
+  expect(await validationMessage(page, "#create-name")).not.toBe("");
+
+  await page.locator("#create-name").fill("Milho");
+  await page.locator("#create-name").press("Tab");
+  await expect(page.locator("#create-description")).toBeFocused();
+  await expectVisibleFocus(page);
+  await page.locator("#create-description").press("Shift+Tab");
+  await expect(page.locator("#create-name")).toBeFocused();
+
+  await page.locator("#create-description").fill("Grão seco");
+  await page.locator("#create-category").fill("cereal");
+  await page.locator("#create-image").focus();
+  await page.keyboard.type("https://example.com/milho.jpg");
+  await page.locator("#create-image").press("Tab");
+  const rights = page.getByRole("checkbox", { name: /Declaro que possuo os direitos/ });
+  await expect(rights).toBeFocused();
+  await expect(rights).toBeEnabled();
+  await page.keyboard.press("Space");
+  await expect(rights).toBeChecked();
+  await page.locator("#create-image-rights").press("Shift+Tab");
+  await expect(page.locator("#create-image")).toBeFocused();
+  await page.locator("#create-image").press("Tab");
+  await page.locator("#create-image-rights").press("Tab");
+  await expect(page.getByRole("button", { name: "Registar produto" })).toBeFocused();
+  await page.getByRole("button", { name: "Registar produto" }).press("Tab");
+  await expect(page.getByRole("button", { name: "Registar produto" })).not.toBeFocused();
+  await page.getByRole("button", { name: "Registar produto" }).focus();
+  await page.keyboard.press("Enter");
+  await page.waitForURL(/\/produtos\/[0-9a-f-]{36}$/i);
+  await expect(page.getByRole("heading", { name: "Milho" })).toBeVisible();
+
+  await page.locator("#edit-name").focus();
+  await page.keyboard.press("Control+A");
+  await page.keyboard.type("   ");
+  await page.getByRole("button", { name: "Guardar produto" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#edit-name-error")).toHaveText("Nome inválido.");
+  await expect(page.locator("#edit-name")).toHaveAttribute("aria-describedby", /edit-name-error/);
+  await expect(page.getByRole("heading", { name: "Milho" })).toBeVisible();
+});
+
 async function login(page: Page, account: { email: string; password: string }) {
   await page.goto("/login");
   await page.locator("#email").fill(account.email);
@@ -236,4 +291,18 @@ function actorIdFrom(url: string, fromEnd: number): string {
 async function expectNoHorizontalOverflow(page: Page) {
   const overflows = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
   expect(overflows).toBe(false);
+}
+
+async function validationMessage(page: Page, selector: string) {
+  return page.locator(selector).evaluate((element) => {
+    if (!(element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement)) {
+      return "";
+    }
+    return element.validationMessage.trim();
+  });
+}
+
+async function expectVisibleFocus(page: Page) {
+  const outline = await page.evaluate(() => getComputedStyle(document.activeElement as Element).outlineStyle);
+  expect(outline).not.toBe("none");
 }

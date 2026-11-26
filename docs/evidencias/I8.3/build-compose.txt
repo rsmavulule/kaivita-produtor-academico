@@ -1,0 +1,25 @@
+Next.js 15.5.29. Comando: npm run build, em frontend.
+Não se reconstruíram imagens: não houve alteração de código de produção.
+Playwright usa next dev, não a imagem web.
+
+As duas builds registadas passaram e listaram /_not-found como rota
+estática. Não se conservou um terminal de uma build falhada.
+
+2026-11-26T15:12:45Z a 15:13:21Z
+exit 0, cerca de 36,7 s
+
+2026-11-26T15:14:47Z a 15:15:19Z
+exit 0, cerca de 31,9 s
+Rotas geradas, incluindo /_not-found estática, /, /login, /ofertas,
+/ofertas/[offerId], actores, produtos, contactos e o route handler
+público de contactos.
+
+Uma suite Playwright iniciada às 15:14:08Z sobrepôs-se à segunda build.
+Perdeu routes-manifest.json e falhou com MODULE_NOT_FOUND. Interrompida
+depois de 11 aprovações e 3 falhas. Não é resultado funcional.
+
+Serviços, depois das builds, sem reconstrução de imagem:
+api Up (healthy)
+db Up (healthy)
+web Up (healthy)
+alembic current: 0008_offer_status_events (head)
