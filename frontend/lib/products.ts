@@ -72,6 +72,7 @@ type ProductDraft = {
   description: string;
   category: string;
   imageRef: string | null;
+  imageUseConfirmed: boolean;
 };
 
 function draftBody(body: ProductDraft) {
@@ -80,6 +81,7 @@ function draftBody(body: ProductDraft) {
     description: body.description,
     category: body.category,
     image_ref: body.imageRef,
+    image_use_confirmed: body.imageUseConfirmed,
   };
 }
 
@@ -151,6 +153,7 @@ function parseProduct(data: unknown, actorId: string): ProductView | null {
     "description",
     "category",
     "image_ref",
+    "image_use_confirmed",
     "status",
   ]);
   if (Object.keys(record).some((key) => !allowed.has(key))) return null;
@@ -160,6 +163,7 @@ function parseProduct(data: unknown, actorId: string): ProductView | null {
   if (typeof record.description !== "string" || record.description.trim() === "") return null;
   if (typeof record.category !== "string" || record.category.trim() === "") return null;
   if (record.image_ref !== null && typeof record.image_ref !== "string") return null;
+  if (typeof record.image_use_confirmed !== "boolean") return null;
   if (record.status !== "active" && record.status !== "archived") return null;
   return {
     id: record.id,
@@ -168,6 +172,7 @@ function parseProduct(data: unknown, actorId: string): ProductView | null {
     description: record.description,
     category: record.category,
     imageRef: record.image_ref,
+    imageUseConfirmed: record.image_use_confirmed,
     status: record.status,
   };
 }

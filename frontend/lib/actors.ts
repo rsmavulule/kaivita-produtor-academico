@@ -47,24 +47,27 @@ export async function createActor(body: {
   kind: string;
   displayName: string;
   generalLocation: string | null;
+  coverageArea: string | null;
   roles: string[];
 }): Promise<ActorLoad<{ id: string }>> {
   return writeJson("/actors", "POST", {
     kind: body.kind,
     display_name: body.displayName,
     general_location: body.generalLocation,
+    coverage_area: body.coverageArea,
     roles: body.roles,
   }, parseCreatedId);
 }
 
 export async function updateActorProfile(
   actorId: string,
-  body: { displayName: string; generalLocation: string | null },
+  body: { displayName: string; generalLocation: string | null; coverageArea: string | null },
 ): Promise<ActorLoad<{ id: string }>> {
   if (!isActorId(actorId)) return { kind: "missing" };
   return writeJson(`/actors/${actorId}`, "PATCH", {
     display_name: body.displayName,
     general_location: body.generalLocation,
+    coverage_area: body.coverageArea,
   }, parseCreatedId);
 }
 
@@ -148,6 +151,9 @@ function parseActor(data: unknown): ActorView | null {
   if (record.kind !== "person" && record.kind !== "organization") return null;
   if (typeof record.display_name !== "string" || record.display_name.trim() === "") return null;
   if (record.general_location !== null && typeof record.general_location !== "string") return null;
+  if (!("coverage_area" in record)) return null;
+  const coverageArea = record.coverage_area;
+  if (coverageArea !== null && typeof coverageArea !== "string") return null;
   if (record.status !== "active" && record.status !== "inactive") return null;
   if (record.representation !== "read" && record.representation !== "manage") return null;
   if ("user_id" in record || "access_level" in record) return null;
@@ -156,6 +162,7 @@ function parseActor(data: unknown): ActorView | null {
     kind: record.kind,
     displayName: record.display_name,
     generalLocation: record.general_location,
+    coverageArea,
     status: record.status,
     representation: record.representation,
   };

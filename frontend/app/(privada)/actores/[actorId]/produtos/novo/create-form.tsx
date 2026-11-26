@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import { PublicFieldNotice } from "../../../../../../components/public-disclosure";
 import { createProductAction } from "../actions";
@@ -20,7 +20,7 @@ export function CreateProductForm({
   useReloadAfterChange(state.lostAccess || state.accessChanged);
   if (state.lostAccess || state.accessChanged) return <Recheck />;
 
-  const formKey = [state.name, state.description, state.category, state.imageRef, state.formError ?? ""].join("|");
+  const formKey = [state.name, state.description, state.category, state.imageRef, state.imageUseConfirmed, state.formError ?? ""].join("|");
   return (
     <form action={action} className="form" aria-busy={pending} key={formKey}>
       <h2>Novo produto</h2>
@@ -75,14 +75,74 @@ export function ProductFields({
         hintId="product-public-notice"
         required
       />
-      <Field
-        id={`${idPrefix}-image`}
-        name="image_ref"
-        label="Referência da imagem"
-        defaultValue={state.imageRef}
+      <ImageReference
+        idPrefix={idPrefix}
+        imageRef={state.imageRef}
+        confirmed={state.imageUseConfirmed}
         error={state.imageError}
       />
-      <p className="note">A referência é texto opcional. Deixe-a vazia para a retirar.</p>
+    </>
+  );
+}
+
+function ImageReference(input: {
+  idPrefix: string;
+  imageRef: string;
+  confirmed: boolean;
+  error?: string;
+}) {
+  const [value, setValue] = useState(input.imageRef);
+  const [checked, setChecked] = useState(input.confirmed && input.imageRef.trim() !== "");
+  const errorId = `${input.idPrefix}-image-error`;
+  const described = input.error ? errorId : undefined;
+
+  function changeImage(next: string) {
+    setValue(next);
+    if (next.trim() !== input.imageRef.trim()) setChecked(false);
+    else setChecked(input.confirmed && input.imageRef.trim() !== "");
+  }
+
+  return (
+    <>
+      <div className="field">
+        <label htmlFor={`${input.idPrefix}-image`}>Fotografia (HTTPS)</label>
+        <input
+          id={`${input.idPrefix}-image`}
+          name="image_ref"
+          type="text"
+          inputMode="url"
+          value={value}
+          aria-invalid={input.error ? true : undefined}
+          aria-describedby={described}
+          onChange={(event) => changeImage(event.target.value)}
+        />
+        {input.error ? (
+          <p id={errorId} className="field-error">
+            {input.error}
+          </p>
+        ) : null}
+      </div>
+      <fieldset className="choices">
+        <legend>Direitos de utilização</legend>
+        <label className="choice">
+          <input
+            id={`${input.idPrefix}-image-rights`}
+            type="checkbox"
+            name="image_use_confirmed"
+            value="yes"
+            checked={value.trim() !== "" && checked}
+            disabled={value.trim() === ""}
+            onChange={(event) => setChecked(event.target.checked)}
+          />
+          Declaro que possuo os direitos necessários ou autorização para utilizar esta fotografia.
+        </label>
+      </fieldset>
+      <p className="note">
+        A fotografia é opcional e é só um endereço HTTPS. A declaração fica desmarcada até a confirmar
+        e deixa de valer se o endereço mudar ou for retirado. Sem declaração, a oferta pode ser
+        publicada, mas sem fotografia. A aplicação regista a afirmação do representante; não verifica
+        os direitos de autor.
+      </p>
     </>
   );
 }

@@ -56,14 +56,16 @@ def test_alembic_chain_preserves_the_empty_initial_revision():
     offers = script.get_revision("0004_offers")
     contacts = script.get_revision("0005_contacts")
     authorizations = script.get_revision("0006_publication_authorizations")
+    coverage = script.get_revision("0007_coverage_and_image_rights")
 
-    assert script.get_heads() == ["0006_publication_authorizations"]
+    assert script.get_heads() == ["0007_coverage_and_image_rights"]
     assert initial is not None and initial.down_revision is None
     assert identity is not None and identity.down_revision == "0001_initial"
     assert products is not None and products.down_revision == "0002_identity_access"
     assert offers is not None and offers.down_revision == "0003_products"
     assert contacts is not None and contacts.down_revision == "0004_offers"
     assert authorizations is not None and authorizations.down_revision == "0005_contacts"
+    assert coverage is not None and coverage.down_revision == "0006_publication_authorizations"
 
     source = (BACKEND_ROOT / "alembic" / "versions" / "0001_initial.py").read_text(
         encoding="utf-8"

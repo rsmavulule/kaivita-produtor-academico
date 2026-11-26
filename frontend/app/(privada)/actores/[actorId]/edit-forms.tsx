@@ -11,16 +11,18 @@ export function ProfileForm(input: {
   actorId: string;
   displayName: string;
   location: string;
+  coverageArea: string;
 }) {
   const initial: ProfileFormState = {
     displayName: input.displayName,
     location: input.location,
+    coverageArea: input.coverageArea,
   };
   const [state, action, pending] = useActionState(
     updateProfileAction.bind(null, input.actorId),
     initial,
   );
-  const formKey = [state.displayName, state.location, state.formError ?? ""].join("|");
+  const formKey = [state.displayName, state.location, state.coverageArea, state.formError ?? ""].join("|");
   useRefreshAfterAccessLoss(state.lostAccess);
 
   if (state.lostAccess) return <AccessRecheck />;
@@ -51,7 +53,15 @@ export function ProfileForm(input: {
         error={state.locationError}
         hintId="actor-public-notice"
       />
-      <p className="note">Deixe a localização vazia para a retirar.</p>
+      <TextField
+        id="profile-coverage"
+        name="coverage_area"
+        label="Área de actuação"
+        defaultValue={state.coverageArea}
+        error={state.coverageError}
+        hintId="actor-public-notice"
+      />
+      <p className="note">Deixe um campo vazio para o retirar. A área de actuação não é preenchida com a localização geral.</p>
       <button className="primary" type="submit" disabled={pending}>
         {pending ? "A guardar…" : "Guardar perfil"}
       </button>

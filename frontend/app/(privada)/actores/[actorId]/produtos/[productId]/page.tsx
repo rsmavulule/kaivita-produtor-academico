@@ -59,6 +59,10 @@ export default async function ProductPage({
         Categoria: {sheet.category}. Referência da imagem:{" "}
         {sheet.imageRef ?? "sem referência"}.
       </p>
+      <p>
+        Declaração de direitos:{" "}
+        {sheet.imageUseConfirmed ? "registada para esta fotografia" : "não registada"}.
+      </p>
       <p className="links">
         {canWrite && sheet.status === "active" ? (
           <a
@@ -84,6 +88,7 @@ export default async function ProductPage({
             description={sheet.description}
             category={sheet.category}
             imageRef={sheet.imageRef ?? ""}
+            imageUseConfirmed={sheet.imageUseConfirmed}
           />
           {sheet.status === "active" ? (
             <ArchiveProduct actorId={actor.value.id} productId={sheet.id} />

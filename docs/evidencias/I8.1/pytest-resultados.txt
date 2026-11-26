@@ -1,0 +1,26 @@
+Pytest — I8.1
+
+Comando, a partir de backend, com o interpretador do ambiente do projecto:
+  $env:RUN_DB_TESTS='1'
+  .\.venv\Scripts\python.exe -m pytest
+
+Resultado:
+  273 passed in 55.69s
+  Exit code: 0
+
+Base I8.0: 266 testes. O incremento acrescenta 7 testes em
+tests/test_i81_coverage_image.py. Não houve falhas.
+
+Os sete testes cobrem a área de actuação, o isolamento e a
+representação, a fotografia opcional, a referência válida e inválida,
+a declaração e a sua invalidação, a elegibilidade pública, a
+referência histórica e a migração numa base descartável.
+
+A base de desenvolvimento não foi sujeita a downgrade. O teste de
+migração cria uma base kaivita_i81_<doze hexadecimais>, sobe até
+0006, planta um actor e um produto, sobe a 0007, desce a 0006, volta
+a subir a 0007 e apaga essa base.
+
+Esta execução é anterior à correcção de apresentação da fotografia
+indisponível. Essa correcção está só no frontend. O backend não
+voltou a ser alterado.

@@ -44,8 +44,8 @@ PUBLIC_KEYS = {
     "product",
     "producer",
 }
-PRODUCT_KEYS = {"name", "description", "category"}
-PRODUCER_KEYS = {"display_name", "kind", "general_location"}
+PRODUCT_KEYS = {"name", "description", "category", "image_ref"}
+PRODUCER_KEYS = {"display_name", "kind", "general_location", "coverage_area"}
 PRIVATE_KEYS = {
     "id",
     "product_id",
@@ -291,7 +291,7 @@ def test_published_available_offer_is_public_without_authentication(api, db_sess
         name=f"{token} Mel claro",
         description="Mel claro de exemplo",
         category="mel",
-        image_ref=f"foto-secreta-{token}",
+        image_ref=f"https://example.com/foto-secreta-{token}.jpg",
     )
     created = _offer(
         api,
@@ -339,6 +339,7 @@ def test_published_available_offer_is_public_without_authentication(api, db_sess
         "name": f"{token} Mel claro",
         "description": "Mel claro de exemplo",
         "category": "mel",
+        "image_ref": None,
     }
     assert item["producer"]["display_name"] == "Produtor Exemplo"
     assert item["producer"]["kind"] == "person"
@@ -352,7 +353,6 @@ def test_published_available_offer_is_public_without_authentication(api, db_sess
         PASSWORD,
         "owner_actor_id",
         "product_id",
-        "image_ref",
         "representation",
         "access_level",
         "password_hash",

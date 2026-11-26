@@ -97,6 +97,16 @@ article p {
   color: var(--accent);
 }
 
+.product-photo {
+  display: block;
+  width: min(100%, 280px);
+  height: 180px;
+  object-fit: cover;
+  margin: 16px 0;
+  border: 1px solid var(--line);
+  background: var(--line);
+}
+
 .note {
   margin-top: 28px;
   font-size: 0.95rem;

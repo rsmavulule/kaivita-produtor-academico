@@ -1,0 +1,82 @@
+Playwright — I8.1
+
+Ferramenta: @playwright/test 1.65.1.
+Directório: frontend.
+Configuração versionada: não alterada. workers 1, retries 0,
+timeout 90000. O servidor de testes continua a ser `npx next dev`
+em 127.0.0.1:3100. O contentor web da porta 3010 não serve esta suite.
+
+Chromium: `npx playwright install chromium` concluiu e a suite
+arrancou de seguida. O browser já estava presente.
+
+Ambiente do processo:
+  NO_PROXY=127.0.0.1,localhost,::1
+  no_proxy=127.0.0.1,localhost,::1
+  HTTP_PROXY, HTTPS_PROXY e ALL_PROXY retirados.
+  E2E_EVIDENCE=I8.1, para gravar as quatro capturas em
+  docs/evidencias/I8.1/capturas. As evidências históricas não foram
+  o destino.
+
+Execução oficial, depois do build e da reconstrução do serviço web:
+  Running 65 tests using 1 worker
+  61 passed
+  4 failed
+  Duração: 8,9 min
+  Exit code: 1
+
+Durante os testes de autenticação o servidor de desenvolvimento
+registou ECONNRESET / uncaughtException aborted. A suite continuou.
+É a mesma classe de aviso da execução longa do I8.0. Não se aumentaram
+timeouts nem retries.
+
+Falhas preexistentes, já classificadas no I8.0. Não foram corrigidas.
+A estabilização fica para o I8.3.
+
+  1. e2e/contacts.spec.ts:76
+     «a desactivação pede confirmação e o contacto permanece depois de nova sessão»
+     Timeout de 90000 ms em login(), à espera de #email, depois de
+     terminar a sessão. A página observada no I8.0 permanecia em
+     /inicio.
+
+  2. e2e/contacts.spec.ts:198
+     «o visitante só vê o contacto depois da acção e deixa de o ver depois da revogação»
+     O texto «Não existem contactos comerciais disponíveis para esta
+     oferta.» não apareceu no prazo de 20000 ms.
+
+  3. e2e/contacts.spec.ts:265
+     «a elegibilidade pública esconde e restaura só o que o ciclo permite»
+     O endereço elegivel.contacto@example.com não apareceu depois da
+     mudança de papéis e de nova consulta.
+
+Falha ambiental da execução oficial:
+
+  4. e2e/offers.spec.ts:292
+     «uma oferta ou um produto de outro actor não são mostrados»
+     No fim do prazo, a página mostrava «A carregar as ofertas.» e
+     não tinha p.alert. O mesmo teste tinha passado na primeira suite
+     completa deste incremento. Repetido isolado, com o mesmo NO_PROXY
+     e sem alterar o teste: 1 passed (42,5 s).
+     Classificação: carga da suite, não defeito funcional do I8.1.
+
+Falhas introduzidas pelo I8.1 e ainda presentes: nenhuma.
+Defeitos funcionais comprovados: nenhum.
+
+Execução diagnóstica anterior, antes da correcção da fotografia
+indisponível. Não é o resultado oficial.
+
+  60 passed, 5 failed, cerca de 10,7 min.
+  As três falhas de contacts.spec.ts, mais:
+  - e2e/i81-cobertura.spec.ts:81. O teste seguia para a oferta pública
+    antes de a nova referência ficar gravada e, depois da correcção
+    dessa espera, a imagem em erro permanecia visível. A causa da
+    segunda parte está em decisoes-tecnicas.md. O teste passou na
+    execução oficial.
+  - e2e/public-offers.spec.ts:348, «arquivar o produto e perder o
+    produtor tiram a oferta da pesquisa». Timeout no fecho do
+    contexto, com o botão «Arquivar produto» ainda por confirmar.
+    Repetido isolado: passou. Voltou a passar na execução oficial.
+    Classificação: carga da suite.
+
+Percurso novo, aprovado na execução oficial:
+  e2e/i81-cobertura.spec.ts
+  «a área de actuação, a fotografia e a declaração chegam à oferta pública»

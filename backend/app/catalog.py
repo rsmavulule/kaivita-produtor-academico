@@ -19,12 +19,15 @@ from app.authorization import ActorUnavailable, actor_for_manage, actor_for_read
 from app.db import get_session
 from app.identity import User
 from app.products import (
+    IMAGE_DECLARATION_REQUIRED,
+    ImageDeclarationError,
     ProducerRoleMissing,
     Product,
     ProductStatus,
     ProductUnavailable,
     archive_product,
     create_product,
+    normalize_image_ref,
     product_for_actor,
     products_of,
     update_product,
@@ -44,13 +47,14 @@ class ProductResponse(BaseModel):
     description: str
     category: str
     image_ref: str | None
+    image_use_confirmed: bool
     status: ProductStatus
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class ProductCreate(BaseModel):
-    """Nome, descrição e categoria. A fotografia é opcional. O dono não vem."""
+    """Nome, descrição e categoria. A fotografia e a declaração são opcionais."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -58,6 +62,7 @@ class ProductCreate(BaseModel):
     description: str
     category: str
     image_ref: str | None = None
+    image_use_confirmed: bool = False
 
     @field_validator("name")
     @classmethod
@@ -76,8 +81,15 @@ class ProductCreate(BaseModel):
 
     @field_validator("image_ref")
     @classmethod
-    def image_ref_is_present_or_absent(cls, value: str | None) -> str | None:
-        return _optional_text(value)
+    def image_ref_is_https_or_absent(cls, value: str | None) -> str | None:
+        return normalize_image_ref(value)
+
+    @field_validator("image_use_confirmed")
+    @classmethod
+    def declaration_needs_the_photograph(cls, value: bool, info) -> bool:
+        if value and info.data.get("image_ref") is None:
+            raise ValueError(IMAGE_DECLARATION_REQUIRED)
+        return value
 
 
 class ProductUpdate(BaseModel):
@@ -89,6 +101,7 @@ class ProductUpdate(BaseModel):
     description: str | None = None
     category: str | None = None
     image_ref: str | None = None
+    image_use_confirmed: bool | None = None
 
     @field_validator("name")
     @classmethod
@@ -107,19 +120,13 @@ class ProductUpdate(BaseModel):
 
     @field_validator("image_ref")
     @classmethod
-    def image_ref_is_present_or_absent(cls, value: str | None) -> str | None:
-        return _optional_text(value)
+    def image_ref_is_https_or_absent(cls, value: str | None) -> str | None:
+        return normalize_image_ref(value)
 
 
 def _required_text(value: str | None, message: str) -> str:
     if value is None or value.strip() == "":
         raise ValueError(message)
-    return value
-
-
-def _optional_text(value: str | None) -> str | None:
-    if value is not None and value.strip() == "":
-        raise ValueError("Referência de imagem inválida.")
     return value
 
 
@@ -141,16 +148,27 @@ def _missing_producer_role() -> HTTPException:
     )
 
 
+def _reject_image(message: str) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+        detail=message,
+    )
+
+
 def _present(product: Product) -> ProductResponse:
     return ProductResponse.model_validate(product)
 
 
-def _changes(body: ProductUpdate) -> dict[str, str | None]:
-    return {
+def _changes(body: ProductUpdate, declared_by: UUID) -> dict[str, object]:
+    fields: dict[str, object] = {
         name: getattr(body, name)
         for name in ("name", "description", "category", "image_ref")
         if name in body.model_fields_set
     }
+    if "image_use_confirmed" in body.model_fields_set:
+        fields["image_use_confirmed"] = body.image_use_confirmed
+        fields["declared_by"] = declared_by
+    return fields
 
 
 @router.post("", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
@@ -172,9 +190,13 @@ def add_product(
             body.description,
             body.category,
             body.image_ref,
+            body.image_use_confirmed,
+            user.id,
         )
     except ProducerRoleMissing:
         raise _missing_producer_role() from None
+    except ImageDeclarationError as exc:
+        raise _reject_image(str(exc)) from None
     return _present(product)
 
 
@@ -226,9 +248,11 @@ def edit_product(
     except ProductUnavailable:
         raise _missing_product() from None
     try:
-        update_product(session, actor, product, _changes(body))
+        update_product(session, actor, product, _changes(body, user.id))
     except ProducerRoleMissing:
         raise _missing_producer_role() from None
+    except ImageDeclarationError as exc:
+        raise _reject_image(str(exc)) from None
     return _present(product)
 
 

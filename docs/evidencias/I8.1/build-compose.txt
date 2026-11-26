@@ -1,0 +1,38 @@
+Build e compose — I8.1
+
+Ordem, sem sobreposição com o Playwright:
+  1. Pytest, registado em pytest-resultados.txt.
+  2. npm run build, em frontend.
+  3. docker compose up -d --build api web, na raiz.
+  4. npx playwright install chromium.
+  5. Suite Playwright, com NO_PROXY.
+
+Build local do frontend, Next.js 15.5.29:
+  Compiled successfully in 2.5s
+  Exit code: 0
+  Este build já inclui a correcção da fotografia indisponível.
+
+Compose, depois desse build:
+  db   kaivita-produtor-academico-db-1    healthy   0.0.0.0:5435->5432/tcp
+  api  kaivita-produtor-academico-api-1   healthy   0.0.0.0:8010->8000/tcp
+  web  kaivita-produtor-academico-web-1   healthy   0.0.0.0:3010->3000/tcp
+
+O contentor da base manteve-se em execução. Não houve downgrade
+nessa base.
+
+Imagens observadas depois da reconstrução:
+  api  sha256:d918f677e930c268f85425505a37409850a677812f36da077e298623f2c5c5ba
+       criada 2026-11-26T10:56:54Z
+       A camada da aplicação estava em cache: o backend não mudou
+       depois dessa imagem.
+  web  sha256:369e3ea8ddd75cd04c7dfa7bc92f3120a50f3b7c0179209be2edc67d426e86b3
+       criada 2026-11-26T12:18:00Z
+       O contentor web foi recriado. O build interno compilou em 8,1 s
+       e terminou com êxito.
+  db   postgres:16-alpine, sem reconstrução.
+
+Alembic current, no contentor api:
+  0007_coverage_and_image_rights (head)
+
+O Playwright não usa este build de produção. Arranca o servidor de
+desenvolvimento na porta 3100, como na configuração versionada.

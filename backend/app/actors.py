@@ -50,6 +50,7 @@ class ActorResponse(BaseModel):
     kind: ActorKind
     display_name: str
     general_location: str | None
+    coverage_area: str | None
     status: ActorStatus
 
     model_config = ConfigDict(from_attributes=True)
@@ -62,6 +63,7 @@ class ActorView(BaseModel):
     kind: ActorKind
     display_name: str
     general_location: str | None
+    coverage_area: str | None
     status: ActorStatus
     representation: AccessLevel
 
@@ -74,6 +76,7 @@ class ActorCreate(BaseModel):
     kind: ActorKind
     display_name: str
     general_location: str | None = None
+    coverage_area: str | None = None
     roles: list[RoleCode]
 
     @field_validator("display_name")
@@ -86,9 +89,12 @@ class ActorCreate(BaseModel):
     @field_validator("general_location")
     @classmethod
     def location_is_present_or_unknown(cls, value: str | None) -> str | None:
-        if value is not None and value.strip() == "":
-            raise ValueError("Localização inválida.")
-        return value
+        return _optional_place(value, "Localização inválida.")
+
+    @field_validator("coverage_area")
+    @classmethod
+    def coverage_is_present_or_absent(cls, value: str | None) -> str | None:
+        return _optional_place(value, "Área de actuação inválida.")
 
     @field_validator("roles", mode="before")
     @classmethod
@@ -114,17 +120,19 @@ class ActorCreatedResponse(BaseModel):
     kind: ActorKind
     display_name: str
     general_location: str | None
+    coverage_area: str | None
     status: ActorStatus
     roles: list[RoleResponse]
 
 
 class ActorUpdate(BaseModel):
-    """Só o nome e a localização geral. Os outros campos ficam de fora."""
+    """Nome, localização geral e área de actuação. Os outros campos ficam de fora."""
 
     model_config = ConfigDict(extra="forbid")
 
     display_name: str | None = None
     general_location: str | None = None
+    coverage_area: str | None = None
 
     @field_validator("display_name")
     @classmethod
@@ -136,9 +144,18 @@ class ActorUpdate(BaseModel):
     @field_validator("general_location")
     @classmethod
     def location_is_present_or_unknown(cls, value: str | None) -> str | None:
-        if value is not None and value.strip() == "":
-            raise ValueError("Localização inválida.")
-        return value
+        return _optional_place(value, "Localização inválida.")
+
+    @field_validator("coverage_area")
+    @classmethod
+    def coverage_is_present_or_absent(cls, value: str | None) -> str | None:
+        return _optional_place(value, "Área de actuação inválida.")
+
+
+def _optional_place(value: str | None, message: str) -> str | None:
+    if value is not None and value.strip() == "":
+        raise ValueError(message)
+    return value
 
 
 def _missing_actor() -> HTTPException:
@@ -155,6 +172,7 @@ def _view(actor: Actor, representation: AccessLevel) -> ActorView:
         kind=actor.kind,
         display_name=actor.display_name,
         general_location=actor.general_location,
+        coverage_area=actor.coverage_area,
         status=actor.status,
         representation=representation,
     )
@@ -191,6 +209,7 @@ def create_actor(
             body.display_name,
             body.general_location,
             body.roles,
+            body.coverage_area,
         )
     except ValueError as exc:
         raise _reject_roles(exc) from None
@@ -199,6 +218,7 @@ def create_actor(
         kind=actor.kind,
         display_name=actor.display_name,
         general_location=actor.general_location,
+        coverage_area=actor.coverage_area,
         status=actor.status,
         roles=_roles(roles),
     )
@@ -245,6 +265,8 @@ def update_actor(
         actor.display_name = body.display_name
     if "general_location" in body.model_fields_set:
         actor.general_location = body.general_location
+    if "coverage_area" in body.model_fields_set:
+        actor.coverage_area = body.coverage_area
     session.flush()
     return _present(actor)
 

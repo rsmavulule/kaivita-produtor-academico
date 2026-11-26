@@ -51,7 +51,7 @@ from sqlalchemy.orm import Session
 from app.contacts import ContactStatus, ContactVisibility, PublicContact
 from app.identity import Actor, ActorRole, ActorStatus, Role, RoleCode
 from app.offers import AvailabilityStatus, Offer, OfferStatus
-from app.products import Product, ProductStatus
+from app.products import Product, ProductStatus, public_image_ref
 from app.publication import DisclosurePurpose, PublicationAuthorization
 
 _ACCENTED = (
@@ -105,9 +105,11 @@ class PublicOfferData:
     product_name: str
     product_description: str
     product_category: str
+    product_image_ref: str | None
     producer_name: str
     producer_kind: str
     producer_location: str | None
+    producer_coverage_area: str | None
 
 
 def normalize_search_text(value: str) -> str:
@@ -227,9 +229,13 @@ def _columns() -> tuple:
         Product.name.label("product_name"),
         Product.description.label("product_description"),
         Product.category.label("product_category"),
+        Product.image_ref.label("product_image_ref"),
+        Product.image_rights_ref.label("product_rights_ref"),
+        Product.image_rights_declared_at.label("product_rights_declared_at"),
         Actor.display_name.label("producer_name"),
         Actor.kind.label("producer_kind"),
         Actor.general_location.label("producer_location"),
+        Actor.coverage_area.label("producer_coverage_area"),
         _folded(Product.name).label("sort_name"),
     )
 
@@ -386,7 +392,13 @@ def _present(row: Row[object]) -> PublicOfferData:
         product_name=_text(mapping["product_name"]),
         product_description=_text(mapping["product_description"]),
         product_category=_text(mapping["product_category"]),
+        product_image_ref=public_image_ref(
+            mapping["product_image_ref"],
+            mapping["product_rights_ref"],
+            mapping["product_rights_declared_at"],
+        ),
         producer_name=_text(mapping["producer_name"]),
         producer_kind=_code(mapping["producer_kind"]),
         producer_location=mapping["producer_location"],
+        producer_coverage_area=mapping["producer_coverage_area"],
     )

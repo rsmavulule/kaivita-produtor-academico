@@ -52,6 +52,7 @@ PRODUCT_KEYS = {
     "description",
     "category",
     "image_ref",
+    "image_use_confirmed",
     "status",
 }
 THROWAWAY_NAME = re.compile(r"kaivita_i3_[0-9a-f]{12}")
@@ -215,6 +216,9 @@ def test_mapped_product_declares_the_catalog_contract():
         "category",
         "image_ref",
         "status",
+        "image_rights_ref",
+        "image_rights_declared_at",
+        "image_rights_declared_by",
     ]
     assert table.primary_key.name == "pk_products"
     assert table.columns["image_ref"].nullable is True
@@ -223,14 +227,20 @@ def test_mapped_product_declares_the_catalog_contract():
     assert "quantity" not in table.columns
     assert {member.value for member in ProductStatus} == {"active", "archived"}
     assert [index.name for index in table.indexes] == ["ix_products_owner_actor_id"]
-    foreign_key = next(iter(table.foreign_keys))
-    assert foreign_key.constraint.name == "fk_products_owner_actor_id"
-    assert foreign_key.constraint.ondelete == "RESTRICT"
+    foreign_keys = {
+        foreign_key.constraint.name: foreign_key.constraint.ondelete
+        for foreign_key in table.foreign_keys
+    }
+    assert foreign_keys == {
+        "fk_products_owner_actor_id": "RESTRICT",
+        "fk_products_image_rights_declared_by": "RESTRICT",
+    }
     assert {constraint.name for constraint in table.constraints if isinstance(constraint, CheckConstraint)} == {
         "ck_products_name",
         "ck_products_description",
         "ck_products_category",
         "ck_products_image_ref",
+        "ck_products_image_rights",
         "ck_products_status",
     }
 
@@ -472,7 +482,7 @@ def test_authorized_user_can_read_one_product(api, db_session):
     reader = _user(db_session, "consulta-leitor@example.com")
     actor_id = _actor(api, owner)
     _grant(db_session, reader, actor_id, AccessLevel.READ)
-    created = _add(api, owner, actor_id, image_ref="foto-mel")
+    created = _add(api, owner, actor_id, image_ref="https://example.com/foto-mel.jpg")
     product_id = created.json()["id"]
 
     as_owner = api.get(
@@ -488,7 +498,7 @@ def test_authorized_user_can_read_one_product(api, db_session):
         assert response.status_code == 200
         assert set(response.json()) == PRODUCT_KEYS
         assert response.json()["id"] == product_id
-        assert response.json()["image_ref"] == "foto-mel"
+        assert response.json()["image_ref"] == "https://example.com/foto-mel.jpg"
         assert response.json()["status"] == "active"
 
 
@@ -669,7 +679,7 @@ def test_manager_updates_a_product(api, db_session):
             "name": "Mel claro",
             "description": "Mel centrifugado",
             "category": "apicultura",
-            "image_ref": "foto-1",
+            "image_ref": "https://example.com/foto-1.jpg",
         },
     )
     renamed = api.patch(path, headers=headers, json={"name": "Mel escuro"})
@@ -680,7 +690,7 @@ def test_manager_updates_a_product(api, db_session):
     assert updated.json()["name"] == "Mel claro"
     assert updated.json()["description"] == "Mel centrifugado"
     assert updated.json()["category"] == "apicultura"
-    assert updated.json()["image_ref"] == "foto-1"
+    assert updated.json()["image_ref"] == "https://example.com/foto-1.jpg"
     assert updated.json()["status"] == "active"
     assert updated.json()["owner_actor_id"] == str(actor_id)
     assert renamed.status_code == 200
@@ -702,7 +712,7 @@ def test_reader_cannot_change_a_product(api, db_session):
     reader = _user(db_session, "edita-leitor@example.com")
     actor_id = _actor(api, owner)
     _grant(db_session, reader, actor_id, AccessLevel.READ)
-    created = _add(api, owner, actor_id, name="Mel estável", image_ref="foto-estavel")
+    created = _add(api, owner, actor_id, name="Mel estável", image_ref="https://example.com/foto-estavel.jpg")
     product_id = created.json()["id"]
     headers = _bearer(reader)
     path = f"/actors/{actor_id}/products/{product_id}"
@@ -716,7 +726,7 @@ def test_reader_cannot_change_a_product(api, db_session):
     assert archived.json() == NOT_FOUND
     stored = db_session.get(Product, uuid.UUID(product_id))
     assert stored.name == "Mel estável"
-    assert stored.image_ref == "foto-estavel"
+    assert stored.image_ref == "https://example.com/foto-estavel.jpg"
     assert stored.status is ProductStatus.ACTIVE
 
 
@@ -805,7 +815,7 @@ def test_manager_archives_a_product(api, db_session):
         name="Mel arquivado",
         description="Lote da época",
         category="mel",
-        image_ref="foto-arquivo",
+        image_ref="https://example.com/foto-arquivo.jpg",
     )
     product_id = uuid.UUID(created.json()["id"])
     headers = _bearer(user)
@@ -827,7 +837,7 @@ def test_manager_archives_a_product(api, db_session):
     assert archived.status_code == 200
     assert archived.json()["status"] == "archived"
     assert archived.json()["name"] == "Mel arquivado"
-    assert archived.json()["image_ref"] == "foto-arquivo"
+    assert archived.json()["image_ref"] == "https://example.com/foto-arquivo.jpg"
     assert [item["status"] for item in listed.json()] == ["archived"]
     assert fetched.json()["status"] == "archived"
     assert removed.status_code == 405
@@ -841,7 +851,7 @@ def test_manager_archives_a_product(api, db_session):
 def test_archive_is_idempotent(api, db_session, monkeypatch):
     user = _user(db_session, "arquivo-idempotente@example.com")
     actor_id = _actor(api, user)
-    created = _add(api, user, actor_id, name="Mel estável", image_ref="foto-idem")
+    created = _add(api, user, actor_id, name="Mel estável", image_ref="https://example.com/foto-idem.jpg")
     product_id = created.json()["id"]
     headers = _bearer(user)
     path = f"/actors/{actor_id}/products/{product_id}/archive"
@@ -859,7 +869,7 @@ def test_archive_is_idempotent(api, db_session, monkeypatch):
     assert second.json() == first.json()
     assert second.json()["status"] == "archived"
     assert second.json()["name"] == "Mel estável"
-    assert second.json()["image_ref"] == "foto-idem"
+    assert second.json()["image_ref"] == "https://example.com/foto-idem.jpg"
     assert len(_rows(db_session, actor_id)) == 1
 
 
@@ -873,7 +883,7 @@ def test_archive_preserves_the_persisted_fields(api, db_session):
         name="Mel completo",
         description="Descrição original",
         category="mel",
-        image_ref="foto-original",
+        image_ref="https://example.com/foto-original.jpg",
     )
     product_id = uuid.UUID(created.json()["id"])
     before = _snapshot(db_session.get(Product, product_id))
@@ -1026,7 +1036,7 @@ def test_failed_update_rolls_back_the_product(api, db_session, monkeypatch):
 def test_failed_archive_rolls_back_the_status(api, db_session, monkeypatch):
     user = _user(db_session, "falha-arquivo@example.com")
     actor_id = _actor(api, user)
-    created = _add(api, user, actor_id, name="Mel vivo", image_ref="foto-viva")
+    created = _add(api, user, actor_id, name="Mel vivo", image_ref="https://example.com/foto-viva.jpg")
     product_id = uuid.UUID(created.json()["id"])
 
     def explode(session, product):
@@ -1046,7 +1056,7 @@ def test_failed_archive_rolls_back_the_status(api, db_session, monkeypatch):
     stored = db_session.get(Product, product_id)
     assert stored.status is ProductStatus.ACTIVE
     assert stored.name == "Mel vivo"
-    assert stored.image_ref == "foto-viva"
+    assert stored.image_ref == "https://example.com/foto-viva.jpg"
 
 
 def test_actor_without_producer_role_cannot_create_or_change_products(api, db_session):
@@ -1172,7 +1182,7 @@ def test_migrated_product_schema_matches_the_model(db_session):
     )
     assert sorted(
         foreign_key["name"] for foreign_key in inspector.get_foreign_keys(table.name)
-    ) == ["fk_products_owner_actor_id"]
+    ) == ["fk_products_image_rights_declared_by", "fk_products_owner_actor_id"]
     assert sorted(
         index["name"]
         for index in inspector.get_indexes(table.name)
@@ -1194,6 +1204,7 @@ def test_migrated_product_schema_matches_the_model(db_session):
         "archived",
     }
     assert "ON DELETE RESTRICT" in by_name["fk_products_owner_actor_id"]
+    assert "ON DELETE RESTRICT" in by_name["fk_products_image_rights_declared_by"]
 
 
 def _calls(api, user: User, actor_id: uuid.UUID, product_id: str):

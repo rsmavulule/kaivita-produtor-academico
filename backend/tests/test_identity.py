@@ -64,6 +64,7 @@ def test_mapped_model_declares_the_identity_contract():
         "display_name",
         "general_location",
         "status",
+        "coverage_area",
     ]
     assert [column.name for column in tables["roles"].columns] == ["id", "code"]
     assert [column.name for column in tables["actor_roles"].primary_key.columns] == [
@@ -101,6 +102,7 @@ def test_mapped_model_declares_the_identity_contract():
         "ck_actors_kind",
         "ck_actors_display_name",
         "ck_actors_general_location",
+        "ck_actors_coverage_area",
         "ck_actors_status",
         "ck_roles_code",
         "ck_user_actor_access_level",
@@ -152,8 +154,8 @@ def test_role_catalog_remains_after_the_products_revision(db_session):
     ).scalar_one()
     roles = db_session.execute(select(Role).order_by(Role.code)).scalars().all()
 
-    # A cabeça corrente é a das autorizações de divulgação. Os papéis semeados no 0002 mantêm-se.
-    assert version == "0006_publication_authorizations"
+    # A cabeça corrente é a área de actuação e a declaração da fotografia.
+    assert version == "0007_coverage_and_image_rights"
     assert [role.code for role in roles] == [
         RoleCode.BUYER,
         RoleCode.PARTNER,

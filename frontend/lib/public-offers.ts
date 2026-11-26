@@ -148,6 +148,9 @@ function parseOffer(data: unknown): PublicOffer | null {
   if (!product || typeof product !== "object" || !producer || typeof producer !== "object") return null;
   const productRecord = product as Record<string, unknown>;
   const producerRecord = producer as Record<string, unknown>;
+  const imageRef = productRecord.image_ref;
+  const coverageArea = producerRecord.coverage_area;
+  const generalLocation = producerRecord.general_location;
   if (
     typeof record.id !== "string" ||
     !isPublicOfferId(record.id) ||
@@ -162,9 +165,12 @@ function parseOffer(data: unknown): PublicOffer | null {
     typeof productRecord.name !== "string" ||
     typeof productRecord.description !== "string" ||
     typeof productRecord.category !== "string" ||
+    !isOptionalText(imageRef) ||
+    (imageRef !== null && !isHttpsImage(imageRef)) ||
     typeof producerRecord.display_name !== "string" ||
     !isKind(producerRecord.kind) ||
-    !isOptionalText(producerRecord.general_location)
+    !isOptionalText(generalLocation) ||
+    !isOptionalText(coverageArea)
   ) {
     return null;
   }
@@ -179,10 +185,22 @@ function parseOffer(data: unknown): PublicOffer | null {
     productName: productRecord.name,
     productDescription: productRecord.description,
     productCategory: productRecord.category,
+    productImage: imageRef,
     producerName: producerRecord.display_name,
     producerKind: producerRecord.kind,
-    producerLocation: producerRecord.general_location,
+    producerLocation: generalLocation,
+    producerCoverage: coverageArea,
   };
+}
+
+function isHttpsImage(value: string): boolean {
+  if (value.length > 2048 || value.includes("\\") || /\s/.test(value)) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.username === "" && url.password === "" && url.hostname !== "";
+  } catch {
+    return false;
+  }
 }
 
 function isDecimal(value: unknown): value is string {

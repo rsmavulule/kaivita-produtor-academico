@@ -34,7 +34,7 @@ from app.tokens import issue_access_token
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 PASSWORD = "palavra-de-teste"
 NOT_FOUND = {"detail": "Actor não encontrado."}
-ACTOR_KEYS = {"id", "kind", "display_name", "general_location", "status"}
+ACTOR_KEYS = {"id", "kind", "display_name", "general_location", "coverage_area", "status"}
 VIEW_KEYS = ACTOR_KEYS | {"representation"}
 
 
@@ -569,7 +569,15 @@ def test_write_responses_keep_the_previous_contract(api, db_session):
     )
 
     assert created.status_code == 201
-    assert set(created.json()) == {"id", "kind", "display_name", "general_location", "status", "roles"}
+    assert set(created.json()) == {
+        "id",
+        "kind",
+        "display_name",
+        "general_location",
+        "coverage_area",
+        "status",
+        "roles",
+    }
     assert "representation" not in created.json()
     assert updated.status_code == 200
     assert set(updated.json()) == ACTOR_KEYS

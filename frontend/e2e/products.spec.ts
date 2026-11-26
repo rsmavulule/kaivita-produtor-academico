@@ -41,14 +41,14 @@ test("o catálogo vazio, o registo, a consulta e a edição", async ({ page }) =
   await page.locator("#create-category").pressSequentially("mel");
   await page.locator("#create-category").press("Tab");
   await expect(page.locator("#create-image")).toBeFocused();
-  await page.locator("#create-image").pressSequentially("foto-mel");
+  await page.locator("#create-image").pressSequentially("https://example.com/foto-mel.jpg");
   await page.getByRole("button", { name: "Registar produto" }).click();
   await page.waitForURL(/\/produtos\/[0-9a-f-]{36}$/i);
 
   await expect(page.getByRole("heading", { name: "Mel" })).toBeVisible();
   await expect(page.getByText("Activo", { exact: true })).toBeVisible();
   await expect(page.getByRole("paragraph").filter({ hasText: "Mel de miombo" })).toBeVisible();
-  await expect(page.getByText("Referência da imagem: foto-mel")).toBeVisible();
+  await expect(page.getByText("Referência da imagem: https://example.com/foto-mel.jpg")).toBeVisible();
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.screenshot({ path: shot("produto-1280.png"), fullPage: true });
   await page.setViewportSize({ width: 360, height: 800 });
@@ -59,11 +59,11 @@ test("o catálogo vazio, o registo, a consulta e a edição", async ({ page }) =
   await page.locator("#edit-name").fill("Mel claro");
   await page.locator("#edit-description").fill("Mel claro de miombo");
   await page.locator("#edit-category").fill("mel claro");
-  await page.locator("#edit-image").fill("foto-clara");
+  await page.locator("#edit-image").fill("https://example.com/foto-clara.jpg");
   await page.getByRole("button", { name: "Guardar produto" }).click();
   await expect(page.getByRole("heading", { name: "Mel claro" })).toBeVisible();
   await expect(page.getByText("Categoria: mel claro.")).toBeVisible();
-  await expect(page.getByText("Referência da imagem: foto-clara")).toBeVisible();
+  await expect(page.getByText("Referência da imagem: https://example.com/foto-clara.jpg")).toBeVisible();
 
   await page.locator("#edit-image").fill("");
   await page.getByRole("button", { name: "Guardar produto" }).click();
@@ -78,7 +78,7 @@ test("o catálogo vazio, o registo, a consulta e a edição", async ({ page }) =
 test("o arquivo pede confirmação e o produto arquivado continua editável", async ({ page }) => {
   await login(page, credentials());
   await createActor(page, `Arquivo ${Date.now()}`, ["Produtor"]);
-  await registerProduct(page, "Caju", "Castanha", "fruto", "foto-caju");
+  await registerProduct(page, "Caju", "Castanha", "fruto", "https://example.com/foto-caju.jpg");
 
   await page.getByRole("button", { name: "Arquivar produto" }).click();
   await expect(page.getByRole("button", { name: "Confirmar arquivo" })).toBeVisible();
@@ -180,7 +180,7 @@ test("um produto de outro actor não é mostrado", async ({ page }) => {
 test("um campo inválido conserva a ficha gravada", async ({ page }) => {
   await login(page, credentials());
   await createActor(page, `Estável ${Date.now()}`, ["Produtor"]);
-  await registerProduct(page, "Arroz", "Grão", "cereal", "foto-arroz");
+  await registerProduct(page, "Arroz", "Grão", "cereal", "https://example.com/foto-arroz.jpg");
   await page.locator("#edit-name").evaluate((input) => {
     (input as HTMLInputElement).required = false;
   });

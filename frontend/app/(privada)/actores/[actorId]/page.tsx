@@ -44,6 +44,7 @@ export default async function ActorPage({
         {KIND_LABELS[profile.kind]}.{" "}
         {profile.generalLocation ?? "Localização desconhecida"}.
       </p>
+      <p>Área de actuação: {profile.coverageArea ?? "não indicada"}.</p>
       <h2>Papéis comerciais</h2>
       {roles.value.length === 0 ? (
         <p className="note">Este actor não tem papéis comerciais.</p>
@@ -74,6 +75,7 @@ export default async function ActorPage({
             actorId={profile.id}
             displayName={profile.displayName}
             location={profile.generalLocation ?? ""}
+            coverageArea={profile.coverageArea ?? ""}
           />
           <RolesForm actorId={profile.id} roles={roles.value.map((role) => role.code)} />
         </>

@@ -15,6 +15,7 @@ export type ProductView = {
   description: string;
   category: string;
   imageRef: string | null;
+  imageUseConfirmed: boolean;
   status: ProductStatus;
 };
 

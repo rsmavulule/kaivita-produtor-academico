@@ -13,18 +13,20 @@ export function ProductEditor(input: {
   description: string;
   category: string;
   imageRef: string;
+  imageUseConfirmed: boolean;
 }) {
   const initial: ProductFormState = {
     name: input.name,
     description: input.description,
     category: input.category,
     imageRef: input.imageRef,
+    imageUseConfirmed: input.imageUseConfirmed,
   };
   const [state, action, pending] = useActionState(
     updateProductAction.bind(null, input.actorId, input.productId),
     initial,
   );
-  const formKey = [state.name, state.description, state.category, state.imageRef, state.formError ?? ""].join("|");
+  const formKey = [state.name, state.description, state.category, state.imageRef, state.imageUseConfirmed, state.formError ?? ""].join("|");
   useReloadAfterChange(state.lostAccess || state.accessChanged);
   if (state.lostAccess || state.accessChanged) return <p className="note">A confirmar o acesso.</p>;
 

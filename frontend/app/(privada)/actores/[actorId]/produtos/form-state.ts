@@ -3,6 +3,7 @@ export type ProductFormState = {
   description: string;
   category: string;
   imageRef: string;
+  imageUseConfirmed: boolean;
   formError?: string;
   nameError?: string;
   descriptionError?: string;
@@ -23,4 +24,5 @@ export const emptyProductState: ProductFormState = {
   description: "",
   category: "",
   imageRef: "",
+  imageUseConfirmed: false,
 };

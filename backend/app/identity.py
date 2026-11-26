@@ -210,6 +210,10 @@ class Actor(Base):
             name="ck_actors_general_location",
         ),
         CheckConstraint(
+            "coverage_area IS NULL OR char_length(btrim(coverage_area)) > 0",
+            name="ck_actors_coverage_area",
+        ),
+        CheckConstraint(
             f"status IN ({_values(ActorStatus)})",
             name="ck_actors_status",
         ),
@@ -244,6 +248,14 @@ class Actor(Base):
     status: Mapped[ActorStatus] = closed_text(
         ActorStatus,
         "active: identidade em uso; inactive: retirada de uso, sem apagar o registo.",
+    )
+    coverage_area: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment=(
+            "Zonas em que o actor desenvolve a actividade. "
+            "É independente da localização geral. NULL significa não indicada."
+        ),
     )
 
     role_links: Mapped[list["ActorRole"]] = relationship(

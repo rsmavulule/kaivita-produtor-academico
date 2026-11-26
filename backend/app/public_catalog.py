@@ -66,13 +66,14 @@ class OfferPath(str):
 
 
 class PublicProduct(BaseModel):
-    """Texto do produto visível na descoberta. Sem identificador nem fotografia."""
+    """Texto do produto e, só com declaração válida, a fotografia HTTPS."""
 
     model_config = ConfigDict(extra="forbid")
 
     name: str
     description: str
     category: str
+    image_ref: str | None
 
 
 class PublicProducer(BaseModel):
@@ -83,6 +84,7 @@ class PublicProducer(BaseModel):
     display_name: str
     kind: ActorKind
     general_location: str | None
+    coverage_area: str | None
 
 
 class PublicOffer(BaseModel):
@@ -264,11 +266,13 @@ def _view(offer: PublicOfferData) -> PublicOffer:
             name=offer.product_name,
             description=offer.product_description,
             category=offer.product_category,
+            image_ref=offer.product_image_ref,
         ),
         producer=PublicProducer(
             display_name=offer.producer_name,
             kind=ActorKind(offer.producer_kind),
             general_location=offer.producer_location,
+            coverage_area=offer.producer_coverage_area,
         ),
     )
 

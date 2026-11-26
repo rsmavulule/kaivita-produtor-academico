@@ -160,7 +160,7 @@ test("o visitante acompanha a publicação, a alteração e a retirada", async (
     await login(producerPage, account);
     await createActor(producerPage, actorName, location);
     await expect(producerPage.getByText(PUBLIC_FIELD_NOTICE).first()).toBeVisible();
-    await registerProduct(producerPage, product, category, description, `foto-secreta-${stamp}`);
+    await registerProduct(producerPage, product, category, description, `https://example.com/foto-secreta-${stamp}.jpg`);
     await expect(producerPage.getByText(PUBLIC_FIELD_NOTICE).first()).toBeVisible();
     const actorId = actorIdFrom(producerPage.url());
 

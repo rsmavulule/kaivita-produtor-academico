@@ -32,6 +32,7 @@ export const LIMITED_RESULTS =
   "A pesquisa apresenta um conjunto limitado de resultados. Refine os filtros para chegar ao que procura.";
 
 export const LOCATION_MISSING = "Localização não indicada";
+export const COVERAGE_MISSING = "Área de actuação não indicada";
 export const DELIVERY_MISSING = "Condições de entrega não indicadas";
 
 export const AVAILABILITY_LABELS = {
@@ -64,9 +65,11 @@ export type PublicOffer = {
   productName: string;
   productDescription: string;
   productCategory: string;
+  productImage: string | null;
   producerName: string;
   producerKind: ProducerKind;
   producerLocation: string | null;
+  producerCoverage: string | null;
 };
 
 export type PublicFilters = {

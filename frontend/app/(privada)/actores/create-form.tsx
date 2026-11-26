@@ -9,7 +9,7 @@ import { emptyCreateState, type CreateFormState } from "./form-state";
 
 export function CreateActorForm() {
   const [state, action, pending] = useActionState(createActorAction, emptyCreateState);
-  const formKey = [state.kind, state.displayName, state.location, state.roles.join(","), state.formError ?? ""].join("|");
+  const formKey = [state.kind, state.displayName, state.location, state.coverageArea, state.roles.join(","), state.formError ?? ""].join("|");
 
   return (
     <form action={action} className="form" aria-busy={pending} key={formKey}>
@@ -52,6 +52,15 @@ export function CreateActorForm() {
         error={state.locationError}
         hintId="actor-public-notice"
       />
+      <TextField
+        id="create-coverage"
+        name="coverage_area"
+        label="Área de actuação"
+        defaultValue={state.coverageArea}
+        error={state.coverageError}
+        hintId="actor-public-notice"
+      />
+      <p className="note">A área de actuação indica as zonas da actividade. Não substitui a localização geral.</p>
       <RoleChoices selected={state.roles} error={state.rolesError} />
       <button className="primary" type="submit" disabled={pending}>
         {pending ? "A criar…" : "Criar actor"}

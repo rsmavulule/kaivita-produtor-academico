@@ -81,6 +81,9 @@ test("o teclado percorre o formulário de criação", async ({ page }) => {
   await expect(page.locator("#create-location")).toBeFocused();
   await page.keyboard.type("Lichinga");
   await page.keyboard.press("Tab");
+  await expect(page.locator("#create-coverage")).toBeFocused();
+  await page.keyboard.type("Norte de Moçambique");
+  await page.keyboard.press("Tab");
   await expect(page.getByRole("checkbox", { name: "Produtor" })).toBeFocused();
   await page.keyboard.press("Space");
   await expect(page.getByRole("checkbox", { name: "Produtor" })).toBeChecked();

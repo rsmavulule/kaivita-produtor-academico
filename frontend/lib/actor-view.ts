@@ -31,6 +31,7 @@ export type ActorView = {
   kind: ActorKind;
   displayName: string;
   generalLocation: string | null;
+  coverageArea: string | null;
   status: string;
   representation: Representation;
 };

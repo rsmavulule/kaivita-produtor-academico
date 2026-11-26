@@ -35,7 +35,7 @@ from app.tokens import issue_access_token
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 PASSWORD = "palavra-de-teste"
 NOT_FOUND = {"detail": "Actor não encontrado."}
-ACTOR_KEYS = {"id", "kind", "display_name", "general_location", "status"}
+ACTOR_KEYS = {"id", "kind", "display_name", "general_location", "coverage_area", "status"}
 CREATED_KEYS = ACTOR_KEYS | {"roles"}
 VIEW_KEYS = ACTOR_KEYS | {"representation"}
 ROLE_KEYS = {"id", "code"}

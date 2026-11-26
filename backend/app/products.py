@@ -19,10 +19,13 @@ chave estrangeira composta da oferta. ``0003_products`` não é editada.
 """
 
 import uuid
+from datetime import datetime, timezone
 from enum import StrEnum
+from urllib.parse import urlsplit
 
 from sqlalchemy import (
     CheckConstraint,
+    DateTime,
     ForeignKey,
     Index,
     Text,
@@ -58,6 +61,15 @@ class ProducerRoleMissing(Exception):
     """O actor autorizado não tem o papel comercial producer."""
 
 
+class ImageDeclarationError(Exception):
+    """A declaração de direitos não corresponde à fotografia indicada."""
+
+
+IMAGE_REF_LIMIT = 2048
+IMAGE_REF_INVALID = "Referência de imagem inválida."
+IMAGE_DECLARATION_REQUIRED = "A declaração de direitos exige uma fotografia."
+
+
 def _values(enum_cls: type[StrEnum]) -> str:
     return ", ".join(f"'{member.value}'" for member in enum_cls)
 
@@ -82,6 +94,20 @@ class Product(Base):
         CheckConstraint(
             "image_ref IS NULL OR char_length(btrim(image_ref)) > 0",
             name="ck_products_image_ref",
+        ),
+        CheckConstraint(
+            "("
+            "image_rights_declared_at IS NULL "
+            "AND image_rights_declared_by IS NULL "
+            "AND image_rights_ref IS NULL"
+            ") OR ("
+            "image_rights_declared_at IS NOT NULL "
+            "AND image_rights_declared_by IS NOT NULL "
+            "AND image_rights_ref IS NOT NULL "
+            "AND image_ref IS NOT NULL "
+            "AND image_ref = image_rights_ref"
+            ")",
+            name="ck_products_image_rights",
         ),
         CheckConstraint(
             f"status IN ({_values(ProductStatus)})",
@@ -141,6 +167,78 @@ class Product(Base):
         ProductStatus,
         "active: no catálogo; archived: arquivado, sem apagar o registo.",
     )
+    image_rights_ref: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment="Fotografia exacta a que a declaração de direitos se refere.",
+    )
+    image_rights_declared_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="Instante da afirmação do representante. Não é uma verificação jurídica.",
+    )
+    image_rights_declared_by: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey(
+            "users.id",
+            name="fk_products_image_rights_declared_by",
+            ondelete="RESTRICT",
+        ),
+        nullable=True,
+        comment="Conta que afirmou os direitos. Não é mostrado na consulta pública.",
+    )
+
+    @property
+    def image_use_confirmed(self) -> bool:
+        """A declaração vigente refere-se à fotografia actualmente gravada."""
+
+        return (
+            self.image_ref is not None
+            and self.image_rights_ref == self.image_ref
+            and self.image_rights_declared_at is not None
+            and self.image_rights_declared_by is not None
+        )
+
+
+def is_public_image_ref(value: str) -> bool:
+    """URL HTTPS absoluto, sem credenciais. Não contacta o endereço."""
+
+    if len(value) > IMAGE_REF_LIMIT or "\\" in value:
+        return False
+    if any(character.isspace() or ord(character) < 32 or ord(character) == 127 for character in value):
+        return False
+    parts = urlsplit(value)
+    if parts.scheme != "https":
+        return False
+    if parts.username is not None or parts.password is not None:
+        return False
+    host = parts.hostname
+    return host is not None and host.strip(".") != ""
+
+
+def normalize_image_ref(value: str | None) -> str | None:
+    """Aceita ausência ou um URL HTTPS. Rejeita o resto sem o repetir."""
+
+    if value is None:
+        return None
+    text = value.strip()
+    if text == "" or not is_public_image_ref(text):
+        raise ValueError(IMAGE_REF_INVALID)
+    return text
+
+
+def public_image_ref(
+    image_ref: str | None,
+    rights_ref: str | None,
+    declared_at: datetime | None,
+) -> str | None:
+    """A fotografia pública exige a referência válida e a declaração dessa referência."""
+
+    if image_ref is None or declared_at is None or rights_ref != image_ref:
+        return None
+    if not is_public_image_ref(image_ref):
+        return None
+    return image_ref
 
 
 def has_producer_role(session: Session, actor: Actor) -> bool:
@@ -198,11 +296,14 @@ def create_product(
     description: str,
     category: str,
     image_ref: str | None,
+    image_use_confirmed: bool = False,
+    declared_by: uuid.UUID | None = None,
 ) -> Product:
     """Grava o produto do actor autorizado.
 
     O savepoint desfaz a linha se a escrita falhar. Quem confirma o
     pedido é a sessão de ``get_session``, uma única vez, no fim.
+    A declaração, quando vem no mesmo pedido, fica ligada à fotografia.
     """
 
     require_producer_role(session, actor)
@@ -211,9 +312,11 @@ def create_product(
         name=name,
         description=description,
         category=category,
-        image_ref=image_ref,
+        image_ref=normalize_image_ref(image_ref),
         status=ProductStatus.ACTIVE,
     )
+    if image_use_confirmed:
+        _grant_image_rights(product, declared_by)
     with session.begin_nested():
         session.add(product)
         remember_new_product(session, product)
@@ -228,7 +331,7 @@ def update_product(
     session: Session,
     actor: Actor,
     product: Product,
-    fields: dict[str, str | None],
+    fields: dict[str, object],
 ) -> Product:
     """Altera só os campos presentes. O estado e o dono ficam quietos."""
 
@@ -241,12 +344,62 @@ def update_product(
 def apply_product_changes(
     session: Session,
     product: Product,
-    fields: dict[str, str | None],
+    fields: dict[str, object],
 ) -> None:
-    for name in ("name", "description", "category", "image_ref"):
+    for name in ("name", "description", "category"):
         if name in fields:
             setattr(product, name, fields[name])
+    if "image_ref" in fields or "image_use_confirmed" in fields:
+        _apply_image(product, fields)
     session.flush()
+
+
+def _apply_image(product: Product, fields: dict[str, object]) -> None:
+    """Uma fotografia nova ou retirada invalida a declaração anterior.
+
+    Confirmar no mesmo pedido vale como a nova declaração dessa fotografia.
+    Repetir a confirmação da mesma referência conserva a evidência já gravada.
+    """
+
+    ref_set = "image_ref" in fields
+    confirmed = bool(fields.get("image_use_confirmed"))
+    raw_ref = fields["image_ref"] if ref_set else None
+    if ref_set and raw_ref is not None and not isinstance(raw_ref, str):
+        raise ImageDeclarationError(IMAGE_REF_INVALID)
+    target = normalize_image_ref(raw_ref if isinstance(raw_ref, str) else None) if ref_set else product.image_ref
+    if ref_set and target != product.image_ref:
+        _clear_image_rights(product)
+        product.image_ref = target
+    if target is None:
+        if confirmed:
+            raise ImageDeclarationError(IMAGE_DECLARATION_REQUIRED)
+        _clear_image_rights(product)
+        return
+    if "image_use_confirmed" in fields and not confirmed:
+        _clear_image_rights(product)
+        return
+    if confirmed:
+        _grant_image_rights(product, fields.get("declared_by"))
+
+
+def _grant_image_rights(product: Product, declared_by: uuid.UUID | None) -> None:
+    if product.image_ref is None:
+        raise ImageDeclarationError(IMAGE_DECLARATION_REQUIRED)
+    if not is_public_image_ref(product.image_ref):
+        raise ImageDeclarationError(IMAGE_REF_INVALID)
+    if not isinstance(declared_by, uuid.UUID):
+        raise ImageDeclarationError(IMAGE_DECLARATION_REQUIRED)
+    if product.image_use_confirmed:
+        return
+    product.image_rights_ref = product.image_ref
+    product.image_rights_declared_at = datetime.now(timezone.utc)
+    product.image_rights_declared_by = declared_by
+
+
+def _clear_image_rights(product: Product) -> None:
+    product.image_rights_ref = None
+    product.image_rights_declared_at = None
+    product.image_rights_declared_by = None
 
 
 def archive_product(session: Session, actor: Actor, product: Product) -> Product:

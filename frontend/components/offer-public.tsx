@@ -1,5 +1,7 @@
+import { PublicPhoto } from "./public-photo";
 import {
   AVAILABILITY_LABELS,
+  COVERAGE_MISSING,
   DELIVERY_MISSING,
   LOCATION_MISSING,
   offerHref,
@@ -17,8 +19,10 @@ export function OfferCard({ offer, filters }: { offer: PublicOffer; filters: Pub
       <p>Preço: {offer.price} {offer.currency}</p>
       <p>Quantidade: {offer.quantity} {offer.unit}</p>
       <p>Disponibilidade: {AVAILABILITY_LABELS[offer.availability]}</p>
+      {offer.productImage ? <PublicPhoto src={offer.productImage} alt={offer.productName} /> : null}
       <p>Produtor: {offer.producerName}</p>
       <p>{shownText(offer.producerLocation, LOCATION_MISSING)}</p>
+      <p>{shownText(offer.producerCoverage, COVERAGE_MISSING)}</p>
       <p className="links">
         <a href={offerHref(offer.id, filters)}>Ver oferta de {offer.productName}</a>
       </p>
@@ -32,6 +36,7 @@ export function OfferDetail({ offer }: { offer: PublicOffer }) {
       <p className="eyebrow">{offer.productCategory}</p>
       <h1>{offer.productName}</h1>
       <p className="lead">{offer.productDescription}</p>
+      {offer.productImage ? <PublicPhoto src={offer.productImage} alt={offer.productName} /> : null}
       <dl className="facts">
         <div>
           <dt>Preço</dt>
@@ -60,6 +65,10 @@ export function OfferDetail({ offer }: { offer: PublicOffer }) {
         <div>
           <dt>Localização geral</dt>
           <dd>{shownText(offer.producerLocation, LOCATION_MISSING)}</dd>
+        </div>
+        <div>
+          <dt>Área de actuação</dt>
+          <dd>{shownText(offer.producerCoverage, COVERAGE_MISSING)}</dd>
         </div>
       </dl>
     </>

@@ -94,6 +94,7 @@ def create_represented_actor(
     display_name: str,
     general_location: str | None,
     codes: list[RoleCode],
+    coverage_area: str | None = None,
 ) -> tuple[Actor, list[Role]]:
     """Cria o actor, os papéis e o acesso do criador na mesma transacção.
 
@@ -107,6 +108,7 @@ def create_represented_actor(
             kind=kind,
             display_name=display_name,
             general_location=general_location,
+            coverage_area=coverage_area,
             status=ActorStatus.ACTIVE,
         )
         session.add(actor)

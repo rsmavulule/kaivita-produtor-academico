@@ -1,0 +1,59 @@
+Migração — I8.1
+
+Ficheiro: backend/alembic/versions/0007_coverage_and_image_rights.py
+Revisão: 0007_coverage_and_image_rights
+Revisão anterior: 0006_publication_authorizations
+
+upgrade
+  actors.coverage_area
+    text, nullable.
+    Comentário: zonas de actividade, independentes da localização geral.
+    NULL significa não indicada.
+    CHECK ck_actors_coverage_area:
+      coverage_area IS NULL OR char_length(btrim(coverage_area)) > 0
+    Não copia general_location. As linhas existentes ficam NULL.
+
+  products.image_rights_ref
+    text, nullable. A fotografia exacta a que a declaração se refere.
+  products.image_rights_declared_at
+    timestamptz, nullable. Instante da afirmação.
+  products.image_rights_declared_by
+    uuid, nullable.
+    FK fk_products_image_rights_declared_by -> users.id
+    ON DELETE RESTRICT.
+
+  CHECK ck_products_image_rights:
+    as três colunas novas são nulas
+    ou as três estão preenchidas, image_ref não é nulo
+    e image_ref é igual a image_rights_ref.
+
+  image_ref não é reescrito. Nenhuma declaração é criada.
+  Uma fotografia já gravada permanece privada até nova confirmação.
+
+downgrade
+  Remove o CHECK e a FK dos direitos.
+  Remove as três colunas de products e a coluna coverage_area.
+  Não apaga actors, products, image_ref nem general_location.
+
+Prova, dentro de test_migration_preserves_rows_and_does_not_publish_old_photos:
+  Base descartável kaivita_i81_<doze hexadecimais>.
+  upgrade 0006.
+  Inserção de actor com general_location Inhambane e produto com
+  image_ref foto-historica.
+  upgrade 0007:
+    versão 0007_coverage_and_image_rights
+    localização Inhambane
+    coverage_area NULL
+    image_ref foto-historica
+    declaração NULL
+  downgrade 0006:
+    coluna coverage_area ausente
+    localização e image_ref conservados
+  upgrade 0007 outra vez:
+    coverage_area NULL
+    image_ref foto-historica
+    declaração NULL
+  A base descartável é apagada no fim.
+
+A base de desenvolvimento ficou em 0007_coverage_and_image_rights.
+Não foi feito downgrade nessa base.

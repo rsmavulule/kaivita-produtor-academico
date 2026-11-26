@@ -24,6 +24,7 @@ export async function createActorAction(
     kind: next.kind,
     displayName: next.displayName,
     generalLocation: blankToNull(next.location),
+    coverageArea: blankToNull(next.coverageArea),
     roles: next.roles,
   });
   if (result.kind === "invalid") redirect("/sessao/invalida");
@@ -39,6 +40,7 @@ export async function createActorAction(
     kindError: result.fieldErrors?.kind,
     nameError: result.fieldErrors?.display_name,
     locationError: result.fieldErrors?.general_location,
+    coverageError: result.fieldErrors?.coverage_area,
     rolesError: result.fieldErrors?.roles,
   };
 }
@@ -51,6 +53,7 @@ export async function updateProfileAction(
   const next = {
     displayName: textField(formData, "display_name"),
     location: textField(formData, "general_location"),
+    coverageArea: textField(formData, "coverage_area"),
   };
   if (!isActorId(actorId) || !(await sameOrigin())) {
     return { ...next, formError: REJECTED_MESSAGE };
@@ -59,6 +62,7 @@ export async function updateProfileAction(
   const result = await updateActorProfile(actorId, {
     displayName: next.displayName,
     generalLocation: blankToNull(next.location),
+    coverageArea: blankToNull(next.coverageArea),
   });
   return finishWrite(actorId, next, result);
 }
@@ -108,6 +112,7 @@ function finishWrite<T extends ProfileFormState | RolesFormState>(
       : {
           nameError: result.fieldErrors?.display_name,
           locationError: result.fieldErrors?.general_location,
+          coverageError: result.fieldErrors?.coverage_area,
         }),
   } as T;
 }
@@ -117,6 +122,7 @@ function createValues(formData: FormData): CreateFormState {
     kind: textField(formData, "kind") || "person",
     displayName: textField(formData, "display_name"),
     location: textField(formData, "general_location"),
+    coverageArea: textField(formData, "coverage_area"),
     roles: formData.getAll("roles").filter((value): value is string => typeof value === "string"),
   };
 }

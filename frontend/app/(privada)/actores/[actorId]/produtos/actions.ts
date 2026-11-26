@@ -23,6 +23,7 @@ export async function createProductAction(
     description: next.description,
     category: next.category,
     imageRef: blankToNull(next.imageRef),
+    imageUseConfirmed: next.imageUseConfirmed,
   });
   if (result.kind === "invalid") redirect("/sessao/invalida");
   if (result.kind === "ready") {
@@ -47,6 +48,7 @@ export async function updateProductAction(
     description: next.description,
     category: next.category,
     imageRef: blankToNull(next.imageRef),
+    imageUseConfirmed: next.imageUseConfirmed,
   });
   if (result.kind === "invalid") redirect("/sessao/invalida");
   if (result.kind === "ready") {
@@ -102,7 +104,7 @@ function finishProduct<T extends ProductFormState | ArchiveFormState>(
     nameError: result.fieldErrors?.name,
     descriptionError: result.fieldErrors?.description,
     categoryError: result.fieldErrors?.category,
-    imageError: result.fieldErrors?.image_ref,
+    imageError: result.fieldErrors?.image_ref ?? result.fieldErrors?.image_use_confirmed,
   };
 }
 
@@ -112,6 +114,7 @@ function productValues(formData: FormData): ProductFormState {
     description: textField(formData, "description"),
     category: textField(formData, "category"),
     imageRef: textField(formData, "image_ref"),
+    imageUseConfirmed: formData.get("image_use_confirmed") === "yes",
   };
 }
 
