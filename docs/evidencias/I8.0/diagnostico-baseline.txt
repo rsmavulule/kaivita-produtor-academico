@@ -1,0 +1,86 @@
+Diagnóstico de baseline — I8.0
+
+Data da verificação: 2026-11-26.
+Repositório: kaivita-produtor-academico.
+Branch: main, alinhada com origin/main.
+HEAD: 045a63470eeaa382811c0ca6b7c33ff1e028b1a1
+Assunto: feat(i7.3): implement commercial contact management and public disclosure interface
+Data de autoria do commit: 2026-11-26T11:05:32+02:00
+
+O commit 045a634 altera a interface, os testes Playwright de contactos,
+uma data no teste backend test_postgres_rejects_invalid_authorizations,
+o README e as evidências do I7.3. Não altera módulos de produção do
+backend nem migrações.
+
+Estado Git no início, antes das evidências do I8.0:
+
+  Untracked: _srs_extract.txt
+  Untracked: docs/srs/
+  Nenhuma alteração tracked.
+
+Estes dois caminhos continuam por versionar. Não foram adicionados ao
+staging. _srs_extract.txt não foi usado como substituto da SRS.
+
+Infraestrutura observada, sem reconstrução de imagens:
+
+  db   postgres:16-alpine   healthy   5435->5432   imagem de 4 meses
+  api  imagem local         healthy   8010->8000   criada 2026-11-25T11:15:16Z
+  web  imagem local         healthy   3010->3000   criada 2026-11-25T13:39:17Z
+
+GET http://localhost:8010/health devolveu {"status":"ok","database":"up"}.
+GET http://localhost:3010/ devolveu HTTP 200.
+
+Alembic, executado dentro do contentor da API contra a base em uso:
+0006_publication_authorizations (head).
+
+PostgreSQL, dentro do contentor: accepting connections em 5432.
+A porta publicada no anfitrião é 5435.
+
+Correspondência com o código de 045a634:
+
+  Três ficheiros da interface de contactos no contentor web têm o mesmo
+  SHA-256 que a árvore de trabalho (public-contacts.tsx,
+  contactos/forms.tsx, lib/contact-view.ts).
+  O contentor da API importa os módulos de contactos, publicação e
+  catálogo público. O commit não muda o código de produção da API.
+  Não foi necessário reconstruir imagens.
+
+A imagem web é anterior ao instante do commit, mas o conteúdo conferido
+já é o da interface do I7.3. O commit foi criado depois da construção
+registada no I7.3.
+
+Contagens de leitura, antes e depois do pytest, e outra vez depois do
+Playwright. Não houve eliminação de dados por este incremento.
+
+  users 55
+  contas cujo email corresponde ao padrão sintético i5*/i73  49
+  outras contas  6
+  actors 173
+  products 92
+  offers 40
+  public_contacts 0
+  publication_authorizations 0
+
+As 49 contas do padrão estão ligadas a 165 actores, 38 ofertas e 185
+representações. O padrão de email não prova a propriedade de todos os
+recursos. Há 8 actores e 2 ofertas fora desse conjunto. Os identificadores
+e os emails não são reproduzidos aqui.
+
+O pytest com RUN_DB_TESTS=1 não alterou estas contagens.
+A limpeza do Playwright também não as alterou no fim da execução.
+
+Chromium exigido por @playwright/test 1.65.1: revisão 1255,
+Chrome for Testing 159.0.8154.6.
+Em %LOCALAPPDATA%\ms-playwright existiam chromium-1223 e chromium-1234.
+chromium-1255 não existia nesse directório nem na cache usada por esta
+sessão. Foi instalado durante a verificação, apenas na cache indicada
+por PLAYWRIGHT_BROWSERS_PATH desta sessão. O procedimento fica em
+diagnostico-testes.md. A instalação não altera o repositório.
+
+Build do frontend: next build concluiu. Next.js 15.5.29.
+As rotas de negócio ficaram dinâmicas. Detalhe em build-compose.txt.
+
+Pytest: 266 passed em 48,40s.
+Playwright, execução completa depois de contornar o proxy local:
+61 passed, 3 failed, 9,5 min. Não se altera testes para obter verde.
+Detalhe em playwright-resultados.txt.

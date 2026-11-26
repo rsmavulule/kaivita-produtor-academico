@@ -1,0 +1,57 @@
+Compose, Alembic e build — I8.0
+
+docker compose ps
+
+  kaivita-produtor-academico-api-1   healthy   0.0.0.0:8010->8000/tcp
+  kaivita-produtor-academico-db-1    healthy   0.0.0.0:5435->5432/tcp
+  kaivita-produtor-academico-web-1   healthy   0.0.0.0:3010->3000/tcp
+
+Imagens
+
+  api  97b510f28cbd  criada 2026-11-25T11:15:16Z
+  web  18aac2aee0bd  criada 2026-11-25T13:39:17Z
+  db   postgres:16-alpine
+
+Não houve reconstrução. A comparação de hashes da interface de
+contactos e a ausência de alterações de produção no backend em
+045a634 sustentam a correspondência. Ver diagnostico-baseline.txt.
+
+Alembic current, no contentor api:
+  0006_publication_authorizations (head)
+
+pg_isready no contentor db:
+  /var/run/postgresql:5432 - accepting connections
+
+Build do frontend, depois do pytest e antes do Playwright:
+
+  npm run build
+  Next.js 15.5.29
+  Compiled successfully in 2.6s
+  Exit code: 0
+
+Rotas dinâmicas relevantes do resultado:
+  /, /ofertas, /ofertas/[offerId]
+  /api/public/ofertas/[offerId]/contactos
+  /login, /inicio, /sessao/invalida
+  /actores e as fichas de actor, produtos, ofertas e contactos
+
+Página estática: /_not-found.
+O build de produção não foi usado pelo Playwright. O Playwright
+arranca `npx next dev` na porta 3100, como na configuração versionada,
+e fala com a API publicada em 8010.
+
+Sondagem HTTP de leitura, antes do pytest. A página Next é a do
+contentor em 3010. A API é a de 8010.
+
+  GET /public/offers/nao-e-uuid                         API 422
+  GET /public/offers/00000000-0000-4000-8000-000000000000  API 404
+  GET /public/offers?email=secret                       API 422
+  GET /ofertas/00000000-0000-4000-8000-000000000000     página 200, Cache-Control: no-store
+  GET /ofertas/nao-e-uuid                               página 200, Cache-Control: no-store
+  GET /ofertas?limit=0                                  página 200, Cache-Control: no-store
+  GET /                                                 página 200, Cache-Control: no-store
+  GET /inicio sem cookie                                página 307
+
+A página responde 200 quando a API responde 404 ou quando o UUID é
+inválido. É um soft 404. O impacto e a proposta estão em
+diagnostico-qualidade-desempenho.md.

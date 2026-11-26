@@ -1,0 +1,84 @@
+Playwright — I8.0
+
+Ferramenta: @playwright/test 1.65.1.
+Directório: frontend.
+Configuração versionada: não alterada. retries continua 0.
+timeout continua 90000. E2E_EVIDENCE não foi definido, por isso as
+capturas foram para frontend/test-results/capturas, caminho ignorado
+pelo Git. As capturas históricas de I5.1, I5.5, I6.2 e I7.3 não foram
+o destino desta execução.
+
+Chromium 1255 não estava instalado. Foi instalado na cache da sessão
+antes da suite. Ver diagnostico-testes.md.
+
+Tentativas 1 e 2, com HTTP_PROXY definido e sem NO_PROXY para
+127.0.0.1:
+
+  Error: Timed out waiting 60000ms from config.webServer.
+  Nenhum teste chegou a correr.
+  O servidor Next em 127.0.0.1:3100 respondia HTTP 200 ao cliente
+  PowerShell. O verificador de disponibilidade do Playwright recebia
+  HTTP 503. Com as variáveis de proxy retiradas do processo, o mesmo
+  verificador passou a receber HTTP 200.
+  Não se aumentou o timeout. O bloqueio era o proxy, não a lentidão
+  do arranque.
+
+Execução completa, com NO_PROXY=127.0.0.1,localhost,::1 e sem
+HTTP_PROXY/HTTPS_PROXY no processo:
+
+  Running 64 tests using 1 worker
+  61 passed
+  3 failed
+  Duração: 9,5 min
+  Exit code: 1
+
+Falhas da execução completa:
+
+  1. e2e/contacts.spec.ts:76
+     «a desactivação pede confirmação e o contacto permanece depois de nova sessão»
+     Timeout de 90000 ms à espera de #email, depois de «Terminar sessão».
+     A página observada continuava em /inicio, com a sessão e o botão
+     «Terminar sessão». A página de login redirecciona para /inicio
+     quando a sessão ainda está válida (frontend/app/login/page.tsx).
+     O teste não espera o URL /login?motivo=terminada. O teste de
+     autenticação «terminar sessão impede o acesso seguinte» espera
+     esse URL e passou na mesma execução.
+
+  2. e2e/contacts.spec.ts:198
+     «o visitante só vê o contacto depois da acção e deixa de o ver depois da revogação»
+     Depois da revogação, o painel do visitante ainda mostrava
+     comercial@example.com. O teste seguinte, de histórico e revogação,
+     passou. Na repetição isolada, este teste passou.
+
+  3. e2e/contacts.spec.ts:265
+     «a elegibilidade pública esconde e restaura só o que o ciclo permite»
+     Na execução completa, depois de republicar, o painel ainda mostrava
+     «Oferta não encontrada ou indisponível.»
+     Na repetição isolada, a falha ocorreu mais cedo: depois de
+     suspender, o painel ainda mostrava elegivel.contacto@example.com.
+     O ponto de falha mudou. O componente só actualiza o painel numa
+     nova consulta. A consulta do visitante não espera a confirmação
+     visual da transição no browser do produtor.
+
+Repetição isolada dos três testes, mesmo ambiente, sem alterar o teste:
+
+  1 failed: desactivação e nova sessão (o mesmo timeout de #email)
+  1 passed: visitante e revogação
+  1 failed: elegibilidade, agora na asserção da suspensão
+  Duração: 2,9 min
+
+Durante a execução completa, o servidor de desenvolvimento registou
+uncaughtException com ECONNRESET. Não se classificam as três falhas
+como defeito de produção reproduzido de forma estável. A primeira é
+reproduzível neste ambiente e explica-se pela corrida entre o clique
+de terminar sessão e a navegação imediata para /login. As outras duas
+são instáveis. Os 266 testes de API que cobrem revogação, suspensão e
+elegibilidade passaram.
+
+O baseline de 64 testes Playwright aprovados, registado no I7.3, não
+foi reproduzido nesta ronda. A quantidade definida continua a ser 64.
+A evidência desta ronda é 61 aprovados na passagem completa.
+
+As contagens da base de desenvolvimento, depois da limpeza do
+Playwright, permaneceram as do início: 55 contas, 49 do padrão
+sintético, 173 actores, 40 ofertas, 0 contactos.

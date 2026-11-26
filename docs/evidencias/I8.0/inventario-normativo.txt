@@ -1,0 +1,226 @@
+Inventário normativo — SRS v1.1
+
+Fonte: docs/srs/Kaivita-produtor-SRSv1.1.docx, lida nesta ronda a partir
+do document.xml. Não se usou _srs_extract.txt como fonte. As páginas
+indicadas são as marcas lastRenderedPageBreak do documento (8 páginas).
+Os espaços extras das células foram normalizados na transcrição; o
+texto normativo não foi reescrito.
+
+Metodologia de contagem
+
+São requisitos numerados, e só estes entram na matriz de requisitos e
+nos indicadores:
+
+  RF-01 a RF-10     10 requisitos funcionais     secção 5, páginas 3–4
+  RB-01 a RB-10     10 regras de negócio         secção 6, páginas 4–5
+  RNF-01 a RNF-07    7 requisitos não funcionais secção 7, página 5
+
+Total de requisitos numerados: 27.
+
+Não entram nesse total, e são inventariados à parte:
+
+  UC-01 a UC-08     casos de uso e critérios de aceitação, secção 8
+  Entidades         modelo conceptual, secção 3
+  Q-01 a Q-07       questões, secção 11
+  Exclusões         secção 2 e notas de âmbito das secções 3 e 4
+  Critério de passagem da secção 12, sem identificador
+
+Não se soma um caso de uso ao requisito que ele verifica. Não se trata
+uma entidade como requisito adicional. Não se classifica uma exclusão
+como requisito «fora do âmbito» para baixar o denominador.
+
+Requisitos funcionais — redacção da SRS
+
+RF-01  Criar, consultar e actualizar perfil de actor com papel produtor;
+       pessoa singular ou organização, localização geral e área de actuação.
+       Origem: FACIM; P02/P03/P06/P07; desenho. Prioridade: Alta.
+RF-02  Criar, editar, arquivar e consultar produtos associados a actor
+       produtor; nome, categoria, descrição e fotografia opcional.
+       Origem: FACIM fotos; P02/P03/P05/P06/P07/P08. Prioridade: Alta.
+RF-03  Criar, editar, publicar, suspender e retirar ofertas; preço, moeda,
+       quantidade, unidade e disponibilidade obrigatórios para publicação.
+       Origem: P03/P05/P06/P07; decisão Q-05. Prioridade: Alta.
+RF-04  Pesquisar ofertas públicas por texto e filtrar por categoria;
+       localização geral quando disponível.
+       Origem: P02/P03/P06/P07; inferência. Prioridade: Alta.
+RF-05  Apresentar localização geral e apenas contactos comerciais
+       autorizados pelo actor.
+       Origem: P02/P05/P06/P08; privacidade. Prioridade: Alta.
+RF-06  Registar e apresentar condições informativas de entrega, sem
+       cálculo ou contratação de frete.
+       Origem: P03/P06/P07/P08. Prioridade: Média.
+RF-07  Permitir consulta pública sem autenticação apenas de recursos
+       publicados.
+       Origem: inferência de desenho. Prioridade: Alta.
+RF-08  Autenticar utilizadores e impedir alteração de dados de actores
+       sem representação autorizada.
+       Origem: segurança e desenho. Prioridade: Alta.
+RF-09  Permitir associação de um actor a múltiplos papéis comerciais sem
+       duplicar identidade.
+       Origem: modelo conceptual; decisão do projecto. Prioridade: Alta.
+RF-10  Permitir registar, consultar e revogar autorização para publicação
+       de contactos; ocultar contacto após revogação.
+       Origem: decisão Q-06. Prioridade: Alta.
+
+Regras de negócio — redacção da SRS
+
+RB-01  ActorRole é único por par actor/papel; papéis comerciais não
+       substituem permissões.
+RB-02  Produto e oferta têm actor proprietário; só actor com papel
+       produtor pode publicar oferta.
+RB-03  Oferta referencia produto do mesmo actor; operações cruzadas
+       entre actores são rejeitadas.
+RB-04  Publicação de oferta exige preço >= 0, quantidade >= 0, moeda,
+       unidade e estado de disponibilidade explícitos. Zero é valor
+       conhecido, não quantidade desconhecida.
+RB-05  Oferta com quantidade zero não pode aparecer como disponível;
+       rascunhos podem ser incompletos.
+RB-06  Apenas ofertas publicadas e actores/produtos elegíveis aparecem
+       em consulta pública; oferta suspensa/indisponível não pode ser
+       anunciada como disponível.
+RB-07  Contacto privado não é publicado; revogação de autorização impede
+       exibição pública posterior.
+RB-08  Fotografias só são publicadas com declaração de direito de uso;
+       fotografias da FACIM não são importadas automaticamente.
+RB-09  Condições de entrega são informação comercial, não prestação ou
+       garantia de transporte.
+RB-10  Representante só altera recursos de actor para o qual mantém
+       autorização válida.
+
+Requisitos não funcionais — redacção da SRS
+
+RNF-01  Interface responsiva e navegável em largura móvel de 360 px e
+        desktop de 1280 px; testar fluxos essenciais.
+RNF-02  Mensagens de erro claras, campos obrigatórios identificados,
+        navegação acessível por teclado.
+RNF-03  Hash seguro de palavras-passe, sessões protegidas, autorização
+        verificada no servidor.
+RNF-04  Integridade referencial e isolamento de dados por actor;
+        validação de entradas no servidor.
+RNF-05  Testes automatizados de autenticação, papéis, representação,
+        CRUD, publicação, pesquisa e revogação; guardar evidências de
+        execução.
+RNF-06  Minimização de dados pessoais, consentimento por finalidade e
+        possibilidade de ocultar contactos públicos.
+RNF-07  Registar eventos relevantes de autorização e alterações de
+        publicação sem expor dados sensíveis em logs.
+
+A SRS não fixa limiares numéricos de tempo de resposta, débito,
+disponibilidade ou volume. Esses limiares não são inventados como se
+constassem do documento.
+
+Casos de uso — secção 8, páginas 5–6
+
+UC-01  Autenticar utilizador.
+       Critério: credenciais válidas permitem sessão; inválidas são rejeitadas.
+UC-02  Gerir actor representado.
+       Critério: representante autorizado edita; outro utilizador recebe acesso negado.
+UC-03  Associar papéis comerciais.
+       Critério: actor pode possuir producer e buyer sem duplicação de identidade.
+UC-04  Gerir produtos.
+       Critério: produto pertence a actor produtor; outro actor não consegue alterá-lo.
+UC-05  Publicar oferta.
+       Critério: sem preço/quantidade/unidade/disponibilidade, publicação é rejeitada; rascunho permitido.
+UC-06  Pesquisar e consultar.
+       Critério: visitante vê apenas conteúdos publicados e estados coerentes de disponibilidade.
+UC-07  Gerir contacto público.
+       Critério: sem autorização, contacto oculto; após revogação, oculto imediatamente.
+UC-08  Informar entrega.
+       Critério: condições aparecem como texto, sem promessa de serviço logístico.
+
+O diagrama 01B intitula UC-06 «Pesquisar e consultar ofertas» e UC-07
+«Gerir autorização de contactos». A tabela da SRS é a redacção normativa
+dos critérios. A diferença de título fica na matriz UML.
+
+Entidades — secção 3, página 2
+
+A coluna «Implementação académica» da própria SRS marca Sim, excepto
+OrganizationUnit («Modelo de referência; CRUD fora do âmbito»).
+
+  Actor                      id, kind (person|organization), display_name, general_location, status
+  Role                       id, code (producer|buyer|partner)
+  ActorRole                  actor_id, role_id, UNIQUE(actor_id, role_id)
+  User                       id, email/login, password_hash, status
+  UserActorAccess            user_id, actor_id, access_level, status, UNIQUE(user_id, actor_id)
+  OrganizationUnit           id, parent_actor_id, name, territory, type — CRUD fora do âmbito
+  Product                    id, owner_actor_id, name, description, category, image_ref, status
+  Offer                      id, product_id, owner_actor_id, price, currency, quantity, unit, availability, delivery_terms, status
+  PublicContact              id, actor_id, channel, value, visibility, authorization_record
+  PublicationAuthorization   id, actor_id, scope, granted_at, revoked_at, notice_version
+
+O parágrafo seguinte diz que general_location e eventual coverage_area
+podem expressar a actuação nacional sem CRUD de delegações. «Eventual»
+não retira coverage_area de RF-01, que a inclui na descrição verificável.
+A divergência entre esse parágrafo e RF-01 fica registada. Não se cria
+um requisito novo para coverage_area.
+
+Intervenientes — secção 4, página 3
+
+  Visitante: pesquisar e consultar perfis, produtos e ofertas publicados;
+  consultar contactos autorizados. Sem conta obrigatória.
+  Representante: gerir perfil, produtos, ofertas e contactos públicos do
+  actor representado.
+  Administrador académico: gerir acessos e apoiar testes; operações
+  administrativas auditáveis.
+  Comprador ou parceiro: papel reconhecido; fluxos especializados adiados.
+
+A frase do visitante é mais larga do que RF-04 e do que o título de
+UC-06 no diagrama. O tratamento está em lacunas-funcionais.md. Não se
+cria RF-11.
+
+A frase «em todas as operações privadas, a API deve verificar o acesso
+ao actor seleccionado» é critério de RF-08 e RB-10, não um requisito novo.
+
+Política da secção 10, páginas 6–7
+
+Elabora RF-05, RF-10, RB-07, RB-08, RNF-06 e RNF-07. Não recebe
+identificadores novos. Pontos normativos usados na classificação:
+
+  Contactos privados por omissão.
+  Publicar só dados comerciais autorizados por titular ou representante
+  habilitado.
+  Autorização granular por canal e finalidade, com data e versão do aviso.
+  Revogação retira de imediato a exposição pública, sem apagar a evidência
+  mínima da autorização anterior.
+  Imagens mediante declaração de titularidade ou licença; verificar
+  pessoas identificáveis e contactos impressos.
+  Fotografias da FACIM não entram no catálogo sem autorização.
+  Retenção: calendário documentado antes de testes com dados reais;
+  até lá, minimização, acesso restrito e revisão; não afirmar prazo
+  legal não confirmado.
+
+Exclusões de âmbito operacional — secção 2, página 1
+
+Encomendas, pagamentos, negociação electrónica, logística,
+transportadoras, crédito, inteligência artificial, gestão de delegações,
+matching automático e sistemas de processamento industrial.
+
+São exclusões, não requisitos numerados. Não ocupam linhas na matriz
+de 27. Também ficam de fora, por texto da SRS: CRUD de OrganizationUnit
+e fluxos especializados de comprador e parceiro.
+
+Questões — secção 11, página 7
+
+Q-01  Esclarecida. Actuação nacional via delegações; sede não inferida.
+Q-02  Esclarecida. Parte vendida com desconto; remanescente oferecido.
+Q-03  Resolvida analiticamente. Resposta de P04 excluída da análise.
+Q-04  Resolvida metodologicamente. Frequências sem ranking.
+Q-05  Decisão de projecto. Preço, quantidade e disponibilidade obrigatórios.
+Q-06  Parcialmente aberta. Política preliminar definida; prazos de retenção
+      e enquadramento legal por confirmar.
+Q-07  Informada; documentação pendente. Concordância do supervisor e
+      âmbito exacto da acta.
+
+Critério de passagem — secção 12, página 8
+
+Rever a SRS com o orientador; validar ambiguidades com utilizadores
+quando viável; verificar esquema, permissões e critérios antes da
+implementação. Não é um RF. A validação com utilizadores pertence ao
+I9 e não foi executada.
+
+Pendências da secção 13 que continuam relevantes
+
+Validar com o supervisor o modelo actor/papéis. Confirmar a estratégia
+de autorização para organizações. Definir política e prazo de retenção.
+Obter autorização específica antes de publicar imagens ou contactos
+reais. Não publicar dados reais nesta base de desenvolvimento.

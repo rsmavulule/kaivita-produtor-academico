@@ -1,0 +1,24 @@
+Pytest — I8.0
+
+Directório: backend
+Comando: .\.venv\Scripts\python.exe -m pytest -q --tb=line
+Variável: RUN_DB_TESTS=1
+Código de produção e testes: não modificados.
+
+Resultado:
+
+........................................................................ [ 27%]
+........................................................................ [ 54%]
+........................................................................ [ 81%]
+..................................................                       [100%]
+266 passed in 48.40s
+
+Exit code: 0.
+
+A contagem coincide com o baseline declarado (266). A execução inclui os
+testes que contactam PostgreSQL, as migrações em bases descartáveis e os
+testes de concorrência. Não foi recolhida percentagem de cobertura de
+linhas. Quantidade de testes não é cobertura.
+
+Depois da suite, as contagens de users, actors, offers, products e
+contactos na base de desenvolvimento permaneceram 55, 173, 40, 92 e 0.
