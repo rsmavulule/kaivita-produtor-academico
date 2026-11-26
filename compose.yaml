@@ -6,6 +6,14 @@ name: kaivita-produtor-academico
 services:
   db:
     image: postgres:16-alpine
+    command:
+      # O erro mantém o nome da restrição. O DETAIL da linha rejeitada
+      # e o texto da instrução não entram no log.
+      - postgres
+      - -c
+      - log_error_verbosity=terse
+      - -c
+      - log_min_error_statement=panic
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-kaivita}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kaivita_dev}

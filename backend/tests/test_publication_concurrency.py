@@ -305,7 +305,7 @@ def _plant(label: str):
                 AvailabilityStatus.AVAILABLE,
                 None,
             )
-            publish_offer(session, actor, offer)
+            publish_offer(session, actor, offer, user_id)
             session.commit()
             return user_id, actor_id, contact_id, offer.id
     except Exception:

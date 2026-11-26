@@ -94,7 +94,7 @@ function ImageReference(input: {
   const [value, setValue] = useState(input.imageRef);
   const [checked, setChecked] = useState(input.confirmed && input.imageRef.trim() !== "");
   const errorId = `${input.idPrefix}-image-error`;
-  const described = input.error ? errorId : undefined;
+  const described = ["product-public-notice", input.error ? errorId : undefined].filter(Boolean).join(" ");
 
   function changeImage(next: string) {
     setValue(next);
@@ -138,10 +138,11 @@ function ImageReference(input: {
         </label>
       </fieldset>
       <p className="note">
-        A fotografia é opcional e é só um endereço HTTPS. A declaração fica desmarcada até a confirmar
-        e deixa de valer se o endereço mudar ou for retirado. Sem declaração, a oferta pode ser
+        A fotografia é opcional e é só um endereço HTTPS. O visitante pede-a directamente a esse
+        servidor. Não use um endereço da rede local. A declaração fica desmarcada até a confirmar e
+        deixa de valer se o endereço mudar ou for retirado. Sem declaração, a oferta pode ser
         publicada, mas sem fotografia. A aplicação regista a afirmação do representante; não verifica
-        os direitos de autor.
+        os direitos de autor nem o conteúdo da imagem.
       </p>
     </>
   );

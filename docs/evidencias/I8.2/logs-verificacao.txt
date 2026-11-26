@@ -1,0 +1,55 @@
+Logs — I8.2
+
+Marcador sintético: i82probe4e2b
+Não é um dado pessoal. Não se reproduz aqui a linha rejeitada.
+
+Sonda feita em 2026-11-26, com os três contentores saudáveis e a API
+já em 0008_offer_status_events. Pedidos a partir do anfitrião:
+
+  GET  http://127.0.0.1:8010/public/offers?q=<marcador>           200
+  GET  http://127.0.0.1:8010/public/offers/<marcador>@example.com 422
+  GET  http://127.0.0.1:8010/health?token=<marcador>              200
+  POST http://127.0.0.1:8010/auth/login                           422
+       corpo com email e palavra-passe iguais ao marcador
+       cabeçalho Authorization: Bearer <marcador>
+  GET  http://127.0.0.1:3010/ofertas?q=<marcador>                 200
+  INSERT em actors com status inválido e o marcador no nome
+       o cliente psql mostrou DETAIL com a linha
+       a inserção não ficou gravada
+
+Destinos inspeccionados nessa janela:
+
+1. Log do contentor api.
+   Linhas do access log, sem o marcador, sem query e sem o corpo:
+     GET /public/offers HTTP/1.1 200 OK
+     GET /public/offers/{omitido} HTTP/1.1 422 Unprocessable Content
+     GET /health HTTP/1.1 200 OK
+     POST /auth/login HTTP/1.1 422 Unprocessable Content
+   O endereço do cliente manteve-se. Não apareceu palavra-passe,
+   email, Bearer nem o valor rejeitado no caminho.
+
+2. Log do contentor web.
+   Nenhuma linha nessa janela. O pedido com a query não ficou escrito.
+   Configuração: incomingRequests desligado e fetches.fullUrl desligado.
+   O fetch interno para a API apareceu no log da API já sem query.
+
+3. Log do contentor db.
+   SHOW log_statement = none
+   SHOW log_min_duration_statement = -1
+   SHOW log_error_verbosity = terse
+   SHOW log_min_error_statement = panic
+   Linha observada:
+     ERROR: new row for relation "actors" violates check constraint
+     "ck_actors_status"
+   O marcador não está nessa linha. O DETAIL ficou no cliente.
+
+O `next dev` do Playwright, na execução completa, só escreveu o aviso
+do npm e dois erros `aborted`. Não imprimiu caminhos nem queries.
+Essa saída não recebeu o marcador desta sonda.
+
+Não inspeccionado: um Uvicorn lançado à mão fora do contentor, e
+qualquer agregador externo. Não existe agregador no Compose.
+
+Não se conclui ausência universal. A conclusão é a desta sonda, nos
+três contentores, mais a saída do `next dev` da execução Playwright
+que chegou ao fim.

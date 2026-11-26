@@ -18,6 +18,7 @@ A migração ``0004_offers`` acrescenta ``uq_products_id_owner`` para a
 chave estrangeira composta da oferta. ``0003_products`` não é editada.
 """
 
+import ipaddress
 import uuid
 from datetime import datetime, timezone
 from enum import StrEnum
@@ -201,7 +202,11 @@ class Product(Base):
 
 
 def is_public_image_ref(value: str) -> bool:
-    """URL HTTPS absoluto, sem credenciais. Não contacta o endereço."""
+    """URL HTTPS absoluto, sem credenciais e sem anfitrião local.
+
+    Não resolve o nome nem contacta o endereço. Um nome DNS pode, ainda
+    assim, apontar para uma rede privada.
+    """
 
     if len(value) > IMAGE_REF_LIMIT or "\\" in value:
         return False
@@ -213,7 +218,20 @@ def is_public_image_ref(value: str) -> bool:
     if parts.username is not None or parts.password is not None:
         return False
     host = parts.hostname
-    return host is not None and host.strip(".") != ""
+    if host is None:
+        return False
+    return _public_image_host(host)
+
+
+def _public_image_host(host: str) -> bool:
+    name = host.strip(".").lower()
+    if name == "" or name == "localhost" or name.endswith(".localhost") or name.endswith(".local"):
+        return False
+    try:
+        address = ipaddress.ip_address(name)
+    except ValueError:
+        return True
+    return bool(address.is_global)
 
 
 def normalize_image_ref(value: str | None) -> str | None:

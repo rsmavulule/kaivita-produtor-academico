@@ -1,0 +1,23 @@
+Pytest — I8.2
+
+Comando, a partir de backend, com o interpretador do ambiente do projecto:
+  $env:RUN_DB_TESTS='1'
+  .\.venv\Scripts\python.exe -m pytest -q --tb=line
+
+Resultado oficial, depois de removido o ficheiro de testes duplicado:
+  280 passed in 61.08s
+  Exit code: 0
+  Fim: 2026-11-26T13:23:22Z
+
+Uma execução anterior no mesmo dia, já com 280 testes, passou em 56.83s.
+A base I8.1 tinha 273 testes. O incremento acrescenta 7, em
+tests/test_i82_offer_events.py.
+
+Os testes novos cobrem o access log redigido, a recusa de anfitrião
+local na fotografia, as quatro transições com operador e instante, a
+transição inválida, o pedido sem gestão, o rollback conjunto, a
+publicação concorrente e a migração numa base descartável.
+
+Uma execução intermédia, enquanto o contentor da base reiniciava,
+falhou por ligações fechadas. Não é o resultado. A base de
+desenvolvimento não foi sujeita a downgrade.

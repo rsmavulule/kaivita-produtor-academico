@@ -1,0 +1,51 @@
+Playwright — I8.2
+
+Execução que chegou ao fim com o servidor em 127.0.0.1:3100 vivo.
+
+Comando, a partir de frontend:
+  NO_PROXY=127.0.0.1,localhost,::1
+  variáveis de proxy e E2E_EVIDENCE removidas
+  npx playwright test --reporter=line
+
+Configuração versionada, sem alteração de tempo ou de repetições:
+  workers 1, retries 0, timeout 90s
+  webServer: npx next dev --hostname 127.0.0.1 --port 3100
+  reuseExistingServer: false
+
+Chromium usado por essa configuração:
+  Playwright 1.65.1
+  Google Chrome for Testing 159.0.8154.6
+
+Resultado:
+  65 testes
+  63 passed
+  2 failed
+  9.3m
+  Exit code: 1
+  Fim: 2026-11-26T14:01:59Z
+
+Falhas desta execução, ambas já conhecidas e deixadas para o I8.3:
+
+  e2e/contacts.spec.ts:76
+    Depois de terminar a sessão, o login seguinte não encontrou #email
+    dentro do timeout de 90s.
+
+  e2e/contacts.spec.ts:265
+    Depois de republicar, o visitante não mostrou
+    elegivel.contacto@example.com. O texto esperado não apareceu
+    em 20s.
+
+As outras duas falhas conhecidas não se reproduziram nesta execução:
+
+  e2e/contacts.spec.ts:198 passou
+  e2e/offers.spec.ts:292 passou
+
+Não se declara que ficaram estáveis. Não se atribui a 292 a carga da
+suite. A estabilização continua no I8.3. O teste com a data
+2099-01-01 não foi alterado.
+
+Duas tentativas anteriores não contam como resultado. Numa, o processo
+Next que escutava a porta 3100 foi terminado a meio e os testes
+seguintes receberam ERR_CONNECTION_REFUSED. Noutra, o `next dev`
+saiu depois de erros `aborted` e o resto da suite ficou sem servidor.
+Nenhuma das duas altera timeouts nem corrige as falhas conhecidas.

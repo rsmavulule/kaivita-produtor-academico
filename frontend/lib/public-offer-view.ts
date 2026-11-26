@@ -11,7 +11,7 @@ export const TEXT_LIMIT = 100;
 export const NAVIGABLE_DEPTH = MAX_OFFSET + PAGE_SIZE;
 
 export const PUBLIC_FIELD_NOTICE =
-  "Esta informação poderá ser apresentada publicamente quando existir uma oferta publicada e elegível. Não introduza números de telefone, endereços de email ou outros dados pessoais nestes campos.";
+  "Esta informação poderá ser apresentada publicamente quando existir uma oferta publicada e elegível. Inclui o nome, a localização geral, a área de actuação, o produto, as condições de entrega e o endereço da fotografia. Não introduza números de telefone, endereços de email ou outros dados pessoais. A aplicação não identifica automaticamente dados pessoais nestes campos nem pessoas ou contactos visíveis numa fotografia.";
 
 export const PUBLIC_PUBLISH_NOTICE =
   "Ao publicar, a oferta e as informações públicas associadas poderão ser consultadas por qualquer visitante. Alterações posteriores aos campos públicos do actor, do produto ou da oferta podem reflectir-se nas ofertas elegíveis já publicadas. Publicar não é uma autorização de divulgação de contactos.";

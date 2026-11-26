@@ -154,8 +154,8 @@ def test_role_catalog_remains_after_the_products_revision(db_session):
     ).scalar_one()
     roles = db_session.execute(select(Role).order_by(Role.code)).scalars().all()
 
-    # A cabeça corrente é a área de actuação e a declaração da fotografia.
-    assert version == "0007_coverage_and_image_rights"
+    # A cabeça corrente é o registo das transições de oferta.
+    assert version == "0008_offer_status_events"
     assert [role.code for role in roles] == [
         RoleCode.BUYER,
         RoleCode.PARTNER,

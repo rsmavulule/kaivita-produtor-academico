@@ -51,7 +51,7 @@ from app.identity import (
     UserStatus,
 )
 from app.main import app
-from app.offers import Offer
+from app.offers import Offer, OfferStatusEvent
 from app.products import Product
 from app.publication import (
     INCONSISTENT_AUTHORIZATION,
@@ -1143,7 +1143,7 @@ def test_duplicate_update_preserves_the_current_authorization(migrated_database)
                 AvailabilityStatus.AVAILABLE,
                 None,
             )
-            publish_offer(session, actor, offer)
+            publish_offer(session, actor, offer, user_id)
             session.commit()
             offer_id = offer.id
         with Session(engine) as session:
@@ -1655,6 +1655,13 @@ def _wipe(user_id, actor_id) -> None:
                 delete(PublicationAuthorization).where(PublicationAuthorization.actor_id == owner)
             )
             session.execute(delete(PublicContact).where(PublicContact.actor_id == owner))
+            session.execute(
+                delete(OfferStatusEvent).where(
+                    OfferStatusEvent.offer_id.in_(
+                        select(Offer.id).where(Offer.owner_actor_id == owner)
+                    )
+                )
+            )
             session.execute(delete(Offer).where(Offer.owner_actor_id == owner))
             session.execute(delete(Product).where(Product.owner_actor_id == owner))
             session.execute(delete(ActorRole).where(ActorRole.actor_id == owner))

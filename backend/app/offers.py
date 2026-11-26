@@ -12,11 +12,13 @@ Publicar muda só o estado. Não abre consulta pública nem divulga contactos.
 
 import re
 import uuid
+from datetime import datetime, timezone
 from decimal import Decimal
 from enum import StrEnum
 
 from sqlalchemy import (
     CheckConstraint,
+    DateTime,
     Enum,
     ForeignKey,
     ForeignKeyConstraint,
@@ -30,8 +32,15 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, Session, mapped_column
 
+from app.authorization import ActorUnavailable
 from app.db import Base
-from app.identity import Actor, closed_text
+from app.identity import (
+    AccessLevel,
+    AccessStatus,
+    Actor,
+    UserActorAccess,
+    closed_text,
+)
 from app.products import (
     Product,
     ProductStatus,
@@ -217,6 +226,78 @@ class Offer(Base):
     )
 
 
+class OfferStatusEvent(Base):
+    """Transição efectiva do ciclo de vida. Não guarda o conteúdo comercial."""
+
+    __tablename__ = "offer_status_events"
+    __table_args__ = (
+        CheckConstraint(
+            f"previous_status IN ({_values(OfferStatus)})",
+            name="ck_offer_status_events_previous_status",
+        ),
+        CheckConstraint(
+            f"new_status IN ({_values(OfferStatus)})",
+            name="ck_offer_status_events_new_status",
+        ),
+        CheckConstraint(
+            "(previous_status = 'draft' AND new_status = 'published') "
+            "OR (previous_status = 'suspended' AND new_status = 'published') "
+            "OR (previous_status = 'published' AND new_status = 'suspended') "
+            "OR (previous_status = 'draft' AND new_status = 'withdrawn') "
+            "OR (previous_status = 'published' AND new_status = 'withdrawn') "
+            "OR (previous_status = 'suspended' AND new_status = 'withdrawn')",
+            name="ck_offer_status_events_transition",
+        ),
+        Index("ix_offer_status_events_offer_id", "offer_id"),
+        {
+            "comment": (
+                "Registo append-only de uma mudança de estado da oferta. "
+                "Não copia preço, quantidade, textos nem contactos."
+            )
+        },
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+        server_default=text("gen_random_uuid()"),
+    )
+    offer_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey(
+            "offers.id",
+            name="fk_offer_status_events_offer_id",
+            ondelete="RESTRICT",
+        ),
+        nullable=False,
+        comment="Oferta cuja transição foi efectivada.",
+    )
+    previous_status: Mapped[OfferStatus] = closed_text(
+        OfferStatus,
+        "Estado imediatamente antes da transição.",
+    )
+    new_status: Mapped[OfferStatus] = closed_text(
+        OfferStatus,
+        "Estado gravado por esta transição.",
+    )
+    performed_by_user_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey(
+            "users.id",
+            name="fk_offer_status_events_performed_by_user_id",
+            ondelete="RESTRICT",
+        ),
+        nullable=False,
+        comment="Conta que efectuou a transição. Não é mostrada na consulta pública.",
+    )
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        comment="Instante em que a transição foi gravada.",
+    )
+
+
 def offers_of(session: Session, actor: Actor) -> list[Offer]:
     """Ofertas deste actor, em qualquer estado, por id."""
 
@@ -326,8 +407,13 @@ def apply_offer_changes(
     session.flush()
 
 
-def publish_offer(session: Session, actor: Actor, offer: Offer) -> Offer:
-    """Muda só o estado para published.
+def publish_offer(
+    session: Session,
+    actor: Actor,
+    offer: Offer,
+    performed_by: uuid.UUID,
+) -> Offer:
+    """Muda só o estado para published e regista essa transição.
 
     Não publica contactos nem abre consulta pública. Um produto arquivado
     recusa a publicação e a republicação. Se o produto for arquivado
@@ -335,43 +421,136 @@ def publish_offer(session: Session, actor: Actor, offer: Offer) -> Offer:
     para a consulta pública de um incremento futuro.
     """
 
-    require_producer_role(session, actor)
-    if offer.status not in (OfferStatus.DRAFT, OfferStatus.SUSPENDED):
+    locked = _locked_transition(session, actor, offer.id, performed_by)
+    if locked.status not in (OfferStatus.DRAFT, OfferStatus.SUSPENDED):
         raise OfferRejected(TRANSITION_REJECTED)
-    product = session.get(Product, offer.product_id)
+    product = session.get(Product, locked.product_id)
     if product is None or product.status is ProductStatus.ARCHIVED:
         raise OfferRejected(ARCHIVED_PRODUCT)
-    if not _publishable(_commercial(offer)):
+    if not _publishable(_commercial(locked)):
         raise OfferRejected(NOT_PUBLISHABLE)
+    previous = locked.status
     with session.begin_nested():
-        mark_published(session, offer)
-    return offer
+        mark_published(session, locked)
+        _remember_status_event(
+            session,
+            locked,
+            previous,
+            OfferStatus.PUBLISHED,
+            performed_by,
+        )
+    return locked
 
 
-def suspend_offer(session: Session, actor: Actor, offer: Offer) -> Offer:
-    """Muda só o estado, de published para suspended."""
+def suspend_offer(
+    session: Session,
+    actor: Actor,
+    offer: Offer,
+    performed_by: uuid.UUID,
+) -> Offer:
+    """Muda só o estado, de published para suspended, e regista a transição."""
 
-    require_producer_role(session, actor)
-    if offer.status is not OfferStatus.PUBLISHED:
+    locked = _locked_transition(session, actor, offer.id, performed_by)
+    if locked.status is not OfferStatus.PUBLISHED:
         raise OfferRejected(TRANSITION_REJECTED)
+    previous = locked.status
     with session.begin_nested():
-        mark_suspended(session, offer)
-    return offer
+        mark_suspended(session, locked)
+        _remember_status_event(
+            session,
+            locked,
+            previous,
+            OfferStatus.SUSPENDED,
+            performed_by,
+        )
+    return locked
 
 
-def withdraw_offer(session: Session, actor: Actor, offer: Offer) -> Offer:
+def withdraw_offer(
+    session: Session,
+    actor: Actor,
+    offer: Offer,
+    performed_by: uuid.UUID,
+) -> Offer:
     """Termina o ciclo. A linha permanece e não volta a outro estado."""
 
-    require_producer_role(session, actor)
-    if offer.status not in (
+    locked = _locked_transition(session, actor, offer.id, performed_by)
+    if locked.status not in (
         OfferStatus.DRAFT,
         OfferStatus.PUBLISHED,
         OfferStatus.SUSPENDED,
     ):
         raise OfferRejected(TRANSITION_REJECTED)
+    previous = locked.status
     with session.begin_nested():
-        mark_withdrawn(session, offer)
-    return offer
+        mark_withdrawn(session, locked)
+        _remember_status_event(
+            session,
+            locked,
+            previous,
+            OfferStatus.WITHDRAWN,
+            performed_by,
+        )
+    return locked
+
+
+def _locked_transition(
+    session: Session,
+    actor: Actor,
+    offer_id: uuid.UUID,
+    performed_by: uuid.UUID,
+) -> Offer:
+    """Bloqueia a oferta e só depois relê o estado e a representação.
+
+    A leitura com bloqueio pede ``populate_existing`` porque a mesma
+    sessão pode já ter o objecto em memória. Sem isso, o mapa de
+    identidade conservaria o estado anterior ao bloqueio.
+    """
+
+    locked = session.scalar(
+        select(Offer)
+        .where(Offer.id == offer_id, Offer.owner_actor_id == actor.id)
+        .execution_options(populate_existing=True)
+        .with_for_update()
+    )
+    if locked is None:
+        raise OfferUnavailable
+    access = session.scalar(
+        select(UserActorAccess)
+        .where(
+            UserActorAccess.user_id == performed_by,
+            UserActorAccess.actor_id == actor.id,
+        )
+        .execution_options(populate_existing=True)
+        .with_for_update()
+    )
+    if (
+        access is None
+        or access.status is not AccessStatus.ACTIVE
+        or access.access_level is not AccessLevel.MANAGE
+    ):
+        raise ActorUnavailable
+    require_producer_role(session, actor)
+    return locked
+
+
+def _remember_status_event(
+    session: Session,
+    offer: Offer,
+    previous: OfferStatus,
+    new_status: OfferStatus,
+    performed_by: uuid.UUID,
+) -> None:
+    session.add(
+        OfferStatusEvent(
+            offer_id=offer.id,
+            previous_status=previous,
+            new_status=new_status,
+            performed_by_user_id=performed_by,
+            occurred_at=datetime.now(timezone.utc),
+        )
+    )
+    session.flush()
 
 
 def mark_published(session: Session, offer: Offer) -> None:

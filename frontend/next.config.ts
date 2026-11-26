@@ -6,6 +6,13 @@ loadHostApiUrl();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // O access log da API conserva o método e o caminho redigido.
+  // Aqui o pedido de entrada e o URL completo do fetch não são escritos,
+  // porque ambos podem levar a pesquisa ou outro texto do visitante.
+  logging: {
+    incomingRequests: false,
+    fetches: { fullUrl: false },
+  },
   // Há um package-lock.json na pasta pessoal do utilizador. Sem esta raiz,
   // o Next.js sobe até lá e deixa de tratar frontend/ como o projecto.
   outputFileTracingRoot: path.resolve(process.cwd()),

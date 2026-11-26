@@ -1,0 +1,45 @@
+Build e compose — I8.2
+
+Ordem, sem sobreposição com o Playwright:
+  1. Pytest, registado em pytest-resultados.txt.
+  2. npm run build, em frontend.
+  3. docker compose up -d --build api web, na raiz.
+  4. docker compose up -d db, para a verbosidade do log, com o volume
+     existente.
+  5. npx playwright install chromium.
+  6. Suite Playwright, com NO_PROXY.
+
+Build local do frontend, Next.js 15.5.29:
+  Compiled successfully in 2.9s
+  Exit code: 0
+
+Compose, depois desse build:
+  db   kaivita-produtor-academico-db-1    healthy   0.0.0.0:5435->5432/tcp
+  api  kaivita-produtor-academico-api-1   healthy   0.0.0.0:8010->8000/tcp
+  web  kaivita-produtor-academico-web-1   healthy   0.0.0.0:3010->3000/tcp
+
+Imagens:
+  api  sha256:3f756fbc63d9c906ba38c2b32a984b3eca74b4190e72821064e518863af728d0
+       criada 2026-11-26T13:16:04Z
+       O contentor foi recriado. O comando passou a ser python -m app.serve.
+  web  sha256:b4502f43473f644b687d7c81df3dbf0039628cfd9d01bca2ae321b37783ed7b4
+       criada 2026-11-26T13:16:32Z
+       O contentor foi recriado. O build interno compilou em 8,0 s.
+  db   postgres:16-alpine
+       O contentor foi recriado com log_error_verbosity=terse e
+       log_min_error_statement=panic. O volume pgdata manteve-se.
+
+Alembic current, no contentor api, depois destas recriações:
+  0008_offer_status_events (head)
+
+O Playwright não usa o build de produção do contentor web. Arranca
+npx next dev em 127.0.0.1:3100, como na configuração versionada.
+
+Chromium confirmado no executável do Playwright 1.65.1:
+  Google Chrome for Testing 159.0.8154.6
+
+No fecho, os três serviços estavam healthy, com as imagens acima.
+Alembic no contentor api: 0008_offer_status_events (head).
+A suite que chegou ao fim está em playwright-resultados.txt.
+O resultado oficial da suite está em playwright-resultados.txt:
+63 passed, 2 failed, 9,3 min.

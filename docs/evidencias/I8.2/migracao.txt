@@ -1,0 +1,35 @@
+Migração — I8.2
+
+Ficheiro: backend/alembic/versions/0008_offer_status_events.py
+Revisão: 0008_offer_status_events
+Revisão anterior: 0007_coverage_and_image_rights
+
+upgrade
+  Cria offer_status_events.
+  Não insere linhas.
+  Não altera offers, actors, products nem publication_authorizations.
+
+downgrade
+  Remove o índice e a tabela.
+  Não apaga ofertas, contas nem o estado actual.
+
+Prova, em test_migration_preserves_the_offer_and_invents_no_event:
+  Base descartável kaivita_i82_<doze hexadecimais>.
+  upgrade 0007.
+  Inserção de uma oferta published, com preço, moeda, quantidade,
+  unidade e disponibilidade.
+  upgrade 0008:
+    versão 0008_offer_status_events
+    estado da oferta published
+    zero eventos
+  downgrade 0007:
+    tabela ausente
+    oferta published
+  upgrade 0008 outra vez:
+    zero eventos
+    oferta published
+  A base descartável é apagada no fim.
+
+A base de desenvolvimento ficou em 0008_offer_status_events.
+O contentor da base foi recriado para aplicar a verbosidade do log.
+O volume não foi apagado e não houve downgrade nessa base.

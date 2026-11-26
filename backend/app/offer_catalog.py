@@ -355,7 +355,11 @@ def _change_status(action, actor_id: UUID, offer_id: UUID, session: Session, use
     except OfferUnavailable:
         raise _missing_offer() from None
     try:
-        action(session, actor, offer)
+        action(session, actor, offer, user.id)
+    except ActorUnavailable:
+        raise _missing_actor() from None
+    except OfferUnavailable:
+        raise _missing_offer() from None
     except ProducerRoleMissing:
         raise _missing_producer_role() from None
     except OfferRejected as exc:

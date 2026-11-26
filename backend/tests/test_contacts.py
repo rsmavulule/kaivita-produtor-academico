@@ -56,7 +56,7 @@ from app.identity import (
     UserStatus,
 )
 from app.main import app
-from app.offers import Offer
+from app.offers import Offer, OfferStatusEvent
 from app.products import Product
 from app.tokens import issue_access_token
 
@@ -1344,6 +1344,13 @@ def _erase(user_id: uuid.UUID | None, actor_id: uuid.UUID | str | None) -> None:
                 )
             )
             session.execute(delete(PublicContact).where(PublicContact.actor_id == owner))
+            session.execute(
+                delete(OfferStatusEvent).where(
+                    OfferStatusEvent.offer_id.in_(
+                        select(Offer.id).where(Offer.owner_actor_id == owner)
+                    )
+                )
+            )
             session.execute(delete(Offer).where(Offer.owner_actor_id == owner))
             session.execute(delete(Product).where(Product.owner_actor_id == owner))
             session.execute(delete(ActorRole).where(ActorRole.actor_id == owner))

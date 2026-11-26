@@ -197,10 +197,38 @@ function isHttpsImage(value: string): boolean {
   if (value.length > 2048 || value.includes("\\") || /\s/.test(value)) return false;
   try {
     const url = new URL(value);
-    return url.protocol === "https:" && url.username === "" && url.password === "" && url.hostname !== "";
+    const host = url.hostname.replace(/\.$/, "").toLowerCase();
+    return (
+      url.protocol === "https:" &&
+      url.username === "" &&
+      url.password === "" &&
+      host !== "" &&
+      isPublicImageHost(host)
+    );
   } catch {
     return false;
   }
+}
+
+function isPublicImageHost(host: string): boolean {
+  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) return false;
+  const ipv4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(host);
+  if (ipv4) {
+    const parts = ipv4.slice(1).map(Number);
+    if (parts.some((part) => part > 255)) return false;
+    const [first, second] = parts;
+    if (first === 0 || first === 10 || first === 127 || first >= 224) return false;
+    if (first === 169 && second === 254) return false;
+    if (first === 172 && second >= 16 && second <= 31) return false;
+    if (first === 192 && second === 168) return false;
+    if (first === 100 && second >= 64 && second <= 127) return false;
+    return true;
+  }
+  if (host.includes(":")) {
+    if (host === "::" || host === "::1") return false;
+    if (host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80")) return false;
+  }
+  return true;
 }
 
 function isDecimal(value: unknown): value is string {
