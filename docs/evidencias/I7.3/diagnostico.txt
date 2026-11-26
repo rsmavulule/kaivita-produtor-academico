@@ -1,0 +1,32 @@
+Diagnóstico I7.3
+
+Baseline confirmado antes das alterações de produção do incremento:
+repositório kaivita-produtor-academico, branch main, HEAD b2edc72,
+mensagem feat(i7.2): implement contact publication authorization and public disclosure.
+Árvore inicial com _srs_extract.txt e docs/srs/ por versionar.
+Alembic head 0006_publication_authorizations. Não foi criada migração.
+
+O contrato efectivo já expunha a gestão privada de contactos, a
+concessão, a revogação, o histórico e GET /public/offers/{offer_id}/contacts.
+A interface ainda não consumia esses caminhos. A página do actor não
+tinha entrada para contactos. A ficha pública da oferta não tinha a
+acção «Ver contactos».
+
+A primeira suite de backend deste incremento falhou um teste já
+existente: a linha histórica de test_postgres_rejects_invalid_authorizations
+usava revoked_at 2026-11-25T12:00:00Z. Quando o relógio passou essa hora,
+a revogação ficou anterior à concessão e o CHECK
+ck_publication_authorizations_revocation rejeitou uma linha que o teste
+esperava aceitar. O código de produção não foi alterado. O instante da
+linha aceite passou a 2099-01-01T00:00:00Z. A suite seguinte ficou em
+266 passed.
+
+A imagem web foi reconstruída com o frontend deste incremento. Depois
+do reinício da máquina, docker compose ps não listava serviços. Após
+docker compose up -d, db, api e web ficaram healthy.
+
+A primeira tentativa Playwright no terminal do utilizador não encontrou
+chromium_headless_shell-1255 em AppData\Local\ms-playwright. O executável
+já existia na cache do Playwright usada pelo agente. A suite seguinte,
+com PLAYWRIGHT_BROWSERS_PATH apontado para essa cache, executou a
+aplicação.

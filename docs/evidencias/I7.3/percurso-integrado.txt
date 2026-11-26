@@ -1,0 +1,28 @@
+Percurso integrado I7.3
+
+Dois contextos de browser. O produtor autenticado criou pela interface
+o actor Associação de Produtores da Moamba com um sufixo único, o
+produto Tomate com o mesmo sufixo, categoria Hortícolas, descrição
+«Tomate de época», preço 45.00 MZN, quantidade 120.00 kg e
+disponibilidade disponível, e publicou a oferta. Depois registou
+produtor@example.com, que nasceu privado.
+
+O visitante anónimo pesquisou a oferta, abriu «Ver oferta» e viu a
+ficha sem o email. Nenhuma pedido cujo URL contém /contactos ocorreu
+antes do clique. A captura oferta-antes-consulta mostra «Ver contactos»
+e não mostra o email. O primeiro clique devolveu a frase
+«Não existem contactos comerciais disponíveis para esta oferta.»
+
+Depois da autorização pelo produtor, o novo clique do visitante mostrou
+produtor@example.com, com «Copiar contacto» e «Abrir o correio».
+A captura oferta-contacto-divulgado regista esse estado. A largura de
+360 px foi capturada em oferta-contacto-360 e o teste não encontrou
+overflow horizontal.
+
+A alteração para comercial@example.com retirou a divulgação. O clique
+seguinte do visitante não mostrou nenhum dos dois emails. A nova
+autorização mostrou só comercial@example.com. A revogação fez o clique
+seguinte voltar à frase de lista vazia, sem o email. A captura
+oferta-sem-contactos regista essa consulta.
+
+A negociação não foi implementada na plataforma.

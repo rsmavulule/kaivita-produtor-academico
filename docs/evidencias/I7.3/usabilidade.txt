@@ -1,0 +1,37 @@
+Usabilidade I7.3
+
+As doze capturas em capturas/ foram vistas.
+
+1. contactos-vazio-1280.png: lista vazia, texto de que a visibilidade
+   não é consulta pública, e o botão Registar contacto.
+2. contacto-registo.png: canal Email, valor vazio, aviso de que o
+   registo não autoriza a divulgação.
+3. contacto-privado.png: Produtor.Caixa@example.com, Activo, Privado,
+   sem autorização vigente, revisão 1, aviso v1 e caixa desmarcada.
+4. aviso-divulgacao.png: o mesmo aviso antes da concessão, com
+   aviso.contacto@example.com.
+5. contacto-autorizado.png: «A divulgação foi autorizada.»,
+   visibilidade pública, divulgação autorizada e histórico vigente.
+6. historico-autorizacoes.png: uma linha vigente e uma revogada,
+   aviso v1, motivo «Revogação manual», sem valor antigo.
+7. conflito-revisao.png: mensagem de revisão desactualizada e de que
+   a divulgação não foi autorizada. O teste confirmou a caixa desmarcada
+   e o valor actual revisao.nova@example.com antes da captura.
+8. oferta-antes-consulta.png: Tomate, 45.00 MZN, 120.00 kg, disponível,
+   Associação de Produtores da Moamba, botão Ver contactos, sem email.
+9. oferta-contacto-divulgado.png: produtor@example.com, Copiar contacto
+   e Abrir o correio.
+10. oferta-sem-contactos.png: a frase de que não existem contactos
+    comerciais disponíveis para esta oferta.
+11. contactos-360.png: a lista vazia com os botões na mesma linha,
+    sem corte horizontal observado pelo teste.
+12. oferta-contacto-360.png: a ficha pública e o contacto em 360 px.
+    O teste de overflow horizontal passou.
+
+O teclado passou do canal para o valor no formulário de registo.
+Os botões de submissão ficam desactivados enquanto a acção está
+pendente. As confirmações de divulgação, revogação e desactivação
+são caixas que começam desmarcadas. Os estados Activo, Inactivo,
+Privado e Divulgação autorizada estão escritos, não só pela cor.
+
+Os dados visíveis são sintéticos, no domínio example.com.

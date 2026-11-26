@@ -1,0 +1,15 @@
+Pytest I7.3
+
+Comando, em backend, com RUN_DB_TESTS=1:
+.\.venv\Scripts\python.exe -m pytest -q --tb=line
+
+Primeira execução: 1 failed, 265 passed, 41.80s.
+Falha: tests/test_publication.py::test_postgres_rejects_invalid_authorizations
+Causa: revoked_at fixo em 2026-11-25T12:00:00Z já era anterior a now()
+e o CHECK ck_publication_authorizations_revocation rejeitou a linha
+histórica que o teste esperava inserir.
+
+Correcção só no teste: esse instante passou a 2099-01-01T00:00:00Z.
+O código de produção e a migração não mudaram.
+
+Segunda execução: 266 passed em 41.05s.

@@ -1,0 +1,44 @@
+Contrato de integração I7.3
+
+Operações privadas, com sessão no servidor e Cache-Control no-store
+vindo da API:
+
+GET    /actors/{actor_id}/contacts
+POST   /actors/{actor_id}/contacts
+       corpo: channel, value
+GET    /actors/{actor_id}/contacts/{contact_id}
+PATCH  /actors/{actor_id}/contacts/{contact_id}
+       corpo: channel e/ou value
+POST   /actors/{actor_id}/contacts/{contact_id}/deactivate
+GET    /actors/{actor_id}/contacts/{contact_id}/authorizations
+POST   /actors/{actor_id}/contacts/{contact_id}/authorizations
+       corpo: contact_revision, purpose commercial_discovery,
+       notice_version v1, confirmed true
+POST   /actors/{actor_id}/contacts/{contact_id}/authorizations/{authorization_id}/revoke
+
+Canais: phone, email, whatsapp. Valor até 320 caracteres.
+Email: espaços exteriores removidos e domínio em minúsculas.
+Telefone e WhatsApp: espaços, hífens, pontos e parêntesis retirados;
+valor guardado no formato internacional com mais.
+Duplicado activo: 422 «Já existe um contacto activo com este canal e valor.»
+Contacto inactivo: 409 «O contacto inactivo não pode ser alterado.»
+Formatos: «Telefone inválido.», «Email inválido.», «WhatsApp inválido.»
+Revisão desactualizada: 409 «A revisão do contacto está desactualizada. Consulte o contacto novamente.»
+
+A concessão nova responde 201. A repetição da mesma revisão, canal,
+finalidade e aviso responde 200 e não cria outra linha.
+
+Consulta pública, sem JWT:
+
+GET /public/offers/{offer_id}/contacts
+
+200 com items de channel e value, ou items vazio.
+404 «Oferta não encontrada.» quando a oferta não existe ou não é elegível.
+Cache-Control: no-store.
+
+O browser chama apenas
+GET /api/public/ofertas/{offerId}/contactos.
+UUID inválido: 422 «Endereço inválido.»
+Oferta em falta na API: 404 «Oferta não encontrada.»
+Falha de rede ou outro estado: 503 com a mensagem de indisponibilidade
+já usada no frontend.

@@ -1,0 +1,31 @@
+Ciclo do contacto I7.3
+
+O contacto nasce privado, activo e com revisão 1, definida pela API.
+A captura contacto-privado mostra Email, Produtor.Caixa@example.com,
+Activo, Privado, Sem autorização vigente e revisão 1.
+
+A normalização observada no registo:
+« Produtor.Caixa@Example.com » ficou Produtor.Caixa@example.com.
+O telefone «+258 84 000 0731» ficou +258840000731 e continuou inactivo
+depois de terminar a sessão e entrar de novo.
+
+A duplicação canónica, com espaços e domínio em maiúsculas sobre o
+mesmo valor, manteve o texto introduzido e mostrou que já existe um
+contacto activo. A lista ficou com um email.
+
+A alteração «  caixa.alteracao@EXAMPLE.com  » preservou a autorização
+e a revisão. A mensagem diz que a alteração equivalente preservou a
+autorização. O valor mostrado continuou caixa.alteracao@example.com.
+
+«nao-e-email» não foi gravado. A página mostrou «Email inválido.»,
+manteve o texto no campo e manteve «Divulgação autorizada». O histórico
+não ganhou motivo de revogação.
+
+A alteração para comercial@example.com, no percurso do visitante,
+aumentou a revisão e retirou a divulgação. A mensagem não afirma que
+uma autorização foi revogada quando não existia: diz que, se existia
+uma autorização vigente, foi revogada.
+
+A desactivação exige a caixa «Confirmo a desactivação deste contacto.».
+Depois dela o contacto fica Inactivo e deixam de aparecer guardar e
+desactivar. Não há reactivação nem eliminação física.

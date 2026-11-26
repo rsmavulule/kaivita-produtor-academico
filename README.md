@@ -687,13 +687,14 @@ não concede esta autorização.
 predicado de elegibilidade do I6.1, na mesma instrução SQL. A resposta
 traz só `channel` e `value`, ou uma lista vazia. Oferta inexistente ou
 inelegível responde o 404 já usado na ficha. O cabeçalho é `no-store`.
-A interface ainda não tem a acção «Ver contactos».
+A interface pede os contactos só na acção «Ver contactos», por um caminho
+próprio que não reenvia a sessão.
 
 ## Fora deste incremento
 
 Registo público, recuperação de palavra-passe, refresh tokens, concessão
 e revogação de acessos a outros representantes, alteração do catálogo
-global de papéis, interface privada e pública dos contactos, catálogos
+global de papéis, catálogos
 públicos independentes de produtos e actores, carregamento de ficheiros,
 área de actuação, encomendas, pagamentos, reservas, filas e qualquer
 sincronização entre clientes.

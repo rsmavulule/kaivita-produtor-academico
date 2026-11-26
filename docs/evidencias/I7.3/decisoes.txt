@@ -1,0 +1,41 @@
+Decisões I7.3
+
+A lista privada mostra canal, valor, estado, visibilidade e revisão.
+Não pede o histórico por linha. «Divulgação autorizada» só aparece no
+detalhe, quando o histórico tem uma autorização com revoked_at nulo.
+Visibilidade pública e divulgação por uma oferta são apresentadas como
+factos distintos.
+
+O registo envia apenas canal e valor. O formulário não tem actor,
+visibilidade, revisão, estado nem identificador de autorização. O email
+da conta autenticada não é copiado para o valor.
+
+A concessão envia a revisão que estava no formulário confirmado. A
+acção não volta a ler o contacto imediatamente antes do POST. Em 409,
+a acção lê o contacto uma vez, devolve o valor e a revisão actuais, e
+não concede de novo nesse pedido. A caixa de confirmação nasce
+desmarcada e o formulário volta a montar-se desmarcado depois do conflito.
+
+A revogação usa o identificador da autorização vigente devolvida pelo
+histórico. Não escolhe uma autorização posterior para repetir uma
+revogação antiga.
+
+A consulta pública é um Route Handler só de GET,
+/api/public/ofertas/[offerId]/contactos. Valida o UUID, chama o caminho
+fixo no servidor e responde Cache-Control: no-store. O browser não
+recebe Authorization. O componente só pede os contactos no clique.
+Um contador de geração ignora respostas atrasadas. Mudar de oferta,
+ocultar, lista vazia ou falha limpam os itens mostrados.
+
+Ligações nativas: mailto para email sem : / ? #; tel para o telefone
+canónico; https://wa.me/ só com os dígitos, sem texto nem parâmetros
+de rastreio. Não há SDK nem envio automático.
+
+O histórico fica na página do contacto. Os UUID de operadores não são
+mostrados. Os motivos manual, contact_changed e contact_deactivated
+são traduzidos. O valor antigo não é reconstruído.
+
+A limpeza E2E apaga, nos actores exclusivos da execução, autorizações,
+contactos, ofertas, produtos, papéis, representações e o actor. Se
+ainda existir uma autorização operada por uma conta da execução noutro
+actor, a limpeza aborta sem commit.

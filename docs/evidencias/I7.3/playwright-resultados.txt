@@ -1,0 +1,26 @@
+Playwright I7.3
+
+Ambiente das execuções que chegaram à aplicação:
+E2E_NO_SERVER=1
+E2E_BASE_URL=http://127.0.0.1:3010
+PLAYWRIGHT_BROWSERS_PATH para a cache que já tinha o Chromium 1255
+NO_PROXY=127.0.0.1,localhost
+Workers 1. Timeout 90s. Sem aumento de retries.
+
+Tentativa no terminal do utilizador, sem PLAYWRIGHT_BROWSERS_PATH:
+56 failed, 8 passed, 31.0s. Todas as falhas de browser foram
+«Executable doesn't exist» para chromium_headless_shell-1255 em
+AppData\Local\ms-playwright. Os 8 aprovados não abrem browser.
+Esta tentativa não exercitou a aplicação.
+
+Execuções seguintes, já com o executável encontrado, antes da suite
+verde: 60 passed e 4 failed; depois 63 passed e 1 failed. As falhas
+estavam nas asserções de contacts.spec.ts e foram corrigidas no teste.
+Não alteraram o contrato da API.
+
+Suite com capturas, E2E_EVIDENCE=I7.3, na sessão em que essa variável
+já estava definida: 64 passed (3.5m). Código de saída 0.
+Inclui os 52 testes anteriores e os 12 de contacts.spec.ts.
+
+Suite sem capturas, sem E2E_EVIDENCE: 64 passed (3.6m). Código de
+saída 0. Comando observado em 2026-11-26, elapsed_ms 228471.

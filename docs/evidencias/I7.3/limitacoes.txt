@@ -1,0 +1,30 @@
+Limitações I7.3
+
+A página já aberta pode continuar a mostrar contactos recebidos até
+uma nova consulta, a ocultação ou a navegação. A revogação não apaga
+cópias feitas por terceiros nem o que o navegador já recebeu.
+
+O texto livre de actor, produto e oferta não é filtrado. Publicar uma
+oferta não autoriza contactos, mas o sistema não garante a ausência de
+contactos escritos em descrições, nomes ou condições de entrega.
+
+RNF-06 e RNF-07 não ficam integralmente satisfeitos. Faltam minimização
+além da projecção pública, retenção, auditoria transversal e o
+consentimento do titular. A confirmação do representante é operacional.
+
+Não há reactivação nem eliminação física do contacto. Arquivar o
+produto e retirar a oferta não foram revertidos, porque o ciclo não o
+permite.
+
+O teste de concorrência com cursor aberto, referido no I7.2, não foi
+repetido. A identidade do SQLAlchemy quando uma autorização é lida
+antes do bloqueio continua uma limitação conhecida do I7.2 e não foi
+alterada.
+
+Depois da suite verde, 49 contas com o padrão sintético i5x ou i73
+continuavam na base, fora do manifesto desta execução, com actores e
+ofertas. Não foram apagadas. As 12 contas do manifesto desta execução
+não continuavam na base.
+
+Não se afirma que o protótipo resolveu o escoamento. Essa avaliação
+pertence ao I9. Não foram implementados I8 nem I9.

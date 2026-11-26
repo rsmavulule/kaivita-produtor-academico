@@ -1,0 +1,31 @@
+Build e Compose I7.3
+
+PostgreSQL: o contentor db estava healthy antes das alterações e,
+depois do reinício, voltou a healthy com docker compose up -d.
+Porta publicada 5435.
+
+Chromium 1255: presente em
+AppData\Local\Temp\cursor-sandbox-cache\1c15bf160168af9df293912be95bee2d\playwright
+Não foi descarregado de novo. O terminal do utilizador, sem
+PLAYWRIGHT_BROWSERS_PATH, não o encontrava em ms-playwright.
+
+Build do frontend, npm run build, Next.js 15.5.29: concluído.
+Rotas novas compiladas:
+/actores/[actorId]/contactos
+/actores/[actorId]/contactos/novo
+/actores/[actorId]/contactos/[contactId]
+/api/public/ofertas/[offerId]/contactos
+
+Imagem web reconstruída: kaivita-produtor-academico-web.
+O contentor web foi recriado e ficou healthy.
+A imagem da API não foi reconstruída: o código de produção do backend
+não mudou.
+
+Depois do reinício, docker compose ps estava vazio. Depois de
+docker compose up -d, a saída observada foi:
+
+api Up 13 seconds (healthy)
+db Up 18 seconds (healthy)
+web Up 7 seconds (healthy)
+
+Portas: API 8010, web 3010, PostgreSQL 5435.

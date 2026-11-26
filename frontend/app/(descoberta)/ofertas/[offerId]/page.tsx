@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 
 import { OfferDetail } from "../../../../components/offer-public";
+import { PublicContacts } from "../../../../components/public-contacts";
 import { PublicShell } from "../../../../components/public-shell";
 import { readPublicOffer } from "../../../../lib/public-offers";
 import {
   INVALID_OFFER_ADDRESS,
+  isPublicOfferId,
   OFFER_NOT_FOUND,
   returnHref,
   type RawQuery,
@@ -37,6 +39,7 @@ export default async function PublicOfferPage({
           <a href={back}>{backLabel}</a>
         </p>
         {offer.kind === "ready" ? <OfferDetail offer={offer.offer} /> : null}
+        {isPublicOfferId(offerId) ? <PublicContacts key={offerId} offerId={offerId} /> : null}
         {offer.kind === "invalid" ? (
           <Missing title="Endereço inválido" message={INVALID_OFFER_ADDRESS} />
         ) : null}

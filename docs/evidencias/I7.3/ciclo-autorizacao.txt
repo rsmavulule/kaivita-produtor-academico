@@ -1,0 +1,32 @@
+Ciclo da autorização I7.3
+
+Antes da concessão o contacto está privado e sem autorização vigente.
+A captura aviso-divulgacao mostra o aviso v1, o actor, o canal, o valor
+e a caixa de confirmação. Submeter sem a caixa mostra que a confirmação
+explícita é obrigatória e não cria autorização.
+
+A concessão confirmada mostra «A divulgação foi autorizada.»,
+«Divulgação autorizada» e «Visibilidade pública». A captura
+contacto-autorizado corresponde a esse estado. A revisão autorizada
+no histórico é 1.
+
+A segunda confirmação da mesma revisão mostra que não foi criada outra
+autorização. Continua uma linha vigente.
+
+A revogação usa a autorização vigente e exige
+«Confirmo a revogação desta autorização.». Depois, o contacto volta a
+privado e sem autorização vigente. O histórico traduz manual como
+revogação manual. A captura historico-autorizacoes mostra uma linha
+vigente e uma revogada, com concessão e revogação, aviso v1 e o motivo
+manual. Não mostra o valor antigo nem o identificador do operador.
+
+Uma nova concessão depois da revogação volta a ter uma linha vigente
+e conserva a revogada.
+
+No conflito, a outra página gravou revisao.nova@example.com. A submissão
+da revisão antiga recebeu a mensagem de revisão desactualizada e
+«A divulgação não foi autorizada.». O valor actual apresentado passou
+a ser o novo email, a revisão do formulário mudou e a caixa ficou
+desmarcada. A captura conflito-revisao mostra esse aviso. Só a
+confirmação seguinte concedeu a divulgação. Não houve segunda concessão
+automática no pedido do conflito.

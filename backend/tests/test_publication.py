@@ -363,7 +363,7 @@ def test_postgres_rejects_invalid_authorizations(api, db_session):
     _reject(db_session, insert, base)
     historical = {
         **base,
-        "revoked_at": "2026-11-25T12:00:00Z",
+        "revoked_at": "2099-01-01T00:00:00Z",
         "revoked_by_user_id": owner.id,
         "revocation_reason": "manual",
     }

@@ -1,0 +1,24 @@
+Matriz de autorização I7.3
+
+Representação activa de leitura:
+consulta a lista, o contacto e o histórico.
+Não vê registo, alteração, concessão, revogação nem desactivação.
+Observado no teste de isolamento.
+
+Representação activa de gestão:
+consulta, registo, alteração, concessão, revogação e desactivação,
+conforme o contrato. O papel comercial producer não foi exigido:
+um actor só com Comprador registou e autorizou um contacto.
+Observado no teste de alteração.
+
+Representação revogada e utilizador sem representação:
+a página não mostra o valor do contacto. O texto é o de actor ou
+contacto não encontrado. Observado no teste de isolamento.
+
+Dois actores do mesmo utilizador:
+a lista do segundo não contém o email do primeiro, e o endereço do
+contacto do primeiro sob o segundo actor não revela o valor.
+Observado no mesmo teste.
+
+A ausência de oferta elegível não escondeu a gestão privada.
+O contacto privado foi consultado e alterado antes de existir divulgação.

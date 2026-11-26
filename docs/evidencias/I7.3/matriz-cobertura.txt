@@ -1,0 +1,40 @@
+Matriz de cobertura I7.3
+
+Suite frontend/e2e/contacts.spec.ts, contra a API, o PostgreSQL e o
+frontend em Docker. A execução com 64 testes aprovados inclui os 52
+anteriores e os 12 desta suite.
+
+Grupo A. Lista vazia, registo, normalização e duplicação.
+Alteração equivalente e alteração inválida.
+Desactivação, logout e novo login.
+
+Grupo B. Contacto privado, aviso v1, confirmação obrigatória,
+concessão, repetição sem nova linha, revogação manual, nova autorização
+e histórico.
+
+Grupo C. Revisão antiga submetida depois de alteração noutra página,
+409, sem concessão automática, valor actualizado e nova confirmação.
+A alteração inválida não revoga a autorização.
+
+Grupo D. Gestão, leitura, representação revogada, estranho e dois
+actores do mesmo utilizador. O valor não aparece para quem não está
+autorizado.
+
+Grupo E. Dois contextos. Produtor e visitante percorrem registo,
+publicação, contacto privado, consulta vazia, autorização, alteração,
+nova autorização e revogação. As operações de negócio foram feitas
+pela interface.
+
+Grupo F. Suspensão, republicação, perda e reposição do papel produtor,
+arquivo do produto, retirada da oferta e desactivação do contacto.
+A oferta publicada e indisponível continua a divulgar o contacto
+autorizado. Arquivo e retirada não foram revertidos.
+
+Grupo G. Sem contacto no HTML inicial, sem pedido antes do clique,
+projecção pública com canal e valor, resposta atrasada descartada,
+falha simulada sem login, cookie inválido sem Authorization.
+
+Grupo H. 360 px e 1280 px, teclado no registo, confirmações, validação,
+conflito de revisão, oferta retirada e falha temporária seguida de
+consulta vazia. Os três últimos usam resposta simulada no caminho do
+BFF; os restantes usam a API real.

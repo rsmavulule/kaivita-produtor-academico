@@ -1,0 +1,27 @@
+Limpeza E2E I7.3
+
+A limpeza corre no teardown e só apaga emails presentes no manifesto
+da execução. O padrão aceite é i5 seguido de um dígito, ou i73, no
+domínio example.com.
+
+Ordem, apenas em actores cujos outros representantes não estão fora
+do manifesto: autorizações de divulgação, contactos, ofertas, produtos,
+papéis, representações e o actor. Depois, as representações restantes
+das contas. Se uma autorização ainda referir essas contas como
+operador, a limpeza levanta erro e não faz commit. Não há TRUNCATE.
+
+Depois da suite com capturas e outra vez depois da suite sem capturas,
+o manifesto tinha 12 contas e nenhuma delas continuava na base.
+Também não restavam acessos dessas contas. Não havia actores cujo nome começasse por
+«Associação de Produtores da Moamba » nem contactos cujo valor
+terminasse em @example.com.
+
+Fora desse manifesto contaram-se 49 contas com o mesmo padrão de
+prefixo, 185 representações, 165 actores e 38 ofertas desses actores.
+Há 40 ofertas no total. Essas 49 contas não pertenciam ao manifesto
+desta execução e não foram apagadas. Não se identificou uma autorização
+de divulgação operada por elas: a contagem de autorizações com esses
+operadores, feita sobre o conjunto mais largo do padrão, foi 0.
+
+Credenciais, manifesto e locks continuam fora do versionamento. O
+.dockerignore do frontend exclui e2e.

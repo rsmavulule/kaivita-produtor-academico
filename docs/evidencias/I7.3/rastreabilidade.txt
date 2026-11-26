@@ -1,0 +1,58 @@
+Rastreabilidade I7.3
+
+Fonte: SRS v1.1. A SRS não foi modificada.
+
+RF-05  «Apresentar localização geral e apenas contactos comerciais
+       autorizados pelo actor.»
+       Implementado e tecnicamente validado na ficha da oferta: a
+       localização geral continua visível e o contacto só aparece
+       depois da acção, quando a API o devolve. A lista de ofertas não
+       mostra contactos.
+
+RF-10  «Permitir registar, consultar e revogar autorização para
+       publicação de contactos; ocultar contacto após revogação.»
+       Implementado e tecnicamente validado na interface. O registo da
+       autorização, a consulta do histórico, a revogação e a ocultação
+       na consulta pública seguinte foram percorridos pela UI.
+       Não se declara o percurso completo de contacto entre actores
+       para além da descoberta.
+
+RB-07  «Contacto privado não é publicado; revogação de autorização
+       impede exibição pública posterior.»
+       Implementado e tecnicamente validado para a consulta seguinte.
+       Uma página já aberta pode conservar o resultado anterior até
+       nova consulta, ocultação ou navegação. A revogação não apaga
+       cópias já feitas.
+
+RNF-05 «Testes automatizados de autenticação, papéis, representação,
+       CRUD, publicação, pesquisa e revogação; guardar evidências de
+       execução.»
+       A suite de backend ficou em 266 passed. A suite Playwright com
+       capturas ficou em 64 passed, e a repetição sem capturas também
+       ficou em 64 passed. As evidências desta pasta registam as duas
+       execuções.
+
+RNF-06 «Minimização de dados pessoais, consentimento por finalidade e
+       possibilidade de ocultar contactos públicos.»
+       Parcial. A resposta pública estruturada tem canal e valor, a
+       finalidade é explícita, o aviso v1 é mostrado e o visitante pode
+       ocultar o resultado na página. O texto livre não é censurado.
+       Não é conformidade jurídica nem consentimento do titular.
+
+RNF-07 «Registar eventos relevantes de autorização e alterações de
+       publicação sem expor dados sensíveis em logs.»
+       Parcial. O histórico cobre concessão e revogação dos contactos,
+       sem o valor e sem os UUID de operadores na interface. Não há
+       auditoria transversal das restantes alterações de publicação.
+
+UC-07  «Gerir contacto público. Sem autorização, contacto oculto; após
+       revogação, oculto imediatamente.»
+       Implementado e tecnicamente validado para a consulta seguinte ao
+       commit da revogação. «Imediatamente» não inclui apagar o que o
+       navegador já recebeu nem cópias de terceiros.
+
+Fora deste incremento: encomendas, pagamentos, mensagens internas,
+fotografias, área de cobertura, catálogos públicos independentes de
+actor e produto, e a avaliação empírica de escoamento do I9.
+Q-06 permanece em aberto. A autorização operacional não é o
+consentimento jurídico do titular.

@@ -1,0 +1,34 @@
+Segurança e privacidade I7.3
+
+A sessão continua no cookie HttpOnly kaivita_session. O browser não
+recebe API_URL nem o token nas páginas observadas. Os títulos não
+incluem o valor do contacto.
+
+A consulta pública não envia Authorization. O teste do cookie inválido
+verificou a ausência desse cabeçalho no pedido ao caminho do BFF e a
+página pública não foi enviada para o login.
+
+O HTML inicial da oferta, antes do clique, não continha o email privado.
+A listagem de pesquisa abriu a ficha sem o contacto. A resposta pública
+mostrada tem canal e valor. Não apareceram contactos privados, inactivos
+ou revogados.
+
+Uma resposta atrasada de outra oferta, simulada, não recolocou
+antigo@example.com. Uma falha simulada mostrou a indisponibilidade e a
+consulta seguinte, vazia, retirou essa mensagem. Os contactos não são
+guardados em localStorage, sessionStorage, IndexedDB nem cookies.
+
+Os erros de formato observados não repetem o valor rejeitado:
+«Email inválido.» O campo conserva o que foi escrito.
+
+O aviso v1, visível na captura, diz que terceiros podem copiar o
+contacto e que a revogação não apaga cópias já feitas. A mesma limitação
+vale para uma página já aberta: ela conserva o último resultado até
+nova consulta, ocultação ou navegação.
+
+Os avisos de texto livre do I6.2 mantêm-se. Não foi acrescentada
+censura heurística. Não se afirma que descrições, nomes ou condições
+de entrega estão livres de contactos escritos à mão.
+
+Os UUID de quem concedeu ou revogou não são mostrados. O histórico
+permanece na área privada.

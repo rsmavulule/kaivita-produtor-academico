@@ -251,6 +251,8 @@ select:focus-visible {
 }
 
 .badge {
+  display: inline-block;
+  margin-right: 0.4rem;
   justify-self: start;
   padding: 2px 8px;
   border-radius: 999px;
@@ -258,6 +260,10 @@ select:focus-visible {
   color: var(--accent);
   font-size: 0.85rem;
   font-weight: 650;
+}
+
+.contact-value {
+  overflow-wrap: anywhere;
 }
 
 .choices {

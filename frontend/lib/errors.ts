@@ -23,6 +23,8 @@ const FIELD_NAMES = [
   "unit",
   "availability",
   "delivery_terms",
+  "channel",
+  "value",
 ] as const;
 
 export type FieldName = (typeof FIELD_NAMES)[number];

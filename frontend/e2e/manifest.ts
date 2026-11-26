@@ -3,7 +3,7 @@ import path from "node:path";
 
 export const manifestPath = path.join(process.cwd(), "e2e", ".run-manifest.json");
 
-const TEST_EMAIL = /^i5\d+-[\w.-]+@example\.com$/;
+const TEST_EMAIL = /^i(?:5\d+|73)-[\w.-]+@example\.com$/;
 
 export function resetManifest(): void {
   mkdirSync(path.dirname(manifestPath), { recursive: true });

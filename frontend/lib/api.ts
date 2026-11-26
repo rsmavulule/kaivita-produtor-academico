@@ -17,7 +17,7 @@ function readApiUrl(): string | null {
 }
 
 type ApiCall =
-  | { kind: "ok"; data: unknown }
+  | { kind: "ok"; status: number; data: unknown }
   | ParsedApiError;
 
 export async function apiRequest(
@@ -42,7 +42,7 @@ export async function apiRequest(
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
     const data = await readBody(response);
-    if (response.ok) return { kind: "ok", data };
+    if (response.ok) return { kind: "ok", status: response.status, data };
     return parseApiError(response.status, data);
   } catch {
     return { kind: "unavailable", status: 0, message: CONNECTION_MESSAGE };

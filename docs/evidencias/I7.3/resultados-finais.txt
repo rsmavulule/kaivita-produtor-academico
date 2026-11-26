@@ -1,0 +1,17 @@
+Resultados finais I7.3
+
+Baseline: main, b2edc72. Alembic 0006_publication_authorizations.
+Backend, depois da correcção do instante no teste: 266 passed.
+Playwright com capturas: 64 passed (3.5m).
+Playwright sem capturas: 64 passed (3.6m).
+Build do frontend concluído. Imagem web reconstruída. API não
+reconstruída. db, api e web healthy nas portas 5435, 8010 e 3010.
+
+A interface privada gere contactos, concede e revoga a divulgação e
+mostra o histórico. A consulta pública só ocorre em «Ver contactos».
+O percurso produtor–visitante foi executado em dois contextos.
+
+As 12 contas do manifesto de cada suite verde não continuavam na base.
+49 contas sintéticas de outras execuções, fora do manifesto, continuam.
+Não houve commit nem push.
+_srs_extract.txt e docs/srs/ continuam por versionar.
