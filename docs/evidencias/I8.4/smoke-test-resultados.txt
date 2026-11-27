@@ -1,0 +1,80 @@
+Smoke operacional do I8.4. Ambiente kaivita-avaliacao, base kaivita_avaliacao.
+Nao e a suite automatizada. Nao correu na base de desenvolvimento.
+
+Data local: 2026-11-26.
+Projecto resolvido: kaivita-avaliacao.
+Volume: kaivita-avaliacao-pgdata.
+Portas: 5436, 8020, 3020.
+
+Preparacao, antes do smoke
+conta criada: produtor@avaliacao.example
+conta criada: comprador@avaliacao.example
+conta criada: consulta@avaliacao.example
+autenticacao produtor HTTP 200
+actor produtor criado
+actor comprador criado
+representacao de consulta activa
+produto com fotografia criado
+produto sem fotografia criado
+oferta publicada
+rascunho criado
+contacto privado criado
+contacto de divulgacao criado
+autorizacao concedida
+projeccao publica confirmada na preparacao
+contagens users=3 actors=2 products=2 offers=2 contacts=2 authorizations=1 events=1 alembic=0008_offer_status_events
+
+Verificacao integrada
+alembic=0008_offer_status_events base=kaivita_avaliacao
+saude HTTP 200 database=up
+web /login HTTP 200
+web / HTTP 200
+web /ofertas HTTP 200
+credencial invalida HTTP 401
+actor produtor consultado com area de actuacao
+produtos consultados
+oferta publica com fotografia declarada e condicoes de entrega
+pesquisa publica encontrou a oferta de demonstracao
+rascunho ausente da pesquisa publica
+divulgacao: autorizado visivel e privado oculto
+revogacao oculta o contacto de verificacao e mantem o de demonstracao
+representacao read recusada com HTTP 404
+comprador isolado do produtor
+ciclo publicar/suspender/retirar com 3 eventos
+oferta de demonstracao mantem-se publicada
+logs recentes da API sem os contactos sinteticos
+contagens users=3 actors=2 products=3 offers=3 contacts=3 authorizations=2 events=4 alembic=0008_offer_status_events
+verificar concluido
+
+Soft 404, observado nessa verificacao e confirmado outra vez depois da reposicao final
+api=404
+web=200
+texto presente: Oferta nao encontrada.
+Nao e falha do smoke. E a limitacao ja conhecida da ficha publica.
+
+Sessao no browser, Playwright, sobre o conjunto reposto
+sessao inicio HTTP autenticado
+fotografia elementos=1
+sessao terminada e acesso seguinte recusado
+
+A imagem foi projectada na ficha. Nao se afirma que o Wikimedia entregou
+os bytes: o anfitriao nao respondeu na consulta de licenca feita antes.
+
+Persistencia depois de reiniciar db, api e web, sobre o conjunto restaurado
+persistencia oferta mantida alembic=0008_offer_status_events
+contagens users=3 actors=2 products=2 offers=2 contacts=2 authorizations=1 events=1 alembic=0008_offer_status_events
+
+Reposicao do volume e nova preparacao
+volume de avaliacao removido
+volume de desenvolvimento presente
+reposicao vazia alembic=0008_offer_status_events
+preparar de novo: users=3 actors=2 products=2 offers=2 contacts=2 authorizations=1 events=1 alembic=0008_offer_status_events
+sessao repetida no conjunto final: inicio, fotografia e termino de sessao aprovados
+saude final={"status":"ok","database":"up"}
+
+Base de desenvolvimento, antes e depois, sem escrita
+kaivita|55|173|92|40|2|0008_offer_status_events
+
+Nao houve regressao de pytest nem de Playwright.
+Nao houve alteracao de codigo de producao, de testes ou de configuracao
+com efeito no comportamento medido no I8.3.

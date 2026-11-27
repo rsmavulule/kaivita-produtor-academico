@@ -1,0 +1,10 @@
+# Ambiente isolado da avaliação académica (I8.4 / I9).
+# Não substitui o compose.yaml de desenvolvimento.
+# O arranque previsto é: powershell -File scripts/avaliacao.ps1 subir
+# Volume próprio. O volume pgdata do projecto de desenvolvimento não entra aqui.
+
+name: kaivita-avaliacao
+
+volumes:
+  pgdata:
+    name: kaivita-avaliacao-pgdata

@@ -1,0 +1,75 @@
+{
+  "accounts": {
+    "produtor": {
+      "email": "produtor@avaliacao.example",
+      "password_env": "AVALIACAO_PASSWORD_PRODUTOR"
+    },
+    "comprador": {
+      "email": "comprador@avaliacao.example",
+      "password_env": "AVALIACAO_PASSWORD_COMPRADOR"
+    },
+    "consulta": {
+      "email": "consulta@avaliacao.example",
+      "password_env": "AVALIACAO_PASSWORD_CONSULTA"
+    }
+  },
+  "producer": {
+    "kind": "organization",
+    "display_name": "Cooperativa Sintética da Avaliação",
+    "general_location": "Localidade fictícia de demonstração",
+    "coverage_area": "Área sintética de demonstração",
+    "roles": ["producer"]
+  },
+  "buyer": {
+    "kind": "person",
+    "display_name": "Comprador Sintético da Avaliação",
+    "general_location": "Outra localidade fictícia",
+    "coverage_area": null,
+    "roles": ["buyer"]
+  },
+  "products": {
+    "with_photo": {
+      "name": "Tomate de demonstração",
+      "description": "Produto sintético para a avaliação académica. Não provém de um produtor real.",
+      "category": "hortícola",
+      "image_ref": "https://upload.wikimedia.org/wikipedia/commons/8/89/Tomato_je.jpg",
+      "image_use_confirmed": true
+    },
+    "without_photo": {
+      "name": "Feijão de demonstração",
+      "description": "Produto sintético sem fotografia. O percurso principal não depende da imagem.",
+      "category": "leguminosa",
+      "image_ref": null,
+      "image_use_confirmed": false
+    }
+  },
+  "offers": {
+    "published": {
+      "product": "with_photo",
+      "price": "120.00",
+      "currency": "MZN",
+      "quantity": "10",
+      "unit": "kg",
+      "availability": "available",
+      "delivery_terms": "Recolha na localidade fictícia. Não inclui transporte."
+    },
+    "draft": {
+      "product": "without_photo"
+    }
+  },
+  "contacts": {
+    "private_phone": {
+      "channel": "phone",
+      "value": "+99955501001"
+    },
+    "disclosed_email": {
+      "channel": "email",
+      "value": "contacto.sintetico@avaliacao.example"
+    }
+  },
+  "verification_contact": {
+    "channel": "phone",
+    "value": "+99955501002"
+  },
+  "photo_credit": "Referência HTTPS de demonstração: https://upload.wikimedia.org/wikipedia/commons/8/89/Tomato_je.jpg (ficheiro Tomato_je.jpg no Wikimedia Commons). Não é fotografia de produtor nem material da FACIM. A licença do ficheiro não foi reconfirmada nesta preparação porque o anfitrião não respondeu. Confirmar a linha de licença na página do ficheiro antes de reproduzir a imagem na monografia. A aplicação não descarrega o ficheiro; se o anfitrião falhar, a ficha pública permanece."
+}
